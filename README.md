@@ -17,7 +17,7 @@ This app allows users to record race results on their mobile devices, either rec
 
 ## Authentication with OAuth 2.0
 - To authenticate the app and allow the user to access their online races, you need to set up OAuth 2.0. There is a file called `oAuth2Constants.ts` in the `constants` folder. By setting the `CLIENT_ID` and `REDIRECT_URI` there, you will be able to authenticate using OAuth 2.0. The `REDIRECT_URI` ***must*** exactly match what you gave to Runsignup when you created your Runsignup client for OAuth 2.0.
-- Once the app is ready for production mode, you must make some changes to the `REDIRECT_URI`, both in the code and on Runsignup. It must be `"Scheme"://optional/paths/can/be/empty`, where the "Scheme" is the `scheme` in `app.json` (can be whatever you want). You can use `npx uri-scheme add myredirect` to add a custom uri if you want. Example `REDIRECT_URI`: com.rsu.mobile_timer_app://
+- Once the app is ready for production mode, you must make some changes to the `REDIRECT_URI`, both in the code and on Runsignup. It must be `"Scheme"://optional/paths/can/be/empty`, where the "Scheme" is the `scheme` in `app.json` (can be whatever you want). You can use `npx uri-scheme add myredirect` to add a custom uri if you want. Example `REDIRECT_URI`: com.rsu.mobile_timing_app://
 _Note: The_ `REDIRECT_URI` _only needs to change for production._ 
 
 ## Finish Line Mode
