@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "lib": [
+      "es6"
+    ],
+    "moduleResolution": "node",
+    "noEmit": false,
+    "target": "esnext",
+    "noEmitOnError": false,
+    "skipLibCheck": true
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "*.js"
+  ],
+  "extends": "expo/tsconfig.base"
+}
