@@ -230,7 +230,7 @@ export const postBibs = async (raceID: number, eventID: number, formData: FormDa
 /** Delete Finish Times from RSU API */
 export const deleteFinishTimes = async (raceID: number, eventID: number): Promise<AxiosResponse<null>> => {
 	const response = await handleAxiosPostCall(
-		`https://runsignup.com/Rest/race/${raceID}/results/delete-timing-data?format=json&event_id=${eventID}`, 
+		`https://runsignup.com/Rest/race/${raceID}/results/delete-timing-data?format=json&event_id=${eventID}&clear_all_result_sets=T`, 
 		null
 	);
 	return response;
