@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import { oAuthLogin } from "./oAuth2Helper";
+import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
 import getClockTime from "./GetClockTime";
 
 interface RaceResponse {
@@ -156,38 +157,38 @@ async function handleAxiosPostCall<T extends FormData|null>(url: string, formDat
 
 /** Get Races for a specific User from RSU API */
 export const getRaces = async (): Promise<RaceResponse["races"]> => {
-	const response = await handleAxiosGetCall<RaceResponse>("https://runsignup.com/Rest/races?format=json");
+	const response = await handleAxiosGetCall<RaceResponse>(RUNSIGNUP_URL + "Rest/races?format=json");
 	return response.data.races;
 };
 
 /** Get Events for a specific Race from RSU API */
 export const getEvents = async (raceID: number): Promise<EventResponse["race"]["events"]> => {
-	const response = await handleAxiosGetCall<EventResponse>(`https://runsignup.com/Rest/race/${raceID}?format=json`);
+	const response = await handleAxiosGetCall<EventResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}?format=json`);
 	return response.data.race.events;
 };
 
 /** Get Bib Numbers from RSU API */
 export const getBibs = async (raceID: number, eventID: number): Promise<BibsResponse["bib_finishing_order"]> => {
-	const response = await handleAxiosGetCall<BibsResponse>(`https://runsignup.com/Rest/race/${raceID}/results/get-chute-data?format=json&event_id=${eventID}`);
+	const response = await handleAxiosGetCall<BibsResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/results/get-chute-data?format=json&event_id=${eventID}`);
 	return response.data.bib_finishing_order;
 };
 
 /** Get Finish Times from RSU API */
 export const getFinishTimes = async (raceID: number, eventID: number): Promise<TimesResponse["finishing_times"]> => {
-	const response = await handleAxiosGetCall<TimesResponse>(`https://runsignup.com/Rest/race/${raceID}/results/get-timing-data?format=json&event_id=${eventID}`);
+	const response = await handleAxiosGetCall<TimesResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/results/get-timing-data?format=json&event_id=${eventID}`);
 	return response.data.finishing_times;
 };
 
 /** Get participants from RSU API */
 export const getParticipants = async (raceID: number, eventID: number): Promise<ParticipantResponse[0]> => {
-	const response = await handleAxiosGetCall<ParticipantResponse>(`https://runsignup.com/Rest/race/${raceID}/participants?format=json&sort=registration_id&event_id=${eventID}`);
+	const response = await handleAxiosGetCall<ParticipantResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/participants?format=json&sort=registration_id&event_id=${eventID}`);
 	return response.data[0];
 };
 
 /** Post Start Time to RSU API */
 export const postStartTime = async (raceID: number, eventID: number, formData: FormData): Promise<AxiosResponse<FormData>> => {
 	const response = await handleAxiosPostCall(
-		`https://runsignup.com/Rest/race/${raceID}/results/start-time?format=json&event_id=${eventID}&request_format=json`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/start-time?format=json&event_id=${eventID}&request_format=json`, 
 		formData
 	);
 	return response;
@@ -212,7 +213,7 @@ export const postFinishTimes = async (raceID: number, eventID: number, times: Ar
 	);
 
 	const response = await handleAxiosPostCall(
-		`https://runsignup.com/Rest/race/${raceID}/results/finishing-times?format=json&event_id=${eventID}&request_format=json`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/finishing-times?format=json&event_id=${eventID}&request_format=json`, 
 		formData
 	);
 	return response;
@@ -221,7 +222,7 @@ export const postFinishTimes = async (raceID: number, eventID: number, times: Ar
 /** Post Bib Numbers to RSU API */
 export const postBibs = async (raceID: number, eventID: number, formData: FormData): Promise<AxiosResponse<FormData>> => {
 	const response = await handleAxiosPostCall(
-		`https://runsignup.com/Rest/race/${raceID}/results/bib-order?format=json&event_id=${eventID}&request_format=json`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/bib-order?format=json&event_id=${eventID}&request_format=json`, 
 		formData
 	);
 	return response;
@@ -230,7 +231,7 @@ export const postBibs = async (raceID: number, eventID: number, formData: FormDa
 /** Delete Finish Times from RSU API */
 export const deleteFinishTimes = async (raceID: number, eventID: number): Promise<AxiosResponse<null>> => {
 	const response = await handleAxiosPostCall(
-		`https://runsignup.com/Rest/race/${raceID}/results/delete-timing-data?format=json&event_id=${eventID}&clear_all_result_sets=T`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/delete-timing-data?format=json&event_id=${eventID}&clear_all_result_sets=T`, 
 		null
 	);
 	return response;
@@ -239,7 +240,7 @@ export const deleteFinishTimes = async (raceID: number, eventID: number): Promis
 /** Delete Bib Numbers from RSU API */
 export const deleteBibs = async (raceID: number, eventID: number): Promise<AxiosResponse<null>> => {
 	const response = await handleAxiosPostCall(
-		`https://runsignup.com/Rest/race/${raceID}/results/delete-chute-data?format=json&event_id=${eventID}`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/delete-chute-data?format=json&event_id=${eventID}`, 
 		null
 	);
 	return response;

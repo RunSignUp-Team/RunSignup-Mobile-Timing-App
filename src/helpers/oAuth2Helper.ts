@@ -1,15 +1,15 @@
 import axios, { AxiosResponse } from "axios";
 import { ResponseType, AuthRequest } from "expo-auth-session";
 import * as SecureStore from "expo-secure-store";
-import { CLIENT_ID, REDIRECT_URI } from "../constants/oAuth2Constants";
+import { CLIENT_ID, REDIRECT_URI, RUNSIGNUP_URL } from "../constants/oAuth2Constants";
 
 // no-op on native mobile apps...
 // WebBrowser.maybeCompleteAuthSession();
 
 // URLS AND INFO
-const requestGrantUrl = "https://runsignup.com/Profile/OAuth2/RequestGrant";
-const accessTokenUrl = "https://runsignup.com/Rest/v2/auth/auth-code-redemption.json";
-const refreshTokenUrl = "https://runsignup.com/Rest/v2/auth/refresh-token.json";
+const requestGrantUrl = RUNSIGNUP_URL + "Profile/OAuth2/RequestGrant";
+const accessTokenUrl = RUNSIGNUP_URL + "Rest/v2/auth/auth-code-redemption.json";
+const refreshTokenUrl = RUNSIGNUP_URL + "Rest/v2/auth/refresh-token.json";
 
 const clientID = CLIENT_ID;
 

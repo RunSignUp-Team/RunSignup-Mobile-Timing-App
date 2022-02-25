@@ -27,8 +27,8 @@ export default function VerificationModeRenderItem(props: Props) {
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
 	const updateBib = useCallback((newBib) => {
-		props.recordsRef.current[index][0] = newBib;
-		props.recordsRef.current[index][2] = newBib;
+		props.recordsRef.current[index][0] = Number(newBib);
+		props.recordsRef.current[index][2] = Number(newBib);
 		props.updateRecords([...props.recordsRef.current]);
 	}, [index, props]);
 
@@ -38,7 +38,7 @@ export default function VerificationModeRenderItem(props: Props) {
 	}, [index, props]);
 
 	return (
-		<View onStartShouldSetResponder={() => true} style={{padding: 0, margin: 0}}>
+		<View onStartShouldSetResponder={() => true} style={{ padding: 0, margin: 0 }}>
 			<TouchableOpacity style={conflictItem ? globalstyles.conflictLongTableItem : (index === props.selectedID ? globalstyles.selectedLongTableItem : globalstyles.longTableItem)}
 				disabled={!conflictItem}
 				onPress={() => props.conflictResolution(index)}
@@ -79,10 +79,10 @@ export default function VerificationModeRenderItem(props: Props) {
 					{getClockTime(props.record[1])}</Text>}
 
 				{!conflictItem && props.online &&
-                <Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{props.findParticipant(props.record[0])}</Text>}
+					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{props.findParticipant(props.record[0])}</Text>}
 
 				{conflictItem && props.online &&
-                <Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
+					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
 				{props.editMode && <TouchableOpacity
 					style={globalstyles.tableDeleteButton}
@@ -91,7 +91,6 @@ export default function VerificationModeRenderItem(props: Props) {
 				</TouchableOpacity>}
 			</TouchableOpacity>
 		</View>
-
 	);
 }
 

@@ -77,13 +77,15 @@ const EventsListScreen = ({ navigation }: Props) => {
 		// Get Race data from the API
 		const fetchEvents = async () => {
 			try {
-				const events = await getEvents(context.raceID);
+				let events = await getEvents(context.raceID);
 				const response = await AsyncStorage.getItem("onlineRaces");
 				const raceList = response !== null ? JSON.parse(response) : [];
 				const race = raceList.find((race: Race) => race.race_id === context.raceID);
 
-				// Loop through events in the present (48-hour grace period)
-				for (let i = 0; i < events.filter(fEvent => Number(fEvent.start_time) >= new Date().getTime() - 172800000).length; i++) {
+				// Filter events to only show those in the present/future (48-hour grace period)
+				events = events.filter(fEvent => new Date(fEvent.start_time) >= new Date(new Date().getTime() - 172800000));
+
+				for (let i = 0; i < events.length; i++) {
 					// Create local storage object
 					let event: Event = {
 						id: 0,
@@ -184,7 +186,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> : finalEventList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any events for this race!"}</Text> : <FlatList
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> : finalEventList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming events for this race yet!"}</Text> : <FlatList
 				data={finalEventList}
 				renderItem={renderItem}
 				keyExtractor={(_item, index) => (index + 1).toString()}

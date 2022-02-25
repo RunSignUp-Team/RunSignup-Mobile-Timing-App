@@ -93,12 +93,14 @@ const RaceListScreen = ({ navigation }: Props) => {
 		// Get Race List data from API
 		const fetchRaces = async () => {
 			try {
-				const races = await getRaces();
+				let races = await getRaces();
 				const response = await AsyncStorage.getItem("onlineRaces");
 				const raceList = response !== null ? JSON.parse(response) : [];
 
-				// Loop through races in the present (48-hour grace period)
-				for (let i = 0; i < races.filter(fRace => Number(fRace.race.next_date) >= new Date().getTime() - 172800000).length; i++) {
+				// Filter races to only show those in the present/future (48-hour grace period)
+				races = races.filter(fRace => new Date(fRace.race.next_date) >= new Date(new Date().getTime() - 172800000));
+
+				for (let i = 0; i < races.length; i++) {
 					// Create local storage object
 					let raceListRace: Race = {
 						id: 0,
