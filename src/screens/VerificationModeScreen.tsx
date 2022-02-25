@@ -402,9 +402,13 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 			// Alert if blank or incorrect finish time
 			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish Times must be in this form:\nhh:mm:ss.ms\nPlease note the colons and the period.");
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[1] > 86400000 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
-			// Alert if blank or incorrect finish time
+		} else if (recordsRef.current.filter((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
+			// Alert if too large finish time
 			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is too large in the list. Please correct the value.");
+			setLoading(false);
+		} else if (recordsRef.current.filter((entry) => entry[1] === 0).length > 0) {
+			// Alert if zero finish time
+			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is zero in the list. Please correct the value.");
 			setLoading(false);
 		} else {
 			saveResults();

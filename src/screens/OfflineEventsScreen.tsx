@@ -176,7 +176,6 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 						} else {
 							// Something else
 							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-							console.log(error);
 						}
 					}
 				}

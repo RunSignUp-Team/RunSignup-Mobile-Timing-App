@@ -7,7 +7,6 @@ export default function getTimeInMils(clockTime: string) {
 		for (let i = 0; i < clockSplit.length; i++) {
 			timeSplit[i] = parseFloat(clockSplit[i]);
 		}
-		console.log(timeSplit);
 		switch (clockSplit.length) {
 			case 3:
 				timeInMils = timeSplit[0] * 3600000 + timeSplit[1] * 60000 + timeSplit[2] * 1000;
