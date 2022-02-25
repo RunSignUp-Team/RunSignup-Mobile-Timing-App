@@ -82,56 +82,53 @@ const EventsListScreen = ({ navigation }: Props) => {
 				const raceList = response !== null ? JSON.parse(response) : [];
 				const race = raceList.find((race: Race) => race.race_id === context.raceID);
 
-				// Get finish times, bibs, and conflicts
-				for (let i = 0; i < events.length; i++) {
-					// If the race is upcoming or within the past 48 hours
-					if (Date.parse(events[i].start_time) >= (new Date().getTime() - 172800000)) {
-						// Create local storage object
-						let event: Event = {
-							id: 0,
-							title: "",
-							start_time: "",
-							event_id: 0,
-							real_start_time: -1,
-							finish_times: [],
-							checker_bibs: [],
-							bib_nums: []
-						};
+				// Loop through events in the present (48-hour grace period)
+				for (let i = 0; i < events.filter(fEvent => Number(fEvent.start_time) >= new Date().getTime() - 172800000).length; i++) {
+					// Create local storage object
+					let event: Event = {
+						id: 0,
+						title: "",
+						start_time: "",
+						event_id: 0,
+						real_start_time: -1,
+						finish_times: [],
+						checker_bibs: [],
+						bib_nums: []
+					};
 
-						if (race !== undefined && race.events !== undefined) {
-							event = race.events.find((event: Event) => event.event_id === events[i].event_id);
-						}
-						const realIndex = i + 1;
+					if (race !== undefined && race.events !== undefined) {
+						event = race.events.find((event: Event) => event.event_id === events[i].event_id);
+					}
+					const realIndex = i + 1;
 
-						let object: Event = {
+					let object: Event = {
+						id: realIndex,
+						title: events[i].name,
+						start_time: events[i].start_time,
+						event_id: events[i].event_id,
+						real_start_time: -1,
+						finish_times: [],
+						checker_bibs: [],
+						bib_nums: [],
+					};
+					
+					// If there is local data don't overwrite it
+					if (event !== undefined) {
+						object = {
 							id: realIndex,
 							title: events[i].name,
 							start_time: events[i].start_time,
+							real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
 							event_id: events[i].event_id,
-							real_start_time: -1,
-							finish_times: [],
-							checker_bibs: [],
-							bib_nums: [],
+							finish_times: (event.finish_times !== null) ? event.finish_times : [],
+							checker_bibs: (event.checker_bibs !== null) ? event.checker_bibs : [],
+							bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
 						};
-                        
-						// If there is local data don't overwrite it
-						if (event !== undefined) {
-							object = {
-								id: realIndex,
-								title: events[i].name,
-								start_time: events[i].start_time,
-								real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
-								event_id: events[i].event_id,
-								finish_times: (event.finish_times !== null) ? event.finish_times : [],
-								checker_bibs: (event.checker_bibs !== null) ? event.checker_bibs : [],
-								bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
-							};
-						}
-						// Don't push an object that already exists in the list
-						if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
-							finalEventList.push(object);
-							setFinalEventList([...finalEventList]);
-						}
+					}
+					// Don't push an object that already exists in the list
+					if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
+						finalEventList.push(object);
+						setFinalEventList([...finalEventList]);
 					}
 				}
 				setLoading(false);
@@ -187,7 +184,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> : finalEventList.length === 0 ? <Text style={globalstyles.info}>{"There are no events for this race."}</Text> : <FlatList
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> : finalEventList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any events for this race!"}</Text> : <FlatList
 				data={finalEventList}
 				renderItem={renderItem}
 				keyExtractor={(_item, index) => (index + 1).toString()}

@@ -97,45 +97,44 @@ const RaceListScreen = ({ navigation }: Props) => {
 				const response = await AsyncStorage.getItem("onlineRaces");
 				const raceList = response !== null ? JSON.parse(response) : [];
 
-				for (let i = 0; i < races.length; i++) {
-					// If the race is upcoming or within the past 48 hours
-					if (Date.parse(races[i].race.next_date) >= (new Date().getTime() - 172800000)) {
-						let raceListRace: Race = {
-							id: 0,
-							title: "",
-							next_date: "",
-							race_id: 0,
-							events: []
-						};
-                        
-						if (raceList !== null && raceList.length > 0) {
-							raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
-						}
-						const realIndex = i + 1;
+				// Loop through races in the present (48-hour grace period)
+				for (let i = 0; i < races.filter(fRace => Number(fRace.race.next_date) >= new Date().getTime() - 172800000).length; i++) {
+					// Create local storage object
+					let raceListRace: Race = {
+						id: 0,
+						title: "",
+						next_date: "",
+						race_id: 0,
+						events: []
+					};
+					
+					if (raceList !== null && raceList.length > 0) {
+						raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
+					}
+					const realIndex = i + 1;
 
-						let object: Race = {
+					let object: Race = {
+						id: realIndex,
+						title: races[i].race.name,
+						next_date: races[i].race.next_date,
+						race_id: races[i].race.race_id,
+						events: []
+					};
+
+					// If there is local data don't overwrite it
+					if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
+						object = {
 							id: realIndex,
 							title: races[i].race.name,
 							next_date: races[i].race.next_date,
 							race_id: races[i].race.race_id,
-							events: []
+							events: raceListRace.events
 						};
+					}
 
-						// If there is local data don't overwrite it
-						if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
-							object = {
-								id: realIndex,
-								title: races[i].race.name,
-								next_date: races[i].race.next_date,
-								race_id: races[i].race.race_id,
-								events: raceListRace.events
-							};
-						}
-
-						if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
-							finalRaceList.push(object);
-							setFinalRaceList([...finalRaceList]);
-						}
+					if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
+						finalRaceList.push(object);
+						setFinalRaceList([...finalRaceList]);
 					}
 				}
 				setLoading(false);
@@ -186,7 +185,7 @@ const RaceListScreen = ({ navigation }: Props) => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS !== "ios" ? GREEN_COLOR : "808080"} /> : finalRaceList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you haven't created any races yet!"}</Text> : <FlatList
+			{loading ? <ActivityIndicator size="large" color={Platform.OS !== "ios" ? GREEN_COLOR : "808080"} /> : finalRaceList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
 				data={finalRaceList}
 				renderItem={renderItem}
 				keyExtractor={(_item, index) => (index + 1).toString()} />}
