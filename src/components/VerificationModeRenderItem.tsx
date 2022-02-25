@@ -26,6 +26,7 @@ interface Props {
 export default function VerificationModeRenderItem(props: Props) {
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
+
 	const updateBib = useCallback((newBib) => {
 		props.recordsRef.current[index][0] = Number(newBib);
 		props.recordsRef.current[index][2] = Number(newBib);

@@ -48,7 +48,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 	const isUnmountedRef = useRef(false);
 	const [loading, setLoading] = useState(false);
 
-	/** Updates VRecords without re-rendering entire list */
+	/** Updates records without re-rendering entire list */
 	const updateRecords = useCallback((newRecords: Array<[number, number, number]>) => {
 		setRecords(newRecords);
 		recordsRef.current = newRecords;
