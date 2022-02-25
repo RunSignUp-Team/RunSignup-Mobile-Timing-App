@@ -185,7 +185,8 @@ const ModeScreen = ({ navigation }: Props) => {
 	// Assign offline event to online event
 	const assignEvent = async () => {
 		const request = await AsyncStorage.getItem("offlineEvents");
-		if (request !== null) {
+		const requestParse = JSON.parse((request && request !== null) ? request : "");
+		if (requestParse.length > 0) {
 			navigation.navigate("OfflineEventsList");
 		} else {
 			Alert.alert("No Offline Events", "You have not created any Offline Events.");
