@@ -78,7 +78,7 @@ const RaceListScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={goToHomeScreen} label="Home Screen" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={goToHomeScreen} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={handleLogOut}>

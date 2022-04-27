@@ -500,7 +500,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		} else {
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={() => { navigation.pop(); }} label="Modes" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 				),
 				gestureEnabled: true
 			});

@@ -9,6 +9,7 @@ import { OfflineEvent } from "./OfflineEventsScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
+import MainButton from "../components/MainButton";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -46,7 +47,7 @@ const ModeScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={() => { navigation.pop(); }} label="Events List" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 			headerRight: () => (
 				context.online ?
@@ -153,7 +154,7 @@ const ModeScreen = ({ navigation }: Props) => {
 			if (resultFinish === "true") {
 				navigation.navigate("VerificationMode");
 			} else {
-				Alert.alert("No Data Entered", "You have not entered Chute and Finish Line data yet. Please enter that data first and try again.");
+				Alert.alert("No Data Entered", "You have not saved Chute and Finish Line data yet. Please enter that data first and try again.");
 			}
 		}
 		);
@@ -196,40 +197,10 @@ const ModeScreen = ({ navigation }: Props) => {
 	return (
 		<View style={globalstyles.container}>
 			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
-				<TouchableOpacity
-					style={globalstyles.button}
-					onPress={context.online === false ? finishLineTappedOffline : finishLineTapped}
-				>
-					<Text style={globalstyles.buttonText}>Finish Line Mode</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={globalstyles.button}
-					onPress={context.online === false ? chuteTappedOffline : chuteTapped}
-				>
-					<Text style={globalstyles.buttonText}>Chute Mode</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={globalstyles.button}
-					onPress={context.online === false ? verificationTappedOffline : verificationTapped}
-				>
-					<Text style={globalstyles.buttonText}>Verification Mode</Text>
-				</TouchableOpacity>
-				{!context.online && (
-					<TouchableOpacity
-						style={globalstyles.deleteButton}
-						onPress={deleteEvent}
-					>
-						<Text style={globalstyles.buttonText}>Delete Offline Event</Text>
-					</TouchableOpacity>
-				)}
-				{context.online && (
-					<TouchableOpacity
-						style={globalstyles.deleteButton}
-						onPress={assignEvent}
-					>
-						<Text style={globalstyles.buttonText}>Assign Offline Event</Text>
-					</TouchableOpacity>
-				)}
+				<MainButton onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"}/>
+				<MainButton onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"}/>
+				<MainButton onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Verification Mode"}/>
+				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color="Red"/>
 			</View>
 		</View>
 	);

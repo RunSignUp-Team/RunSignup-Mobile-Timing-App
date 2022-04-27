@@ -13,6 +13,7 @@ import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import MainButton from "../components/MainButton";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -180,7 +181,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 						}
 
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
 					} else {
 						Alert.alert("Warning", "If you enter Finish Line Mode data after another user has already entered it for this event, your data will not be saved. Please check with other users before recording data.");
 					}
@@ -200,7 +201,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					}
 					if (eventList[eventIndex].finish_times.length > 0) {
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
 					}
 				}
 			});
@@ -459,16 +460,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 								</View>}
 								stickyHeaderIndices={[0]} />
 
-
-							{!timerOn && <TouchableOpacity
-								style={globalstyles.button}
-								onPress={startTimer}>
-								<Text style={globalstyles.buttonText}>Start Timer</Text>
-							</TouchableOpacity>}
-
-							{timerOn && <TouchableOpacity style={globalstyles.recordButton} onPress={recordTime}>
-								<Text style={{ fontSize: 35 }}>Record</Text>
-							</TouchableOpacity>}
+							<MainButton onPress={timerOn ? recordTime : startTimer} text={timerOn ? "Record" : "Start Timer"} color={timerOn ? "Red" : "Green"}/>
 						</>
 
 

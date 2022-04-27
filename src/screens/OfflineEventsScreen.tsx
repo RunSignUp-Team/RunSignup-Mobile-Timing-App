@@ -48,7 +48,7 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={() => { navigation.pop(); }} label="Race List" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 		});
 	}, [context.eventID, context.online, context.raceID, navigation]);
@@ -258,19 +258,19 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 				presentationStyle="formSheet"
 				visible={alertVisible}>
 				<View style={{ flexDirection: "row", justifyContent: "center" }}>
-					<TouchableOpacity style={{ position: "absolute", top: 5, left: 5 }} onPress={() => setAlertVisible(false)}>
+					<TouchableOpacity style={{ position: "absolute", top: 6, left: 6 }} onPress={() => setAlertVisible(false)}>
 						<Text style={{ fontSize: 20, fontWeight: "bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
 					</TouchableOpacity>
-					<Text style={[globalstyles.header, {fontWeight: "bold", top: 12}]}>Set Event Name</Text>
-					<TouchableOpacity style={{ position: "absolute", top: 5, right: 5 }} onPress={() => { createEvent(); }}>
+					<Text style={[globalstyles.header, {fontWeight: "bold", top: 13}]}>Set Event Name</Text>
+					<TouchableOpacity style={{ position: "absolute", top: 6, right: 6 }} onPress={() => { createEvent(); }}>
 						<Text style={{ fontSize: 20, fontWeight: "bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
 					</TouchableOpacity>
 				</View>
 				<TextInput
-					style={[globalstyles.input, { width: "70%", position: "absolute", top: 120, fontSize: 20, height: 50 }]}
+					style={[globalstyles.input, { width: "80%", position: "absolute", top: 120, fontSize: 20, height: 50 }]}
 					maxLength={20}
 					ref={addEventRef}
-					placeholder="Enter the Event Name..."
+					placeholder="Enter Event Name..."
 					onChangeText={input => setEventName(input)}
 					onSubmitEditing={() => { createEvent(); }}>
 				</TextInput>
