@@ -2,10 +2,11 @@ import { StyleSheet } from "react-native";
 
 export const GREEN_COLOR = "#00ac65";
 export const RED_COLOR = "#ff3b30";
-export const BACKGROUND_COLOR = "#f2f2f2";
+export const BACKGROUND_COLOR = "#fff";
 export const TABLE_FONT_SIZE = 14;
-export const BUTTON_BORDER_RADIUS = 100;
+export const BORDER_RADIUS = 12;
 export const TABLE_ITEM_HEIGHT = 40;
+export const LONG_TABLE_ITEM_HEIGHT = 50;
 
 export const globalstyles = StyleSheet.create({
 	// Containers
@@ -40,7 +41,8 @@ export const globalstyles = StyleSheet.create({
 		textAlign: "center",
 	},
 	buttonText: {
-		fontSize: 18,
+		fontSize: 25,
+		fontWeight: "bold",
 		color: "white",
 		paddingHorizontal: 1
 	},
@@ -55,7 +57,7 @@ export const globalstyles = StyleSheet.create({
 		textAlign: "center",
 		borderWidth: 1, 
 		borderColor: "black", 
-		borderRadius: 20, 
+		borderRadius: BORDER_RADIUS, 
 		padding: 20
 	},
 
@@ -63,11 +65,10 @@ export const globalstyles = StyleSheet.create({
 	button: {
 		alignItems: "center",
 		backgroundColor: GREEN_COLOR,
-		padding: 20,
+		paddingHorizontal: 10,
 		width: "100%",
-		margin: 12,
-		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
+		marginHorizontal: 10,
+		borderRadius: BORDER_RADIUS,
 		alignSelf: "center",
 	},
 	disabledButton: {
@@ -75,9 +76,9 @@ export const globalstyles = StyleSheet.create({
 		backgroundColor: "#808080",
 		padding: 20,
 		width: "100%",
-		margin: 12,
+		margin: 10,
 		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
+		borderRadius: BORDER_RADIUS,
 		alignSelf: "center",
 	},
 	deleteButton: {
@@ -85,9 +86,9 @@ export const globalstyles = StyleSheet.create({
 		backgroundColor: RED_COLOR,
 		padding: 20,
 		width: "100%",
-		margin: 12,
+		margin: 10,
 		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
+		borderRadius: BORDER_RADIUS,
 		alignSelf: "center",
 	},
 	recordButton: {
@@ -97,7 +98,7 @@ export const globalstyles = StyleSheet.create({
 		width: "100%",
 		margin: 1,
 		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
+		borderRadius: BORDER_RADIUS,
 		alignSelf: "center",
 	},
 
@@ -107,13 +108,15 @@ export const globalstyles = StyleSheet.create({
 		flexGrow: 0,
 		borderWidth: 1,
 		marginBottom: 10,
-		overflow: "hidden"
+		overflow: "hidden",
+		borderRadius: BORDER_RADIUS
 	},
 	longFlatList: {
 		height: "80%",
 		flexGrow: 0,
 		borderWidth: 1,
-		overflow: "hidden"
+		overflow: "hidden",
+		borderRadius: BORDER_RADIUS
 	},
 
 	// Tables
@@ -130,6 +133,7 @@ export const globalstyles = StyleSheet.create({
 		flexDirection: "row",
 		padding: 5,
 		paddingLeft: 20,
+		height: LONG_TABLE_ITEM_HEIGHT
 	},
 	selectedLongTableItem: {
 		backgroundColor: GREEN_COLOR,
@@ -138,6 +142,7 @@ export const globalstyles = StyleSheet.create({
 		flexDirection: "row",
 		padding: 5,
 		paddingLeft: 20,
+		height: LONG_TABLE_ITEM_HEIGHT
 	},
 	conflictLongTableItem: {
 		backgroundColor: RED_COLOR,
@@ -146,13 +151,16 @@ export const globalstyles = StyleSheet.create({
 		flexDirection: "row",
 		padding: 5,
 		paddingLeft: 20,
+		height: LONG_TABLE_ITEM_HEIGHT
 	},
 	tableHead: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
 		paddingLeft: 15,
-		paddingVertical: 3,
-		backgroundColor: BACKGROUND_COLOR
+		paddingVertical: 8,
+		backgroundColor: BACKGROUND_COLOR,
+		borderTopRightRadius: BORDER_RADIUS,
+		borderTopLeftRadius: BORDER_RADIUS
 	},
 	tableHeadButtonText: {
 		fontSize: TABLE_FONT_SIZE,
@@ -218,14 +226,15 @@ export const globalstyles = StyleSheet.create({
 
 	// Text Input
 	input: {
-		height: 40,
+		height: 50,
 		margin: 12,
 		marginTop: 1,
 		borderWidth: 1,
-		borderRadius: 20,
+		borderRadius: BORDER_RADIUS,
 		padding: 10,
 		width: "100%",
 		alignSelf: "center",
+		fontSize: 20
 	},
 
 	// Images
@@ -246,7 +255,7 @@ export const globalstyles = StyleSheet.create({
 	// Race List / Event List Items
 	listItem: {
 		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
+		borderRadius: BORDER_RADIUS,
 		margin: 5,
 		padding: 15,
 		backgroundColor: GREEN_COLOR,
@@ -261,7 +270,7 @@ export const globalstyles = StyleSheet.create({
 		paddingHorizontal: 10,
 		paddingVertical: 7,
 		borderWidth: 1,
-		borderRadius: 20,
+		borderRadius: BORDER_RADIUS,
 		marginBottom: 10,
 		marginRight: 5,
 		flex: 2,
@@ -272,7 +281,7 @@ export const globalstyles = StyleSheet.create({
 		paddingHorizontal: 10,
 		paddingVertical: 7,
 		borderWidth: 1,
-		borderRadius: 20,
+		borderRadius: BORDER_RADIUS,
 		marginBottom: 10,
 		marginLeft: 5,
 		flex: 1,

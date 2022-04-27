@@ -1,9 +1,9 @@
 import React, { memo } from "react";
-import { Text, TouchableOpacity, Alert } from "react-native";
+import { Alert } from "react-native";
 import { OfflineEvent } from "../screens/OfflineEventsScreen";
-import { globalstyles } from "./styles";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import MainButton from "./MainButton";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -23,8 +23,7 @@ interface Props {
 
 export default function OfflineEventsRenderItem(props: Props) {
 	return (
-		<TouchableOpacity
-			style={globalstyles.listItem}
+		<MainButton text={props.item.name} listButton
 			onPress={() => {
 				if (!props.online) {
 					props.setEventTitle(props.item.name);
@@ -35,7 +34,7 @@ export default function OfflineEventsRenderItem(props: Props) {
 						"Assign Event",
 						`Are you sure you want to assign the data stored in ${props.item.name} to ${props.eventTitle}? This cannot be undone and will replace any existing data.`,
 						[
-							{ text: "Cancel", onPress: () => {return;} },
+							{ text: "Cancel", onPress: () => { return; } },
 							{
 								text: "Assign",
 								onPress: () => {
@@ -43,13 +42,11 @@ export default function OfflineEventsRenderItem(props: Props) {
 								},
 								style: "destructive",
 							},
-							
+
 						]
 					);
 				}
-			}}>
-			<Text style={globalstyles.listText}>{props.item.name}</Text>
-		</TouchableOpacity>
+			}} />
 	);
 }
 

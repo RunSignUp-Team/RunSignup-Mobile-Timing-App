@@ -1,11 +1,12 @@
 import React, { useContext, useCallback } from "react";
-import { View, TouchableOpacity, Text, Image, Alert, BackHandler } from "react-native";
+import { View, Image, Alert, BackHandler } from "react-native";
 import { globalstyles} from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { oAuthLogin } from "../helpers/oAuth2Helper";
+import MainButton from "../components/MainButton";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -60,15 +61,8 @@ const LoginScreen = ({ navigation }: Props) => {
 					style={[globalstyles.image, {marginTop: "10%"}]}
 					source={require("../assets/logo.png")}
 				/>
-				<TouchableOpacity style={[globalstyles.button, {marginTop: "25%"}]} onPress={handleRecordOnlineClick}>
-					<Text style={globalstyles.buttonText}>Record Online Race</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={[globalstyles.button]}
-					onPress={handleRecordOfflineClick}>
-					<Text style={globalstyles.buttonText}>Record Offline Race</Text>
-				</TouchableOpacity>
-
+				<MainButton text={"Record Online Race"} onPress={handleRecordOnlineClick} buttonStyle={{marginTop: "25%"}}/>
+				<MainButton text={"Record Offline Race"} onPress={handleRecordOfflineClick} />
 			</View>
 
 		</View>

@@ -31,32 +31,27 @@ export default function StartNavigator() {
 			headerBackVisible: false,
 			headerTintColor: "white",
 			headerStyle: { backgroundColor: GREEN_COLOR },
-			headerTitleStyle: { fontSize: 22 },
+			headerTitleStyle: { fontSize: 20, fontWeight: "bold" },
 		}}>
 			<AppStack.Screen name="SplashScreen" component={Loader} options={{
 				headerShown: false,
 			}} />
 			<AppStack.Screen name="Login" component={LoginScreen} options={{
-				title: "Mobile Timing",
-				headerLargeTitle: true,
+				title: "Login",
 				gestureEnabled: false
 			}} />
 			<AppStack.Screen name="OfflineEventsList" component={OfflineEventsListScreen} options={{
-				title: "Offline Events List",
-				headerLargeTitle: true,
+				title: "Offline Events",
 			}} />
 			<AppStack.Screen name="RaceList" component={RaceListScreen} options={{
-				title: "Race List",
-				headerLargeTitle: true,
+				title: "Races",
 				gestureEnabled: false
 			}} />
 			<AppStack.Screen name="EventsList" component={EventsListScreen} options={{
-				title: "Events List",
-				headerLargeTitle: true,
+				title: "Events",
 			}} />
 			<AppStack.Screen name="ModeScreen" component={ModeScreen} options={{
 				title: "Modes",
-				headerLargeTitle: true,
 			}} />
 			<AppStack.Screen name="FinishLineMode" component={FinishLineModeScreen} options={{
 				title: "Finish Line Mode",
@@ -68,7 +63,6 @@ export default function StartNavigator() {
 			}} />
 			<AppStack.Screen name="VerificationMode" component={VerificationModeScreen} options={{
 				title: "Verification Mode",
-				headerLargeTitle: true,
 			}} />
 		</AppStack.Navigator>
 	);

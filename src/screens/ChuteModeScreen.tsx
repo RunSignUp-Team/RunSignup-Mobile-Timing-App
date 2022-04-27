@@ -11,6 +11,7 @@ import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import MainButton from "../components/MainButton";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -163,7 +164,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 				updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
 				if (raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 					// Alert user of data recovery
-					Alert.alert("Data Recovered", "The app closed unexpectedly while you were recording Chute Mode data for this event. Your data has been restored. Tap \"Save\" when you are done recording data.");
+					Alert.alert("Data Recovered", "The app closed unexpectedly while you were recording Chute Mode data for this event. Your data has been restored. Tap “Save” when you are done recording data.");
 				} else {
 					Alert.alert("Warning", "If you enter Chute Mode data after another user has already entered it for this event, your data will not be saved. Please check with other users before recording data.");
 				}
@@ -174,7 +175,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 				updateBibNums(eventList[eventIndex].bib_nums);
 				if (eventList[eventIndex].bib_nums.length > 0) {
 					// Alert user of data recovery
-					Alert.alert("Data Recovered", "The app closed unexpectedly while you were recording Chute Mode data for this event. Your data has been restored. Tap \"Save\" when you are done recording data.");
+					Alert.alert("Data Recovered", "The app closed unexpectedly while you were recording Chute Mode data for this event. Your data has been restored. Tap “Save” when you are done recording data.");
 				}
 			});
 		}
@@ -296,12 +297,8 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 					onSubmitEditing={bibText !== "" ? recordBib : () => {return;}}
 				/>
 
-				<TouchableOpacity
-					style={globalstyles.recordButton}
-					onPress={() => recordBib()}
-				>
-					<Text style={{ fontSize: 35 }}>Record</Text>
-				</TouchableOpacity></>}
+				<MainButton onPress={recordBib} text={"Record"} color={"Red"} />
+				</>}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);

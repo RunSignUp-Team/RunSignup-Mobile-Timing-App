@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/AxiosCalls";
@@ -474,7 +474,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 
 		const flatListRefCurrent = flatListRef.current;
 		if (flatListRefCurrent !== null) {
-			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * recordsRef.current.length }); }, 100);
+			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: LONG_TABLE_ITEM_HEIGHT * recordsRef.current.length }); }, 100);
 		}
 	}, [updateRecords]);
 
@@ -500,7 +500,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		} else {
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={() => { navigation.pop(); }} label="Modes" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 				),
 				gestureEnabled: true
 			});
@@ -577,7 +577,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 						initialNumToRender={30}
 						windowSize={11}
 						getItemLayout={(_, index) => (
-							{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
+							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
 						)}
 						ListHeaderComponent={<View style={globalstyles.tableHead}>
 							<Text style={globalstyles.tableTextThree}>Place</Text>
