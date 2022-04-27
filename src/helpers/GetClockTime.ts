@@ -1,7 +1,7 @@
 import addLeadingZeros from "./AddLeadingZeros";
 
-export default function getClockTime(timeInMils: number) {
-	if (timeInMils !== undefined) {
+export default function getClockTime(timeInMils: number): string | undefined {
+	if (timeInMils !== undefined && !isNaN(timeInMils) && timeInMils !== null) {
 		// If empty or incorrect time
 		if (timeInMils === Number.MAX_SAFE_INTEGER) {
 			return "";
