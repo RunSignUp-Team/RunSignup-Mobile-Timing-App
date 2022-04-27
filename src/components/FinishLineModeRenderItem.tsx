@@ -19,8 +19,8 @@ interface Props {
 	},
 }
 
-export default function FinishLineModeRenderItem(props: Props) {
-    
+export default function FinishLineModeRenderItem(props: Props): React.ReactElement {
+
 	const updateCheckerBib = useCallback((newBib) => {
 		props.checkerBibsRef.current[props.index] = parseInt(newBib);
 		props.updateCheckerBibs([...props.checkerBibsRef.current]);
@@ -37,7 +37,7 @@ export default function FinishLineModeRenderItem(props: Props) {
 
 	return (
 		<View style={globalstyles.tableItem}
-			onStartShouldSetResponder={() => true}>
+			onStartShouldSetResponder={(): boolean => true}>
 			<Text style={globalstyles.tableTextThree}>{props.index + 1}</Text>
 			<Text style={globalstyles.tableTextOne}>{getClockTime(props.time)}</Text>
 			<TextInput

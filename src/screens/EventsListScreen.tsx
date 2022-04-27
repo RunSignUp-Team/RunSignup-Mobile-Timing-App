@@ -28,7 +28,7 @@ export interface Event {
 	bib_nums: Array<number>,
 }
 
-const EventsListScreen = ({ navigation }: Props) => {
+const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [finalEventList, setFinalEventList] = useState<Array<Event>>([]);
@@ -41,12 +41,12 @@ const EventsListScreen = ({ navigation }: Props) => {
 			{
 				text: "Cancel",
 				style: "default",
-				onPress: () => {return;}
+				onPress: (): void => { return; }
 			},
 			{
 				text: "Log Out",
 				style: "destructive",
-				onPress: async () => {
+				onPress: async (): Promise<void> => {
 					try {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
@@ -56,17 +56,17 @@ const EventsListScreen = ({ navigation }: Props) => {
 				}
 			}
 		]);
-	},[navigation]);
+	}, [navigation]);
 
 	// Set back button
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={{color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold"}}>Log Out</Text>
+					<Text style={{ color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold" }}>Log Out</Text>
 				</TouchableOpacity>
 			)
 		});
@@ -75,7 +75,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		setLoading(true);
 		// Get Race data from the API
-		const fetchEvents = async () => {
+		const fetchEvents = async (): Promise<void> => {
 			try {
 				let events = await getEvents(context.raceID);
 				const response = await AsyncStorage.getItem("onlineRaces");
@@ -113,7 +113,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 						checker_bibs: [],
 						bib_nums: [],
 					};
-					
+
 					// If there is local data don't overwrite it
 					if (event !== undefined) {
 						object = {
@@ -157,7 +157,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 			firstRun.current = false;
 			return;
 		}
-		const updateLocalRace = async () => {
+		const updateLocalRace = async (): Promise<void> => {
 			const response = await AsyncStorage.getItem("onlineRaces");
 			const raceList = response !== null ? JSON.parse(response) : [];
 			const race = raceList.find((race: Race) => race.race_id === context.raceID);
@@ -169,14 +169,14 @@ const EventsListScreen = ({ navigation }: Props) => {
 	}, [context.raceID, finalEventList]);
 
 	// Rendered item in the Flatlist
-	const renderItem = ({ item } : { item: Event }) => {
+	const renderItem = ({ item }: { item: Event }): React.ReactElement => {
 		const setEventID = context.setEventID;
 		const setEventTitle = context.setEventTitle;
 		navigationRef.current = navigation;
 
 		return (
-			<MemoEventsListItem 
-				item={item} 
+			<MemoEventsListItem
+				item={item}
 				setEventID={setEventID}
 				setEventTitle={setEventTitle}
 				navigationRef={navigationRef}
@@ -189,7 +189,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> : finalEventList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming events for this race yet!"}</Text> : <FlatList
 				data={finalEventList}
 				renderItem={renderItem}
-				keyExtractor={(_item, index) => (index + 1).toString()}
+				keyExtractor={(_item, index): string => (index + 1).toString()}
 			/>}
 		</View>
 	);

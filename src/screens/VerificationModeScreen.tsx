@@ -12,6 +12,7 @@ import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import { ItemLayout } from "../models/ItemLayout";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -20,14 +21,14 @@ type Props = {
 };
 
 type VRecord = [
-    bibNum: number,
-    finishTime: number,
-    checkerBib: number
+	bibNum: number,
+	finishTime: number,
+	checkerBib: number
 ];
 
 type VRecords = Array<VRecord>;
 
-const VerificationModeScreen = ({ navigation }: Props) => {
+const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [selectedID, setSelectedID] = useState(-1);
@@ -58,7 +59,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		setLoading(true);
 		if (context.online) {
 			// Online Functionality
-			const getRecords = async () => {
+			const getRecords = async (): Promise<void> => {
 				try {
 					// Get bibs from API
 					const bibs = await getBibs(context.raceID, context.eventID);
@@ -125,11 +126,11 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 					}
 
 					/*// Replace undefined with Max Safe Integer -- should be separate from the for-loop above
-                    for (let i = 0; i < recordsRef.current.length; i++) {
-                        if (recordsRef.current[i][1] === undefined) {
-                            recordsRef.current[i][1] = Number.MAX_SAFE_INTEGER;
-                        }
-                    }*/
+					for (let i = 0; i < recordsRef.current.length; i++) {
+						if (recordsRef.current[i][1] === undefined) {
+							recordsRef.current[i][1] = Number.MAX_SAFE_INTEGER;
+						}
+					}*/
 
 					// Participants
 					if (participantList.participants !== undefined) {
@@ -150,7 +151,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 						} else {
 							// Something else
 							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-            
+
 						}
 					}
 				}
@@ -267,7 +268,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 			[
 				{
 					text: `${recordsRef.current[index][0]}`,
-					onPress: () => {
+					onPress: (): void => {
 						recordsRef.current[index][2] = recordsRef.current[index][0];
 						updateRecords([...recordsRef.current]);
 						conflictResolved(index);
@@ -275,7 +276,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 				},
 				{
 					text: `${recordsRef.current[index][2]}`,
-					onPress: () => {
+					onPress: (): void => {
 						recordsRef.current[index][0] = recordsRef.current[index][2];
 						updateRecords([...recordsRef.current]);
 						conflictResolved(index);
@@ -333,7 +334,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 					} else {
 						// Something else
 						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-        
+
 					}
 				}
 				if (!isUnmountedRef.current) {
@@ -390,7 +391,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 			// Alert if non number
 			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the Bib Entries list. Please correct that entry before submitting.");
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[0].toString().substring(0,1) === "0" && entry[0].toString().length > 1)).length > 0) {
+		} else if (recordsRef.current.filter((entry) => (entry[0].toString().substring(0, 1) === "0" && entry[0].toString().length > 1)).length > 0) {
 			// Alert if starts with 0
 			Alert.alert("Incorrect Bib Entry", "There is a Bib Entry that starts with 0 in the list. Please fill in the correct value.");
 			setLoading(false);
@@ -500,7 +501,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		} else {
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 				),
 				gestureEnabled: true
 			});
@@ -509,7 +510,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		navigation.setOptions({
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
-					{editMode && !loading && <TouchableOpacity onPress={() => addRecord()} >
+					{editMode && !loading && <TouchableOpacity onPress={(): void => addRecord()} >
 						<Image
 							style={globalstyles.headerImage}
 							source={require("../assets/plus-icon.png")}
@@ -517,7 +518,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 					</TouchableOpacity>}
 
 					{!loading && conflicts === 0 && <TouchableOpacity
-						onPress={() => {
+						onPress={(): void => {
 							if (!editMode) {
 								editTable();
 							} else {
@@ -533,7 +534,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 	}, [addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
 
 	// Renders item on screen
-	const renderItem = ({ item, index } : {item: VRecord, index: number}) => (
+	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement => (
 		<MemoVerificationItem
 			// Passed down to trigger rerender when a bib is edited or a conflict is resolved
 			recordsRefSearchBib={recordsRef.current[index][0]}
@@ -573,10 +574,10 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
 						extraData={selectedID}
 						renderItem={renderItem}
-						keyExtractor={(_item, index) => (index + 1).toString()}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
 						initialNumToRender={30}
 						windowSize={11}
-						getItemLayout={(_, index) => (
+						getItemLayout={(_, index): ItemLayout => (
 							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
 						)}
 						ListHeaderComponent={<View style={globalstyles.tableHead}>

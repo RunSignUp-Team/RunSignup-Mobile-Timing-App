@@ -48,7 +48,7 @@ interface LocalTokenInfo {
  * Refresh the access and refresh tokens given a valid refresh token 
  * @param refresh_token
  */
-export async function refreshTokens(refresh_token: string): Promise<RsuTokenResponseData|null> {
+export async function refreshTokens(refresh_token: string): Promise<RsuTokenResponseData | null> {
 	const formData = new FormData();
 
 	formData.append("grant_type", rsuRefreshTokenGrantType);
@@ -82,7 +82,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
  * @param code_verifier The code verifier initially sent to the RSU API backend
  * @param challenge_method Defaults to `"S256"`.
  */
-export async function exchangeTokens(auth_code: string, code_verifier: string, challenge_method = "S256"): Promise<RsuTokenResponseData|null> {
+export async function exchangeTokens(auth_code: string, code_verifier: string, challenge_method = "S256"): Promise<RsuTokenResponseData | null> {
 	const formData = new FormData();
 
 	formData.append("grant_type", rsuAccessTokenGrantType);
@@ -123,7 +123,7 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
  * 
  * @param force_login This will delete the local tokens before performing all other actions. Forces user to log in again.
  */
-export async function oAuthLogin(force_login: boolean): Promise<string|null> {
+export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 	try {
 
 		// Delete local tokens - force user to log in again
@@ -168,7 +168,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string|null> {
 		// Just return the access token
 		return finalTokens.access_token;
 	} catch (error) {
-		console.log(error);	
+		console.log(error);
 		return null;
 	}
 }
@@ -187,7 +187,7 @@ function createRSUApiErrorString(err_object: RsuTokenErrorData): string {
  */
 export async function storeTokenInfo(tokenInfo: RsuTokenResponseData): Promise<void> {
 	if (!(await canUseSecureStore())) return;
-	
+
 	const stringifiedVal = JSON.stringify({
 		access_token: tokenInfo.access_token,
 		refresh_token: tokenInfo.refresh_token,
@@ -240,7 +240,7 @@ export function isLocalAccessTokenValid(expires_at: number): boolean {
  * Get the local tokens from the SecureStore, and refresh them if necessary.  
  * Returns the access_token if possible, otherwise `null`
  */
-export async function getAndRefreshLocalTokens(): Promise<string|null> {
+export async function getAndRefreshLocalTokens(): Promise<string | null> {
 	// Try getting the local access & refresh tokens
 	const localTokens = await getTokenInfo();
 	let accessToken = null;
@@ -265,4 +265,3 @@ export async function getAndRefreshLocalTokens(): Promise<string|null> {
 
 	return accessToken;
 }
-

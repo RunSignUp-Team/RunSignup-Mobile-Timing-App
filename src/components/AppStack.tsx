@@ -25,7 +25,7 @@ export type RootStackParamList = {
 
 const AppStack = createNativeStackNavigator<RootStackParamList>();
 
-export default function StartNavigator() {
+export default function StartNavigator(): React.ReactElement {
 	return (
 		<AppStack.Navigator screenOptions={{
 			headerBackVisible: false,

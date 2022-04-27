@@ -38,9 +38,9 @@ export const globalstyles = StyleSheet.create({
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
-		borderWidth: 1, 
-		borderColor: "black", 
-		borderRadius: BORDER_RADIUS, 
+		borderWidth: 1,
+		borderColor: "black",
+		borderRadius: BORDER_RADIUS,
 		padding: 20
 	},
 

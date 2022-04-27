@@ -12,6 +12,7 @@ import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
+import { ItemLayout } from "../models/ItemLayout";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -29,7 +30,7 @@ export interface OfflineEvent {
 	checker_bibs: Array<number>,
 }
 
-const OfflineEventsScreen = ({ navigation }: Props) => {
+const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [eventList, setEventList] = useState<Array<OfflineEvent>>([]);
@@ -48,7 +49,7 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 		});
 	}, [context.eventID, context.online, context.raceID, navigation]);
@@ -56,7 +57,7 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 	// Get offline events from local storage, and run again when deleting an offline event
 	useEffect(() => {
 		setLoading(true);
-		const getOfflineEvents = async () => {
+		const getOfflineEvents = async (): Promise<void> => {
 			if (isVisible) {
 				const response = await AsyncStorage.getItem("offlineEvents");
 
@@ -73,7 +74,7 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 	}, [isVisible]);
 
 	// Create event
-	const createEvent = async () => {
+	const createEvent = async (): Promise<void> => {
 		if ((/^[0-9a-zA-Z ]+$/gm).test(eventName)) {
 			setAlertVisible(false);
 			const createTime = new Date().getTime();
@@ -212,7 +213,7 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 			navigation.setOptions({
 				headerRight: () => (
 					<TouchableOpacity
-						onPress={() => {
+						onPress={(): void => {
 							// Add event
 							setAlertVisible(true);
 							setTimeout(() => { addEventRef.current?.focus(); }, 100);
@@ -230,8 +231,7 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 
 
 	// Rendered item in the Flatlist
-	const renderItem = ({ item }: { item: OfflineEvent }) => {
-
+	const renderItem = ({ item }: { item: OfflineEvent }): React.ReactElement => {
 		const setEventTitle = context.setEventTitle;
 		const setTime = context.setTime;
 		navigationRef.current = navigation;
@@ -258,11 +258,11 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 				presentationStyle="formSheet"
 				visible={alertVisible}>
 				<View style={{ flexDirection: "row", justifyContent: "center" }}>
-					<TouchableOpacity style={{ position: "absolute", top: 6, left: 3 }} onPress={() => setAlertVisible(false)}>
+					<TouchableOpacity style={{ position: "absolute", top: 6, left: 3 }} onPress={(): void => setAlertVisible(false)}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
 					</TouchableOpacity>
-					<Text style={[globalstyles.modalHeader, {fontWeight: "bold", top: 11}]}>Set Event Name</Text>
-					<TouchableOpacity style={{ position: "absolute", top: 6, right: 3 }} onPress={() => { createEvent(); }}>
+					<Text style={[globalstyles.modalHeader, { fontWeight: "bold", top: 11 }]}>Set Event Name</Text>
+					<TouchableOpacity style={{ position: "absolute", top: 6, right: 3 }} onPress={(): void => { createEvent(); }}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
 					</TouchableOpacity>
 				</View>
@@ -271,8 +271,8 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 					maxLength={20}
 					ref={addEventRef}
 					placeholder="Event Name"
-					onChangeText={input => setEventName(input)}
-					onSubmitEditing={() => { createEvent(); }}>
+					onChangeText={(input): void => setEventName(input)}
+					onSubmitEditing={(): void => { createEvent(); }}>
 				</TextInput>
 				<View style={{ flexDirection: "row", marginTop: 20 }}>
 				</View>
@@ -282,14 +282,13 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 					data={eventList}
 					renderItem={renderItem}
 					ref={flatListRef}
-					getItemLayout={(_, index) => (
+					getItemLayout={(_, index): ItemLayout => (
 						{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
 					)}
-					keyExtractor={(_item, index) => (index + 1).toString()}
+					keyExtractor={(_item, index): string => (index + 1).toString()}
 				/>}
 		</View >
 	);
 };
 
 export default OfflineEventsScreen;
-

@@ -17,7 +17,7 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const ModeScreen = ({ navigation }: Props) => {
+const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	// Handle log out. Delete local tokens
@@ -26,12 +26,12 @@ const ModeScreen = ({ navigation }: Props) => {
 			{
 				text: "Cancel",
 				style: "default",
-				onPress: () => {return;}
+				onPress: (): void => { return; }
 			},
 			{
 				text: "Log Out",
 				style: "destructive",
-				onPress: async () => {
+				onPress: async (): Promise<void> => {
 					try {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
@@ -41,26 +41,26 @@ const ModeScreen = ({ navigation }: Props) => {
 				}
 			}
 		]);
-	},[navigation]);
+	}, [navigation]);
 
 	// Set back button
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={() => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 			headerRight: () => (
 				context.online ?
 					<TouchableOpacity onPress={handleLogOut}>
-						<Text style={{color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold"}}>Log Out</Text>
-					</TouchableOpacity> : 
+						<Text style={{ color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold" }}>Log Out</Text>
+					</TouchableOpacity> :
 					null
 			)
 		});
 	}, [context.online, handleLogOut, navigation]);
 
 	// Finish Line Mode tapped
-	const finishLineTapped = () => {
+	const finishLineTapped = (): void => {
 		AsyncStorage.getItem(
 			`finishLineDone:${context.raceID}:${context.eventID}`,
 			(_err, result) => {
@@ -77,7 +77,7 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Finish Line Mode tapped (offline)
-	const finishLineTappedOffline = () => {
+	const finishLineTappedOffline = (): void => {
 		AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
 			if (result === "true") {
 				Alert.alert(
@@ -91,7 +91,7 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Chute Mode tapped
-	const chuteTapped = () => {
+	const chuteTapped = (): void => {
 		AsyncStorage.getItem(
 			`chuteDone:${context.raceID}:${context.eventID}`,
 			(_err, result) => {
@@ -108,7 +108,7 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Chute Mode tapped (offline)
-	const chuteTappedOffline = () => {
+	const chuteTappedOffline = (): void => {
 		AsyncStorage.getItem(`chuteDone:${context.time}`, (_err, result) => {
 			if (result === "true") {
 				Alert.alert("Already Entered", "You have already entered the Chute Mode data. Please see Verification Mode for more details or to edit results.");
@@ -119,7 +119,7 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Verification Mode tapped
-	const verificationTapped = async () => {
+	const verificationTapped = async (): Promise<void> => {
 		let bibsExist = false;
 
 		try {
@@ -141,14 +141,14 @@ const ModeScreen = ({ navigation }: Props) => {
 				} else {
 					// Something else
 					Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-    
+
 				}
 			}
 		}
 	};
 
 	// Verification Mode tapped (offline)
-	const verificationTappedOffline = () => {
+	const verificationTappedOffline = (): void => {
 		// Only open if Chute and Finish Line data are saved
 		AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, resultFinish) => {
 			if (resultFinish === "true") {
@@ -161,15 +161,15 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Delete offline event
-	const deleteEvent = () => {
+	const deleteEvent = (): void => {
 		Alert.alert(
 			"Delete Event",
 			"Are you sure you want to delete this event? This action cannot be reversed!",
 			[
-				{ text: "Cancel", onPress: () => {return;} },
+				{ text: "Cancel", onPress: (): void => { return; } },
 				{
 					text: "Delete",
-					onPress: async () => {
+					onPress: async (): Promise<void> => {
 						const response = await AsyncStorage.getItem("offlineEvents");
 						let eventsList = response !== null ? JSON.parse(response) : [];
 						eventsList = eventsList.filter((event: OfflineEvent) => event.time !== context.time);
@@ -184,7 +184,7 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Assign offline event to online event
-	const assignEvent = async () => {
+	const assignEvent = async (): Promise<void> => {
 		const request = await AsyncStorage.getItem("offlineEvents");
 		const requestParse = JSON.parse((request && request !== null) ? request : "");
 		if (requestParse.length > 0) {
@@ -197,10 +197,10 @@ const ModeScreen = ({ navigation }: Props) => {
 	return (
 		<View style={globalstyles.container}>
 			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
-				<MainButton onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"}/>
-				<MainButton onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"}/>
-				<MainButton onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Verification Mode"}/>
-				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color="Red"/>
+				<MainButton onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"} />
+				<MainButton onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"} />
+				<MainButton onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Verification Mode"} />
+				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color="Red" />
 			</View>
 		</View>
 	);

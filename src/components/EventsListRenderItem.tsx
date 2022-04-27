@@ -16,11 +16,11 @@ interface Props {
 
 }
 
-export default function EventsListRenderItem(props: Props) {
+export default function EventsListRenderItem(props: Props): React.ReactElement {
 
 	return (
 		<MainButton text={`${props.item.id}. ${props.item.title} (${props.item.start_time})`} listButton
-			onPress={() => {
+			onPress={(): void => {
 				props.setEventID(props.item.event_id);
 				props.setEventTitle(props.item.title);
 				props.navigationRef.current.navigate("ModeScreen");

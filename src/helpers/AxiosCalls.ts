@@ -75,9 +75,9 @@ async function handleAxiosGetCall<T>(url: string): Promise<AxiosResponse<T>> {
 		if (accessToken === null) {
 			throw new Error("Unable to authenticate");
 		}
-	
-		return axios.get<T|KeyAuthenticationError>(
-			url, 
+
+		return axios.get<T | KeyAuthenticationError>(
+			url,
 			{
 				cancelToken: source.token,
 				headers: {
@@ -113,8 +113,7 @@ async function handleAxiosGetCall<T>(url: string): Promise<AxiosResponse<T>> {
  * 
  * 
  */
-async function handleAxiosPostCall<T extends FormData|null>(url: string, formData: T): Promise<AxiosResponse<T>> {
-
+async function handleAxiosPostCall<T extends FormData | null>(url: string, formData: T): Promise<AxiosResponse<T>> {
 	const source = axios.CancelToken.source();
 	// const timeout = setTimeout(() => {
 	// 	source.cancel();
@@ -126,9 +125,9 @@ async function handleAxiosPostCall<T extends FormData|null>(url: string, formDat
 		if (accessToken === null) {
 			throw new Error("Unable to authenticate");
 		}
-	
+
 		// POST call
-		return axios.post<T|KeyAuthenticationError>(
+		return axios.post<T | KeyAuthenticationError>(
 			url,
 			formData,
 			{
@@ -140,17 +139,17 @@ async function handleAxiosPostCall<T extends FormData|null>(url: string, formDat
 	};
 
 	let response = await attemptApiCall(false);
-	
+
 	// Permission Denied... Try again
-	if ("error" in (response.data as KeyAuthenticationError) && (response.data as KeyAuthenticationError).error.error_code=== 6) {
+	if ("error" in (response.data as KeyAuthenticationError) && (response.data as KeyAuthenticationError).error.error_code === 6) {
 		response = await attemptApiCall(true);
 	}
-	
+
 	// Still not a valid response. Throw error
 	if ("error" in (response.data as KeyAuthenticationError)) {
 		throw new Error((response.data as KeyAuthenticationError).error.error_msg);
 	}
-	
+
 	// clearTimeout(timeout);
 	return response as AxiosResponse<T>;
 }
@@ -188,7 +187,7 @@ export const getParticipants = async (raceID: number, eventID: number): Promise<
 /** Post Start Time to RSU API */
 export const postStartTime = async (raceID: number, eventID: number, formData: FormData): Promise<AxiosResponse<FormData>> => {
 	const response = await handleAxiosPostCall(
-		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/start-time?format=json&event_id=${eventID}&request_format=json`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/start-time?format=json&event_id=${eventID}&request_format=json`,
 		formData
 	);
 	return response;
@@ -213,7 +212,7 @@ export const postFinishTimes = async (raceID: number, eventID: number, times: Ar
 	);
 
 	const response = await handleAxiosPostCall(
-		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/finishing-times?format=json&event_id=${eventID}&request_format=json`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/finishing-times?format=json&event_id=${eventID}&request_format=json`,
 		formData
 	);
 	return response;
@@ -222,7 +221,7 @@ export const postFinishTimes = async (raceID: number, eventID: number, times: Ar
 /** Post Bib Numbers to RSU API */
 export const postBibs = async (raceID: number, eventID: number, formData: FormData): Promise<AxiosResponse<FormData>> => {
 	const response = await handleAxiosPostCall(
-		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/bib-order?format=json&event_id=${eventID}&request_format=json`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/bib-order?format=json&event_id=${eventID}&request_format=json`,
 		formData
 	);
 	return response;
@@ -231,7 +230,7 @@ export const postBibs = async (raceID: number, eventID: number, formData: FormDa
 /** Delete Finish Times from RSU API */
 export const deleteFinishTimes = async (raceID: number, eventID: number): Promise<AxiosResponse<null>> => {
 	const response = await handleAxiosPostCall(
-		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/delete-timing-data?format=json&event_id=${eventID}&clear_all_result_sets=T`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/delete-timing-data?format=json&event_id=${eventID}&clear_all_result_sets=T`,
 		null
 	);
 	return response;
@@ -240,7 +239,7 @@ export const deleteFinishTimes = async (raceID: number, eventID: number): Promis
 /** Delete Bib Numbers from RSU API */
 export const deleteBibs = async (raceID: number, eventID: number): Promise<AxiosResponse<null>> => {
 	const response = await handleAxiosPostCall(
-		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/delete-chute-data?format=json&event_id=${eventID}`, 
+		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/delete-chute-data?format=json&event_id=${eventID}`,
 		null
 	);
 	return response;

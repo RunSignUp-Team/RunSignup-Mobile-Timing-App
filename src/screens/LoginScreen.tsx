@@ -1,6 +1,6 @@
 import React, { useContext, useCallback } from "react";
 import { View, Image, Alert, BackHandler } from "react-native";
-import { globalstyles} from "../components/styles";
+import { globalstyles } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -14,12 +14,12 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const LoginScreen = ({ navigation }: Props) => {
+const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	useFocusEffect(
 		useCallback(() => {
-			const onBackPress = () => {
+			const onBackPress = (): boolean => {
 				return true;
 			};
 
@@ -31,7 +31,7 @@ const LoginScreen = ({ navigation }: Props) => {
 	);
 
 	/** Handle user wanting to record online races */
-	const handleRecordOnlineClick = async () => {
+	const handleRecordOnlineClick = async (): Promise<void> => {
 		try {
 			const accessToken = await oAuthLogin(false);
 			if (!accessToken) {
@@ -48,7 +48,7 @@ const LoginScreen = ({ navigation }: Props) => {
 	};
 
 	/** Handle user wanting to record offline races */
-	const handleRecordOfflineClick = async () => {
+	const handleRecordOfflineClick = (): void => {
 		context.setOnline(false);
 		navigation.navigate("OfflineEventsList");
 	};
@@ -56,12 +56,12 @@ const LoginScreen = ({ navigation }: Props) => {
 	return (
 		<View style={globalstyles.container}>
 
-			<View style={{ flexDirection: "column", flex: 1}}>
+			<View style={{ flexDirection: "column", flex: 1 }}>
 				<Image
-					style={[globalstyles.image, {marginTop: "10%"}]}
+					style={[globalstyles.image, { marginTop: "10%" }]}
 					source={require("../assets/logo.png")}
 				/>
-				<MainButton text={"Record Online Race"} onPress={handleRecordOnlineClick} buttonStyle={{marginTop: "25%"}}/>
+				<MainButton text={"Record Online Race"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: "25%" }} />
 				<MainButton text={"Record Offline Race"} onPress={handleRecordOfflineClick} />
 			</View>
 

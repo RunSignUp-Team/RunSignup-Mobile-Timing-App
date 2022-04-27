@@ -12,7 +12,7 @@ interface Props {
 	color?: ButtonColor
 }
 
-export default function MainButton(props: Props) {
+export default function MainButton(props: Props): React.ReactElement {
 	return (
 		<TouchableOpacity 
 			style={[

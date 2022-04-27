@@ -14,14 +14,14 @@ interface Props {
 	setRaceID(race_id: number): void,
 }
 
-export default function RaceListRenderItem(props: Props) {
+export default function RaceListRenderItem(props: Props): React.ReactElement {
 
 	return (
 		<MainButton text={props.item.id + ". " + props.item.title + " (" + props.item.next_date + ")"} listButton
-			onPress={() => {
+			onPress={(): void => {
 				props.setRaceID(props.item.race_id);
 				props.navigationRef.current.navigate("EventsList");
-			}}/>
+			}} />
 	);
 }
 

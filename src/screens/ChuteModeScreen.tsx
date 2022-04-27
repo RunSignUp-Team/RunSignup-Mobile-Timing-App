@@ -12,6 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import MainButton from "../components/MainButton";
+import { ItemLayout } from "../models/ItemLayout";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -19,7 +20,7 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const ChuteModeScreen = ({ navigation }: Props) => {
+const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [bibText, setBibText] = useState("");
@@ -36,12 +37,12 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
 			{
 				text: "Leave",
-				onPress: () => {
+				onPress: (): void => {
 					navigation.navigate("ModeScreen");
 				},
 				style: "destructive",
 			},
-			{ text: "Cancel", onPress: () => {return;} },
+			{ text: "Cancel", onPress: (): void => { return; } },
 		]);
 	}, [navigation]);
 
@@ -138,7 +139,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 
 	useFocusEffect(
 		useCallback(() => {
-			const onBackPress = () => {
+			const onBackPress = (): boolean => {
 				BackTapped();
 				return true;
 			};
@@ -199,7 +200,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 		} else if (bibNumsRef.current.filter(entry => !(/^\d+$/gm.test(entry.toString()))).length > 0) {
 			// Filter Android keyboard non-numbers
 			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the bib entries list. Please correct that entry before submitting.");
-		} else if (bibNumsRef.current.filter((entry) => (entry.toString().substring(0,1) === "0" && entry.toString().length > 1)).length > 0) {
+		} else if (bibNumsRef.current.filter((entry) => (entry.toString().substring(0, 1) === "0" && entry.toString().length > 1)).length > 0) {
 			// Filter bib numbers that start with 0
 			Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
 		} else {
@@ -209,20 +210,20 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 				[
 					{
 						text: "Save & Quit",
-						onPress: () => {
+						onPress: (): void => {
 							setLoading(true);
 							addToStorage(true, bibNumsRef.current);
 						},
 						style: "destructive",
 					},
-					{ text: "Cancel", onPress: () => {return;} },
+					{ text: "Cancel", onPress: (): void => { return; } },
 				]
 			);
 		}
 	}, [addToStorage]);
 
 	// Record button
-	const recordBib = () => {
+	const recordBib = (): void => {
 		if (!isNaN(parseInt(bibText))) {
 			bibNumsRef.current.push(parseFloat(bibText));
 			updateBibNums([...bibNumsRef.current]);
@@ -238,7 +239,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Renders item on screen
-	const renderItem = ({ item, index }: { item: number, index: number }) => (
+	const renderItem = ({ item, index }: { item: number, index: number }): React.ReactElement => (
 		<MemoChuteItem
 			item={isNaN(item) ? "" : item}
 			index={index}
@@ -261,7 +262,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 	}, [checkEntries, navigation]);
 
 	return (
-	// Dismiss keyboard if user touches container
+		// Dismiss keyboard if user touches container
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<KeyboardAvoidingView style={globalstyles.container}
 				behavior={Platform.OS == "ios" ? "padding" : "height"}
@@ -272,10 +273,10 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 					ref={flatListRef}
 					data={bibNumsRef.current}
 					renderItem={renderItem}
-					keyExtractor={(_item, index) => (index + 1).toString()}
+					keyExtractor={(_item, index): string => (index + 1).toString()}
 					initialNumToRender={10}
 					windowSize={11}
-					getItemLayout={(_, index) => (
+					getItemLayout={(_, index): ItemLayout => (
 						{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
 					)}
 					keyboardShouldPersistTaps="handled"
@@ -294,7 +295,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 					maxLength={6}
 					placeholder="Enter a bib number"
 					keyboardType="number-pad"
-					onSubmitEditing={bibText !== "" ? recordBib : () => {return;}}
+					onSubmitEditing={bibText !== "" ? recordBib : (): void => { return; }}
 				/>
 
 				<MainButton onPress={recordBib} text={"Record"} color={"Red"} />

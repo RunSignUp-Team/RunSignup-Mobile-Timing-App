@@ -67,6 +67,9 @@ module.exports = {
 		"no-mixed-spaces-and-tabs": [
 			"warn"
 		],
+        "@typescript-eslint/explicit-function-return-type": [
+            "warn"
+        ],
     },
     "ignorePatterns": [
         ".eslintrc.js",

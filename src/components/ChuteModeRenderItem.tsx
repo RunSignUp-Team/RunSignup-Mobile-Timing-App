@@ -12,7 +12,7 @@ interface Props {
 	}
 }
 
-export default function ChuteModeRenderItem(props: Props) {
+export default function ChuteModeRenderItem(props: Props): React.ReactElement {
 
 	const updateBib = useCallback((newBib) => {
 		props.bibNumsRef.current[props.index] = parseInt(newBib);
@@ -25,7 +25,7 @@ export default function ChuteModeRenderItem(props: Props) {
 
 	return (
 		<View style={globalstyles.tableItem}
-			onStartShouldSetResponder={() => true}>
+			onStartShouldSetResponder={(): boolean => true}>
 			<Text style={globalstyles.tableTextThree}>{props.index + 1}</Text>
 			<TextInput
 				style={globalstyles.tableTextThree}

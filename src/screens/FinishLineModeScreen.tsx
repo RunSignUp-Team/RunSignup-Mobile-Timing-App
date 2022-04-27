@@ -14,6 +14,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import MainButton from "../components/MainButton";
+import { ItemLayout } from "../models/ItemLayout";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -21,7 +22,7 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-export default function FinishLineModeScreen({ navigation }: Props) {
+export default function FinishLineModeScreen({ navigation }: Props): React.ReactElement {
 	const context = useContext(AppContext);
 
 	const [bibText, setBibText] = useState("");
@@ -43,12 +44,12 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
 			{
 				text: "Leave",
-				onPress: () => {
+				onPress: (): void => {
 					navigation.navigate("ModeScreen");
 				},
 				style: "destructive",
 			},
-			{ text: "Cancel", onPress: () => {return;} },
+			{ text: "Cancel", onPress: (): void => { return; } },
 		]);
 	}, [navigation]);
 
@@ -147,7 +148,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 
 	useFocusEffect(
 		useCallback(() => {
-			const onBackPress = () => {
+			const onBackPress = (): boolean => {
 				BackTapped();
 				return true;
 			};
@@ -185,7 +186,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					} else {
 						Alert.alert("Warning", "If you enter Finish Line Mode data after another user has already entered it for this event, your data will not be saved. Please check with other users before recording data.");
 					}
-				}               
+				}
 			});
 		}
 		else {
@@ -305,7 +306,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 		}
 	}, [addToStorage, context.eventID, context.raceID]);
 
-    
+
 	// Check entries for errors
 	const checkEntries = useCallback(() => {
 		// If no results posted
@@ -318,7 +319,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 		} else if (checkerBibsRef.current.includes(NaN)) {
 			// Alert if non-numeric entry
 			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the bib entries list. Please correct that entry before submitting.");
-		} else if (checkerBibsRef.current.filter(entry => (entry.toString().substring(0,1) === "0" && entry.toString().length > 1)).length > 0) {
+		} else if (checkerBibsRef.current.filter(entry => (entry.toString().substring(0, 1) === "0" && entry.toString().length > 1)).length > 0) {
 			// Filter bib numbers that start with 0
 			Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
 		} else {
@@ -329,12 +330,12 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					[
 						{
 							text: "Save & Quit",
-							onPress: () => {
+							onPress: (): void => {
 								saveResults();
 							},
 							style: "destructive",
 						},
-						{ text: "Cancel", onPress: () => {return;} },
+						{ text: "Cancel", onPress: (): void => { return; } },
 					]
 				);
 			} else {
@@ -344,7 +345,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					[
 						{
 							text: "Save & Quit",
-							onPress: () => {
+							onPress: (): void => {
 								if (finishTimesRef.current.length === 0) {
 									Alert.alert("No Results", "You have not recorded any results. Please try again.");
 								} else {
@@ -379,12 +380,12 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 
 			const flatListRefCurrent = flatListRef.current;
 			if (flatListRefCurrent !== null) {
-				setTimeout(() => { flatListRefCurrent.scrollToOffset({animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length}); }, 100);
+				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
 			}
 		}
 	}, [bibText, updateCheckerBibs]);
 
-    
+
 	// Display save button in header
 	useEffect(() => {
 		navigation.setOptions({
@@ -395,7 +396,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 			),
 		});
 	}, [navigation, checkEntries, timerOn]);
-    
+
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {
 		finishTimesRef.current.splice(index + 1, 0, item);
@@ -446,10 +447,10 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 								renderItem={renderItem}
 								initialNumToRender={10}
 								windowSize={11}
-								getItemLayout={(_, index) => (
-									{length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index}
+								getItemLayout={(_, index): ItemLayout => (
+									{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
 								)}
-								keyExtractor={(_item, index) => (index + 1).toString()}
+								keyExtractor={(_item, index): string => (index + 1).toString()}
 								keyboardShouldPersistTaps="handled"
 								ListHeaderComponent={<View style={globalstyles.tableHead}>
 									<Text style={globalstyles.tableTextThree}>Place</Text>
@@ -460,7 +461,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 								</View>}
 								stickyHeaderIndices={[0]} />
 
-							<MainButton onPress={timerOn ? recordTime : startTimer} text={timerOn ? "Record" : "Start Timer"} color={timerOn ? "Red" : "Green"}/>
+							<MainButton onPress={timerOn ? recordTime : startTimer} text={timerOn ? "Record" : "Start Timer"} color={timerOn ? "Red" : "Green"} />
 						</>
 
 

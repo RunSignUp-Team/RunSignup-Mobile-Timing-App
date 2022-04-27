@@ -10,12 +10,12 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const Loader = ({ navigation }: Props) => {
-	
+const Loader = ({ navigation }: Props): React.ReactElement => {
+
 	const initRef = useRef(true);
 	useEffect(() => {
 		if (!initRef.current) return;
-		initRef.current = false; 
+		initRef.current = false;
 		navigation.navigate("Login");
 	}, [navigation]);
 

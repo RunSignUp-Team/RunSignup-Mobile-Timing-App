@@ -19,18 +19,18 @@ export const AppContext = React.createContext<Context>({
 	eventID: -1,
 	eventTitle: "",
 	time: -1,
-	setOnline: () => {return;},
-	setRaceID: () => {return;},
-	setEventID: () => {return;},
-	setEventTitle: () => {return;},
-	setTime: () => {return;}
+	setOnline: () => { return; },
+	setRaceID: () => { return; },
+	setEventID: () => { return; },
+	setEventTitle: () => { return; },
+	setTime: () => { return; }
 });
 
 interface Props {
 	children: React.ReactChild
 }
 
-export default function AppProvider(props: Props) {
+export default function AppProvider(props: Props): React.ReactElement {
 	// Global variables
 	const [online, setOnline] = useState(false);
 	const [raceID, setRaceID] = useState(0);

@@ -23,7 +23,7 @@ interface Props {
 	updateRecords(records: Array<[number, number, number]>): void,
 }
 
-export default function VerificationModeRenderItem(props: Props) {
+export default function VerificationModeRenderItem(props: Props): React.ReactElement {
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
 
@@ -39,14 +39,14 @@ export default function VerificationModeRenderItem(props: Props) {
 	}, [index, props]);
 
 	return (
-		<View onStartShouldSetResponder={() => true} style={{ padding: 0, margin: 0 }}>
+		<View onStartShouldSetResponder={(): boolean => true} style={{ padding: 0, margin: 0 }}>
 			<TouchableOpacity style={conflictItem ? globalstyles.conflictLongTableItem : (index === props.selectedID ? globalstyles.selectedLongTableItem : globalstyles.longTableItem)}
 				disabled={!conflictItem}
-				onPress={() => props.conflictResolution(index)}
+				onPress={(): void => props.conflictResolution(index)}
 			>
 
 				<Text style={globalstyles.tableTextThree}
-					onPress={() => {
+					onPress={(): void => {
 						if (props.editMode) {
 							props.swapEntries(index);
 						}
@@ -87,7 +87,7 @@ export default function VerificationModeRenderItem(props: Props) {
 
 				{props.editMode && <TouchableOpacity
 					style={globalstyles.tableDeleteButton}
-					onPress={() => props.updateRecords(removeOne(index, props.recordsRef.current))}>
+					onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
 					<Text style={globalstyles.tableButtonText}>-</Text>
 				</TouchableOpacity>}
 			</TouchableOpacity>

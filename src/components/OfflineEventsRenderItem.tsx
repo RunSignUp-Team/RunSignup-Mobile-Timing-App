@@ -21,10 +21,10 @@ interface Props {
 	setTime(time: number): void,
 }
 
-export default function OfflineEventsRenderItem(props: Props) {
+export default function OfflineEventsRenderItem(props: Props): React.ReactElement {
 	return (
 		<MainButton text={props.item.name} listButton
-			onPress={() => {
+			onPress={(): void => {
 				if (!props.online) {
 					props.setEventTitle(props.item.name);
 					props.setTime(props.item.time);
@@ -34,10 +34,10 @@ export default function OfflineEventsRenderItem(props: Props) {
 						"Assign Event",
 						`Are you sure you want to assign the data stored in ${props.item.name} to ${props.eventTitle}? This cannot be undone and will replace any existing data.`,
 						[
-							{ text: "Cancel", onPress: () => { return; } },
+							{ text: "Cancel", onPress: (): void => { return; } },
 							{
 								text: "Assign",
-								onPress: () => {
+								onPress: (): void => {
 									props.assignData(props.item);
 								},
 								style: "destructive",
