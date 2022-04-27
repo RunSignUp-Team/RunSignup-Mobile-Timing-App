@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, TouchableOpacity, FlatList, Alert, ActivityIndicator, Platform, Image, Modal, TextInput, Text } from "react-native";
-import { globalstyles, GREEN_COLOR, RED_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { AppContext } from "../components/AppContext";
@@ -258,19 +258,19 @@ const OfflineEventsScreen = ({ navigation }: Props) => {
 				presentationStyle="formSheet"
 				visible={alertVisible}>
 				<View style={{ flexDirection: "row", justifyContent: "center" }}>
-					<TouchableOpacity style={{ position: "absolute", top: 6, left: 6 }} onPress={() => setAlertVisible(false)}>
-						<Text style={{ fontSize: 20, fontWeight: "bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
+					<TouchableOpacity style={{ position: "absolute", top: 6, left: 3 }} onPress={() => setAlertVisible(false)}>
+						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
 					</TouchableOpacity>
-					<Text style={[globalstyles.header, {fontWeight: "bold", top: 13}]}>Set Event Name</Text>
-					<TouchableOpacity style={{ position: "absolute", top: 6, right: 6 }} onPress={() => { createEvent(); }}>
-						<Text style={{ fontSize: 20, fontWeight: "bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
+					<Text style={[globalstyles.modalHeader, {fontWeight: "bold", top: 11}]}>Set Event Name</Text>
+					<TouchableOpacity style={{ position: "absolute", top: 6, right: 3 }} onPress={() => { createEvent(); }}>
+						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
 					</TouchableOpacity>
 				</View>
 				<TextInput
-					style={[globalstyles.input, { width: "80%", position: "absolute", top: 120, fontSize: 20, height: 50 }]}
+					style={[globalstyles.input, { width: "80%", position: "absolute", top: 120, fontSize: MEDIUM_FONT_SIZE, height: 50 }]}
 					maxLength={20}
 					ref={addEventRef}
-					placeholder="Enter Event Name..."
+					placeholder="Event Name"
 					onChangeText={input => setEventName(input)}
 					onSubmitEditing={() => { createEvent(); }}>
 				</TextInput>

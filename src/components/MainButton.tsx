@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, TouchableOpacity, ViewStyle } from "react-native";
-import { globalstyles, GREEN_COLOR, RED_COLOR } from "./styles";
+import { BIG_FONT_SIZE, BORDER_RADIUS, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR } from "./styles";
 
 type ButtonColor = "Red" | "Green";
 
@@ -14,8 +14,30 @@ interface Props {
 
 export default function MainButton(props: Props) {
 	return (
-		<TouchableOpacity style={[globalstyles.button, props.buttonStyle, {paddingVertical: props.listButton ? 10 : 20,  marginVertical: props.listButton ? 4 : 12, backgroundColor: props.color === "Red" ? RED_COLOR : GREEN_COLOR}]} onPress={props.onPress}>
-			<Text style={globalstyles.buttonText}>{props.text}</Text>
+		<TouchableOpacity 
+			style={[
+				{
+					alignItems: props.listButton ? "flex-start" : "center",
+					paddingHorizontal: 10,
+					width: "100%",
+					marginHorizontal: 10,
+					borderRadius: BORDER_RADIUS,
+					alignSelf: "center",
+					paddingVertical: props.listButton ? 15 : 20,
+					marginVertical: props.listButton ? 5 : 10,
+					backgroundColor: props.color === "Red" ? RED_COLOR : GREEN_COLOR
+				},
+				props.buttonStyle]} 
+			onPress={props.onPress}>
+			<Text 
+				style={{
+					fontSize: props.listButton ? MEDIUM_FONT_SIZE : BIG_FONT_SIZE,
+					fontWeight: "bold",
+					color: "white",
+					paddingHorizontal: 1
+				}}>
+				{props.text}
+			</Text>
 		</TouchableOpacity>
 	);
 }

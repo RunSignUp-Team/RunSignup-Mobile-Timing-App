@@ -2,8 +2,10 @@ import { StyleSheet } from "react-native";
 
 export const GREEN_COLOR = "#00ac65";
 export const RED_COLOR = "#ff3b30";
-export const BACKGROUND_COLOR = "#fff";
+export const BACKGROUND_COLOR = "#f2f2f2";
 export const TABLE_FONT_SIZE = 14;
+export const BIG_FONT_SIZE = 25;
+export const MEDIUM_FONT_SIZE = 20;
 export const BORDER_RADIUS = 12;
 export const TABLE_ITEM_HEIGHT = 40;
 export const LONG_TABLE_ITEM_HEIGHT = 50;
@@ -16,42 +18,23 @@ export const globalstyles = StyleSheet.create({
 		padding: 16,
 		backgroundColor: BACKGROUND_COLOR
 	},
-	safeArea: {
-		alignItems: "flex-start",
-		flex: 1,
-		padding: 16,
-	},
 
-	// Text
-	title: {
-		fontSize: 20,
-	},
-	text: {
-		fontSize: 16,
-	},
-	header: {
-		fontSize: 23,
+	// Headers
+	modalHeader: {
+		fontSize: BIG_FONT_SIZE,
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
 	},
-	connectionText: {
-		fontSize: 23,
-		marginTop: 10,
-		textAlign: "center",
-	},
-	buttonText: {
-		fontSize: 25,
-		fontWeight: "bold",
-		color: "white",
-		paddingHorizontal: 1
-	},
 	headerButtonText: {
-		fontSize: 18,
+		fontSize: MEDIUM_FONT_SIZE,
 		color: "white",
+		fontWeight: "bold"
 	},
+
+	// Text
 	info: {
-		fontSize: 23,
+		fontSize: BIG_FONT_SIZE,
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
@@ -59,47 +42,6 @@ export const globalstyles = StyleSheet.create({
 		borderColor: "black", 
 		borderRadius: BORDER_RADIUS, 
 		padding: 20
-	},
-
-	// Buttons
-	button: {
-		alignItems: "center",
-		backgroundColor: GREEN_COLOR,
-		paddingHorizontal: 10,
-		width: "100%",
-		marginHorizontal: 10,
-		borderRadius: BORDER_RADIUS,
-		alignSelf: "center",
-	},
-	disabledButton: {
-		alignItems: "center",
-		backgroundColor: "#808080",
-		padding: 20,
-		width: "100%",
-		margin: 10,
-		borderWidth: 1,
-		borderRadius: BORDER_RADIUS,
-		alignSelf: "center",
-	},
-	deleteButton: {
-		alignItems: "center",
-		backgroundColor: RED_COLOR,
-		padding: 20,
-		width: "100%",
-		margin: 10,
-		borderWidth: 1,
-		borderRadius: BORDER_RADIUS,
-		alignSelf: "center",
-	},
-	recordButton: {
-		alignItems: "center",
-		backgroundColor: RED_COLOR,
-		padding: 15,
-		width: "100%",
-		margin: 1,
-		borderWidth: 1,
-		borderRadius: BORDER_RADIUS,
-		alignSelf: "center",
 	},
 
 	// Flat Lists
@@ -234,7 +176,7 @@ export const globalstyles = StyleSheet.create({
 		padding: 10,
 		width: "100%",
 		alignSelf: "center",
-		fontSize: 20
+		fontSize: MEDIUM_FONT_SIZE
 	},
 
 	// Images
@@ -252,19 +194,6 @@ export const globalstyles = StyleSheet.create({
 		marginRight: 15,
 	},
 
-	// Race List / Event List Items
-	listItem: {
-		borderWidth: 1,
-		borderRadius: BORDER_RADIUS,
-		margin: 5,
-		padding: 15,
-		backgroundColor: GREEN_COLOR,
-	},
-	listText: {
-		fontSize: 20,
-		color: "white",
-	},
-
 	// Timer
 	timer: {
 		paddingHorizontal: 10,
@@ -274,7 +203,7 @@ export const globalstyles = StyleSheet.create({
 		marginBottom: 10,
 		marginRight: 5,
 		flex: 2,
-		fontSize: 25,
+		fontSize: BIG_FONT_SIZE,
 		overflow: "hidden"
 	},
 	timerBibInput: {
@@ -285,6 +214,6 @@ export const globalstyles = StyleSheet.create({
 		marginBottom: 10,
 		marginLeft: 5,
 		flex: 1,
-		fontSize: 20,
+		fontSize: BIG_FONT_SIZE,
 	},
 });

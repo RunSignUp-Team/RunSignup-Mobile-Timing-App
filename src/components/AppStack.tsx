@@ -9,7 +9,7 @@ import ChuteModeScreen from "../screens/ChuteModeScreen";
 import VerificationModeScreen from "../screens/VerificationModeScreen";
 import OfflineEventsListScreen from "../screens/OfflineEventsScreen";
 import Loader from "../screens/SplashScreen";
-import { GREEN_COLOR } from "./styles";
+import { BIG_FONT_SIZE, GREEN_COLOR } from "./styles";
 
 export type RootStackParamList = {
 	SplashScreen: undefined,
@@ -29,9 +29,9 @@ export default function StartNavigator() {
 	return (
 		<AppStack.Navigator screenOptions={{
 			headerBackVisible: false,
-			headerTintColor: "white",
 			headerStyle: { backgroundColor: GREEN_COLOR },
-			headerTitleStyle: { fontSize: 20, fontWeight: "bold" },
+			headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontWeight: "bold", color: "white" },
+			headerLargeTitle: true
 		}}>
 			<AppStack.Screen name="SplashScreen" component={Loader} options={{
 				headerShown: false,

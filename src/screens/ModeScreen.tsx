@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect } from "react";
-import { View, TouchableOpacity, Text, Alert, Platform } from "react-native";
-import { globalstyles } from "../components/styles";
+import { View, TouchableOpacity, Text, Alert } from "react-native";
+import { globalstyles, MEDIUM_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getBibs, getFinishTimes } from "../helpers/AxiosCalls";
@@ -52,7 +52,7 @@ const ModeScreen = ({ navigation }: Props) => {
 			headerRight: () => (
 				context.online ?
 					<TouchableOpacity onPress={handleLogOut}>
-						<Text style={{color: "white", fontSize: 18}}>Log Out</Text>
+						<Text style={{color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold"}}>Log Out</Text>
 					</TouchableOpacity> : 
 					null
 			)

@@ -1,9 +1,8 @@
 import React, { memo } from "react";
-import { Text, TouchableOpacity } from "react-native";
 import { Event } from "../screens/EventsListScreen";
-import { globalstyles } from "./styles";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import MainButton from "./MainButton";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -20,17 +19,12 @@ interface Props {
 export default function EventsListRenderItem(props: Props) {
 
 	return (
-		<TouchableOpacity
+		<MainButton text={`${props.item.id}. ${props.item.title} (${props.item.start_time})`} listButton
 			onPress={() => {
 				props.setEventID(props.item.event_id);
 				props.setEventTitle(props.item.title);
 				props.navigationRef.current.navigate("ModeScreen");
-			}}
-			style={globalstyles.listItem}>
-			<Text style={globalstyles.listText}>
-				{props.item.id + ". " + props.item.title + " (" + props.item.start_time + ")"}
-			</Text>
-		</TouchableOpacity>
+			}} />
 	);
 }
 

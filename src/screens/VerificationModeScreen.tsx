@@ -562,7 +562,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 					style={globalstyles.input}
 					onChangeText={setSearch}
 					value={search}
-					placeholder={context.online ? "Search by bib number or participant name" : "Search by bib number"}
+					placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
 				/>
 
 				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> :

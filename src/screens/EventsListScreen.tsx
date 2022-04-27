@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, ActivityIndicator, Text, Platform, TouchableOpacity } from "react-native";
-import { globalstyles, GREEN_COLOR } from "../components/styles";
+import { globalstyles, GREEN_COLOR, MEDIUM_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getEvents } from "../helpers/AxiosCalls";
@@ -66,7 +66,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={{color: "white", fontSize: 18}}>Log Out</Text>
+					<Text style={{color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold"}}>Log Out</Text>
 				</TouchableOpacity>
 			)
 		});

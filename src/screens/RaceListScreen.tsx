@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, Text, ActivityIndicator, Platform, BackHandler, TouchableOpacity } from "react-native";
-import { globalstyles, GREEN_COLOR } from "../components/styles";
+import { globalstyles, GREEN_COLOR, MEDIUM_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getRaces } from "../helpers/AxiosCalls";
@@ -82,7 +82,7 @@ const RaceListScreen = ({ navigation }: Props) => {
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={{color: "white", fontSize: 18}}>Log Out</Text>
+					<Text style={{color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold"}}>Log Out</Text>
 				</TouchableOpacity>
 			)
 		});
