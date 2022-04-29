@@ -10,6 +10,7 @@ import { Race } from "./RaceListScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
+import Logger from "../helpers/Logger";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -51,7 +52,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						console.log(error);
+						Logger.log(error);
 					}
 				}
 			}

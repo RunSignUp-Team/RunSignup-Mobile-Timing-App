@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import { ResponseType, AuthRequest } from "expo-auth-session";
 import * as SecureStore from "expo-secure-store";
 import { CLIENT_ID, REDIRECT_URI, RUNSIGNUP_URL } from "../constants/oAuth2Constants";
+import Logger from "./Logger";
 
 // no-op on native mobile apps...
 // WebBrowser.maybeCompleteAuthSession();
@@ -61,7 +62,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
 		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(refreshTokenUrl, formData);
 		const resData = res.data;
 		if ("error" in resData) {
-			console.log(`Failed to refresh access & refresh tokens. Error: "${resData.error}". Description: "${resData.error_description}". Hint: "${resData.hint}"`);
+			Logger.log(`Failed to refresh access & refresh tokens. Error: "${resData.error}". Description: "${resData.error_description}". Hint: "${resData.hint}"`);
 			return null;
 		}
 
@@ -70,7 +71,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
 
 
 	} catch (error) {
-		console.log("Error in refresh token: ", error);
+		Logger.log("Error in refresh token: ", error);
 		return null;
 	}
 }
@@ -97,7 +98,7 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
 		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(accessTokenUrl, formData);
 		const resData = res.data;
 		if ("error" in resData) {
-			console.log(createRSUApiErrorString(resData));
+			Logger.log(createRSUApiErrorString(resData));
 			return null;
 		}
 
@@ -105,7 +106,7 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
 		return resData;
 
 	} catch (error) {
-		console.log(error);
+		Logger.log(error);
 		return null;
 	}
 }
@@ -149,7 +150,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 
 		// Not successfull
 		if (authCodeRes.type !== "success") {
-			console.log("Unable to get Authorization Code. ", authCodeRes.type);
+			Logger.log("Unable to get Authorization Code. ", authCodeRes.type);
 			return null;
 		}
 
@@ -158,7 +159,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 
 		// Unable to exchange auth code for access/refresh tokens
 		if (finalTokens === null) {
-			console.log("Unable to exchange code for tokens.");
+			Logger.log("Unable to exchange code for tokens.");
 			return null;
 		}
 
@@ -168,7 +169,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 		// Just return the access token
 		return finalTokens.access_token;
 	} catch (error) {
-		console.log(error);
+		Logger.log(error);
 		return null;
 	}
 }

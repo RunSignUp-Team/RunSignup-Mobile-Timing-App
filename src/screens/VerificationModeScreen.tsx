@@ -93,11 +93,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							recordsRef.current[i][2] = (recordsRef.current[i][0] === checkerBib || (isNaN(recordsRef.current[i][0]) && isNaN(checkerBib))) ? (isNaN(bibNum) ? 0 : bibNum) : (isNaN(checkerBib) ? 0 : checkerBib);
 
 							// Good debugging logs
-							// console.log("Stored in API: ", parseInt(recordsRef.current[i][0]));
-							// console.log("CheckerBib: ", checkerBib);
-							// console.log("BibNum: ", bibNum);
-							// console.log("Conflict Bib: ", parseInt(recordsRef.current[i][2]));
-							// console.log("\n");
+							// Logger.log("Stored in API: ", parseInt(recordsRef.current[i][0]));
+							// Logger.log("CheckerBib: ", checkerBib);
+							// Logger.log("BibNum: ", bibNum);
+							// Logger.log("Conflict Bib: ", parseInt(recordsRef.current[i][2]));
+							// Logger.log("\n");
 
 							// Prefer real bibs to zeros
 							if (recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === 0) {
