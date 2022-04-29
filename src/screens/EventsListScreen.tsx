@@ -6,28 +6,18 @@ import { AppContext } from "../components/AppContext";
 import { getEvents } from "../helpers/AxiosCalls";
 import { MemoEventsListItem } from "../components/EventsListRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
-import { Race } from "./RaceListScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
 import Logger from "../helpers/Logger";
+import { Event } from "../models/Event";
+import { Race } from "../models/Race";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 type Props = {
 	navigation: ScreenNavigationProp;
 };
-
-export interface Event {
-	id: number,
-	title: string,
-	start_time: string,
-	event_id: number,
-	real_start_time: number,
-	finish_times: Array<number>,
-	checker_bibs: Array<number>,
-	bib_nums: Array<number>,
-}
 
 const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);

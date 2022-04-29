@@ -9,23 +9,15 @@ import { HeaderBackButton } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
-import { Event } from "./EventsListScreen";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
 import Logger from "../helpers/Logger";
+import { Race } from "../models/Race";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 type Props = {
 	navigation: ScreenNavigationProp;
 };
-
-export interface Race {
-	id: number,
-	title: string,
-	next_date: string,
-	race_id: number,
-	events: Array<Event>
-}
 
 const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);

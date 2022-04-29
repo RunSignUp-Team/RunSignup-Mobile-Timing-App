@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Race } from "../screens/RaceListScreen";
+import { Race } from "../models/Race";
 
 /** 
  * Get the local racelist, race index, and event index if possible 
