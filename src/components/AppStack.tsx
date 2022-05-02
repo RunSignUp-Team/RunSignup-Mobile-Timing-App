@@ -45,7 +45,6 @@ export default function StartNavigator(): React.ReactElement {
 			}} />
 			<AppStack.Screen name="RaceList" component={RaceListScreen} options={{
 				title: "Races",
-				gestureEnabled: false
 			}} />
 			<AppStack.Screen name="EventsList" component={EventsListScreen} options={{
 				title: "Events",
