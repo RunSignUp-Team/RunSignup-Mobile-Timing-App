@@ -107,7 +107,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 		// Appending bib numbers
 		const formData = new FormData();
-		if (item.bib_nums === null || item.bib_nums.length === 0) {
+		if (item.bib_nums === null || item.bib_nums.length < 1) {
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
@@ -183,7 +183,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 
 			// If no bib numbers, finish times, or checker bibs
-			if ((item.bib_nums.length === 0 && item.checker_bibs.length === 0) || item.finish_times.length === 0) {
+			if ((item.bib_nums.length < 1 && item.checker_bibs.length < 1) || item.finish_times.length < 1) {
 				Alert.alert("No Data", `The Offline Event "${item.name}" does not have saved Bib Numbers and Finish Times. Please make sure to save your data in the "${item.name}" Finish Line and Chute Modes and try again.`);
 				setLoading(false);
 			} else {
@@ -192,7 +192,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 				raceList[raceIndex].events[eventIndex].checker_bibs = [];
 				raceList[raceIndex].events[eventIndex].finish_times = item.finish_times;
-				if (item.bib_nums === null || item.bib_nums.length === 0) {
+				if (item.bib_nums === null || item.bib_nums.length < 1) {
 					// If offline event bibs are checker_bibs
 					raceList[raceIndex].events[eventIndex].bib_nums = item.checker_bibs;
 				} else {
@@ -278,7 +278,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				<View style={{ flexDirection: "row", marginTop: 20 }}>
 				</View>
 			</Modal>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : eventList.length === 0 ? <Text style={globalstyles.info}>{"No Offline Events.\nClick the + button to create a new Offline Event."}</Text> :
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : eventList.length < 1 ? <Text style={globalstyles.info}>{"No Offline Events.\nClick the + button to create a new Offline Event."}</Text> :
 				<FlatList
 					data={eventList}
 					renderItem={renderItem}

@@ -312,7 +312,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	// Check entries for errors
 	const checkEntries = useCallback(() => {
 		// If no results posted
-		if (checkerBibsRef.current.length === 0) {
+		if (checkerBibsRef.current.length < 1) {
 			// Alert if no finishing times have been recorded
 			Alert.alert("No Results", "You have not recorded any results. Please try again.");
 		} else if (checkerBibsRef.current.filter(entry => entry === null).length > 0) {
@@ -348,7 +348,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						{
 							text: "Save & Quit",
 							onPress: (): void => {
-								if (finishTimesRef.current.length === 0) {
+								if (finishTimesRef.current.length < 1) {
 									Alert.alert("No Results", "You have not recorded any results. Please try again.");
 								} else {
 									setLoading(true);

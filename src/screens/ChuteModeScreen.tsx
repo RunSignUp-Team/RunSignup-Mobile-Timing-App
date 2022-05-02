@@ -191,7 +191,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {
 		// If no results posted
-		if (bibNumsRef.current.length === 0) {
+		if (bibNumsRef.current.length < 1) {
 			// Alert if no finishing times have been recorded
 			Alert.alert("No Results", "You have not recorded any results. Please try again.");
 		} else if (bibNumsRef.current.includes(NaN)) {
