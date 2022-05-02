@@ -1,8 +1,8 @@
 import React, { memo } from "react";
-import { Event } from "../screens/EventsListScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import MainButton from "./MainButton";
+import { Event } from "../models/Event";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 

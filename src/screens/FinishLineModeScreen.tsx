@@ -108,7 +108,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				}
 			}
 		} else {
-
 			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 				if (eventIndex !== -1) {
 					eventList[eventIndex].finish_times = finishTimesParam;
