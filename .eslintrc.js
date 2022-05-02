@@ -75,5 +75,6 @@ module.exports = {
         ".eslintrc.js",
         "babel.config.js",
         "App.tsx"
-    ]
+    ],
+    "root": true
 };
