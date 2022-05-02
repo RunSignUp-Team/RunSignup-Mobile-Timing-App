@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, TouchableOpacity, FlatList, Alert, ActivityIndicator, Platform, Image, Modal, TextInput, Text } from "react-native";
-import { globalstyles, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { AppContext } from "../components/AppContext";
@@ -261,23 +261,24 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 					<TouchableOpacity style={{ position: "absolute", top: 6, left: 3 }} onPress={(): void => setAlertVisible(false)}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
 					</TouchableOpacity>
-					<Text style={[globalstyles.modalHeader, { fontWeight: "bold", top: 11 }]}>Set Event Name</Text>
+					<Text style={[globalstyles.modalHeader, { fontWeight: "bold", top: 17 }]}>Set Event Name</Text>
 					<TouchableOpacity style={{ position: "absolute", top: 6, right: 3 }} onPress={(): void => { createEvent(); }}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
 					</TouchableOpacity>
 				</View>
 				<TextInput
-					style={[globalstyles.input, { width: "80%", position: "absolute", top: 120, fontSize: MEDIUM_FONT_SIZE, height: 50 }]}
+					style={[globalstyles.input, { width: "80%", position: "absolute", top: 120 }]}
 					maxLength={20}
 					ref={addEventRef}
 					placeholder="Event Name"
+					placeholderTextColor={GRAY_COLOR}
 					onChangeText={(input): void => setEventName(input)}
 					onSubmitEditing={(): void => { createEvent(); }}>
 				</TextInput>
 				<View style={{ flexDirection: "row", marginTop: 20 }}>
 				</View>
 			</Modal>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> : eventList.length === 0 ? <Text style={globalstyles.info}>{"No Offline Events.\nClick the + button to create a new Offline Event."}</Text> :
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : eventList.length === 0 ? <Text style={globalstyles.info}>{"No Offline Events.\nClick the + button to create a new Offline Event."}</Text> :
 				<FlatList
 					data={eventList}
 					renderItem={renderItem}

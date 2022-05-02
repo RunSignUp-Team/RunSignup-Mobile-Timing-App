@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, Text, ActivityIndicator, Platform, BackHandler, TouchableOpacity } from "react-native";
-import { globalstyles, GREEN_COLOR, MEDIUM_FONT_SIZE } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getRaces } from "../helpers/AxiosCalls";
@@ -180,7 +180,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS !== "ios" ? GREEN_COLOR : "808080"} /> : finalRaceList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : finalRaceList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
 				data={finalRaceList}
 				renderItem={renderItem}
 				keyExtractor={(_item, index): string => (index + 1).toString()} />}

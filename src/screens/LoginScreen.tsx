@@ -61,8 +61,8 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 					style={[globalstyles.image, { marginTop: "10%" }]}
 					source={require("../assets/logo.png")}
 				/>
-				<MainButton text={"Record Online Race"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: "25%" }} />
-				<MainButton text={"Record Offline Race"} onPress={handleRecordOfflineClick} />
+				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: "25%" }} />
+				<MainButton text={"Offline Races"} onPress={handleRecordOfflineClick} />
 			</View>
 
 		</View>

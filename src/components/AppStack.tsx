@@ -37,7 +37,7 @@ export default function StartNavigator(): React.ReactElement {
 				headerShown: false,
 			}} />
 			<AppStack.Screen name="Login" component={LoginScreen} options={{
-				title: "Login",
+				title: "Home",
 				gestureEnabled: false
 			}} />
 			<AppStack.Screen name="OfflineEventsList" component={OfflineEventsListScreen} options={{

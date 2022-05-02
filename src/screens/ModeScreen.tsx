@@ -133,7 +133,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			if (finishTimes !== null && finishTimes.length > 0 && bibsExist) {
 				navigation.navigate("VerificationMode");
 			} else {
-				Alert.alert("No Data Entered", "You have not entered Chute and Finish Line data yet. Please enter that data first and try again.");
+				Alert.alert("No Data Found", "No Finish Line / Chute data found on RunSignup. Please enter that data first and try again.");
 			}
 		} catch (error) {
 			if (error instanceof Error) {

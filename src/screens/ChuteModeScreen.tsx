@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, Text, Alert, FlatList, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getBibs, postBibs } from "../helpers/AxiosCalls";
@@ -268,7 +268,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				behavior={Platform.OS == "ios" ? "padding" : "height"}
 				keyboardVerticalOffset={30}>
 
-				{loading ? <ActivityIndicator size="large" color={Platform.OS !== "ios" ? GREEN_COLOR : "808080"} /> : <><FlatList
+				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : <><FlatList
 					style={globalstyles.flatList}
 					ref={flatListRef}
 					data={bibNumsRef.current}
