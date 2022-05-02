@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
-import { globalstyles, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/AxiosCalls";
@@ -31,20 +31,25 @@ type VRecords = Array<VRecord>;
 const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
+	// Swap
 	const [selectedID, setSelectedID] = useState(-1);
 	const [tapped, setTapped] = useState(1);
 	const [lastIndex, setLastIndex] = useState(-1);
 
+	// Editing
 	const [editMode, setEditMode] = useState(false);
 	const [conflicts, setConflicts] = useState(0);
 
+	// Records
 	const [records, setRecords] = useState<VRecords>([]);
 	const recordsRef = useRef<VRecords>(records);
 
+	// Search
 	const [participants, setParticipants] = useState<Array<ParticipantDetails>>([]);
 	const [searchRecords, setSearchRecords] = useState<VRecords>(recordsRef.current);
 	const [search, setSearch] = useState("");
 
+	// Other
 	const flatListRef = useRef<FlatList>(null);
 	const isUnmountedRef = useRef(false);
 	const [loading, setLoading] = useState(false);
@@ -100,8 +105,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							// Logger.log("\n");
 
 							// Prefer real bibs to zeros
-							if (recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === 0) {
-								if (isNaN(recordsRef.current[i][2]) || recordsRef.current[i][2] === undefined) {
+							if (!recordsRef.current[i][0]) {
+								if (!(recordsRef.current[i][2])) {
 									recordsRef.current[i][0] = 0;
 								} else {
 									recordsRef.current[i][0] = recordsRef.current[i][2];
@@ -124,13 +129,6 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						}
 						recordsRef.current[i][1] = getTimeInMils(finishTimes[i].time);
 					}
-
-					/*// Replace undefined with Max Safe Integer -- should be separate from the for-loop above
-					for (let i = 0; i < recordsRef.current.length; i++) {
-						if (recordsRef.current[i][1] === undefined) {
-							recordsRef.current[i][1] = Number.MAX_SAFE_INTEGER;
-						}
-					}*/
 
 					// Participants
 					if (participantList.participants !== undefined) {
@@ -180,11 +178,10 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						if (i > recordsRef.current.length - 1) {
 							recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 						}
-
 						recordsRef.current[i][2] = eventList[eventIndex].checker_bibs[i];
 
 						// Get best bib data available into records[0]
-						if (recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === null) {
+						if (!recordsRef.current[i][0]) {
 							if (recordsRef.current[i][2] !== undefined && recordsRef.current[i][2] !== null && recordsRef.current[i][2] !== 0) {
 								recordsRef.current[i][0] = recordsRef.current[i][2];
 							} else {
@@ -566,7 +563,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
 				/>
 
-				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> :
+				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> :
 					<FlatList
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}

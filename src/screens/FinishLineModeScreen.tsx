@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, BACKGROUND_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, BACKGROUND_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -69,7 +69,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				try {
 					const bibs = await getBibs(context.raceID, context.eventID);
 
-					if (bibs !== null && bibs.length > 0) {
+					if (bibs && bibs.length > 0) {
 						// If there are already bibs saved from Chute Mode, navigate to Verification Mode
 						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
@@ -285,7 +285,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			await postStartTime(context.raceID, context.eventID, formDataStartTime);
 
 			// Post Finish Times data
-			if (finishTimesRef.current.length === 0) {
+			if (finishTimesRef.current.length < 1) {
 				// Alert if no finishing times have been recorded
 				Alert.alert("No Results", "You have not recorded any results. Please try again.");
 			} else {
@@ -296,6 +296,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			if (error instanceof Error) {
 				if (error.message === undefined || error.message === "Network Error") {
 					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+				} else if (error.message.toLowerCase().includes("out of order")) {
+					Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
 				} else {
 					// Something else
 					Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
@@ -369,11 +371,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 		} else {
 			finishTimesRef.current.push(Date.now() - startTime.current);
-			if (bibText === undefined || bibText === "") {
+			if (!bibText) {
 				checkerBibsRef.current.push(0);
 				updateCheckerBibs([...checkerBibsRef.current]);
 			} else {
-				checkerBibsRef.current.push(parseFloat(bibText));
+				checkerBibsRef.current.push(parseInt(bibText));
 				updateCheckerBibs([...checkerBibsRef.current]);
 				setBibText("");
 			}
@@ -424,7 +426,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			<KeyboardAvoidingView style={globalstyles.container} behavior={Platform.OS == "ios" ? "padding" : "height"}>
 				{
 					loading ?
-						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} />
+						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} />
 						:
 						<>
 							<View style={{ flexDirection: "row", width: "100%" }}>

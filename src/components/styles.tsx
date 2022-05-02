@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 export const GREEN_COLOR = "#00ac65";
 export const RED_COLOR = "#ff3b30";
 export const BACKGROUND_COLOR = "#f2f2f2";
+export const GRAY_COLOR = "#a5a5a5";
 export const TABLE_FONT_SIZE = 14;
 export const BIG_FONT_SIZE = 25;
 export const MEDIUM_FONT_SIZE = 20;
@@ -21,7 +22,7 @@ export const globalstyles = StyleSheet.create({
 
 	// Headers
 	modalHeader: {
-		fontSize: BIG_FONT_SIZE,
+		fontSize: MEDIUM_FONT_SIZE,
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
@@ -46,7 +47,7 @@ export const globalstyles = StyleSheet.create({
 
 	// Flat Lists
 	flatList: {
-		height: "50%",
+		height: "40%",
 		flexGrow: 0,
 		borderWidth: 1,
 		marginBottom: 10,
@@ -67,7 +68,7 @@ export const globalstyles = StyleSheet.create({
 		borderBottomColor: "grey",
 		flexDirection: "row",
 		paddingLeft: 10,
-		height: TABLE_ITEM_HEIGHT
+		minHeight: TABLE_ITEM_HEIGHT
 	},
 	longTableItem: {
 		borderBottomWidth: 1,
@@ -75,7 +76,7 @@ export const globalstyles = StyleSheet.create({
 		flexDirection: "row",
 		padding: 5,
 		paddingLeft: 20,
-		height: LONG_TABLE_ITEM_HEIGHT
+		minHeight: LONG_TABLE_ITEM_HEIGHT
 	},
 	selectedLongTableItem: {
 		backgroundColor: GREEN_COLOR,
@@ -84,7 +85,7 @@ export const globalstyles = StyleSheet.create({
 		flexDirection: "row",
 		padding: 5,
 		paddingLeft: 20,
-		height: LONG_TABLE_ITEM_HEIGHT
+		minHeight: LONG_TABLE_ITEM_HEIGHT
 	},
 	conflictLongTableItem: {
 		backgroundColor: RED_COLOR,
@@ -93,7 +94,7 @@ export const globalstyles = StyleSheet.create({
 		flexDirection: "row",
 		padding: 5,
 		paddingLeft: 20,
-		height: LONG_TABLE_ITEM_HEIGHT
+		minHeight: LONG_TABLE_ITEM_HEIGHT
 	},
 	tableHead: {
 		flexDirection: "row",
@@ -176,7 +177,7 @@ export const globalstyles = StyleSheet.create({
 		padding: 10,
 		width: "100%",
 		alignSelf: "center",
-		fontSize: MEDIUM_FONT_SIZE
+		fontSize: MEDIUM_FONT_SIZE,
 	},
 
 	// Images

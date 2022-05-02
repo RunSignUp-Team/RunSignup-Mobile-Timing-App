@@ -1,6 +1,6 @@
 // Returns float value of time string
 export default function getTimeInMils(clockTime: string): number {
-	if (/^(((\d?\d:)?((\d?\d:)\d\d[.]\d\d?)|\d?\d[.]\d\d?)|)$/gm.test((clockTime))) {
+	if (/^\d{1,2}:\d{1,2}(:\d{1,2})?((\.|:)\d{1,2})?$/gm.test((clockTime))) {
 		const clockSplit: Array<string> = clockTime.split(/[:]+/);
 		let timeInMils: number;
 		const timeSplit: Array<number> = [];

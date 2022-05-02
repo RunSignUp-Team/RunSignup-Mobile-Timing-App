@@ -23,6 +23,7 @@ interface Props {
 	updateRecords(records: Array<[number, number, number]>): void,
 }
 
+
 export default function VerificationModeRenderItem(props: Props): React.ReactElement {
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
@@ -45,6 +46,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 				onPress={(): void => props.conflictResolution(index)}
 			>
 
+				{/* Place */}
 				<Text style={globalstyles.tableTextThree}
 					onPress={(): void => {
 						if (props.editMode) {
@@ -53,6 +55,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 					}}>{index + 1}
 				</Text>
 
+				{/* No Conflict Bib */}
 				{!conflictItem && <TextInput
 					editable={props.editMode}
 					style={globalstyles.tableTextTwo}
@@ -63,9 +66,11 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 					{props.record[0]}
 				</TextInput>}
 
+				{/* Conflict Bib */}
 				{conflictItem && <Text style={globalstyles.tableTextTwo}>
 					{`${props.record[0]} /\n${props.record[2]}`}</Text>}
 
+				{/* No Conflict Time */}
 				{!conflictItem && <TextInput
 					editable={props.editMode}
 					style={globalstyles.tableTextOne}
@@ -76,15 +81,19 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 					{getClockTime(props.record[1])}
 				</TextInput>}
 
+				{/* Conflict Time */}
 				{conflictItem && <Text style={globalstyles.tableTextOne}>
 					{getClockTime(props.record[1])}</Text>}
 
+				{/* No Conflict Participant */}
 				{!conflictItem && props.online &&
 					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{props.findParticipant(props.record[0])}</Text>}
 
+				{/* Conflict Participant */}
 				{conflictItem && props.online &&
 					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
+				{/* Delete Button */}
 				{props.editMode && <TouchableOpacity
 					style={globalstyles.tableDeleteButton}
 					onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
