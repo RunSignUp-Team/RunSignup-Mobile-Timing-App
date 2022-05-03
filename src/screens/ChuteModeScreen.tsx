@@ -281,6 +281,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						placeholder="Enter Bib #"
 						keyboardType="number-pad"
 						onSubmitEditing={bibText !== "" ? recordBib : (): void => { return; }}
+						autoFocus={true}
 					/>
 				</View>
 

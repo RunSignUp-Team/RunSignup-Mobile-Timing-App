@@ -189,7 +189,6 @@ export const globalstyles = StyleSheet.create({
 		flex: 0.5
 	},
 	
-
 	// Table Buttons
 	finishTableDeleteButton: {
 		...genericTableButton,
