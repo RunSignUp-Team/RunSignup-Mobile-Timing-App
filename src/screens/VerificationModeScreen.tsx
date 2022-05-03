@@ -398,7 +398,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			setLoading(false);
 		} else if (recordsRef.current.filter((entry) => (entry[1] === -1)).length > 0) {
 			// Alert if blank or incorrect finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish Times must be in this form:\nhh:mm:ss.ms\nPlease note the colons and the period.");
+			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish Times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nmm:ss\nss.ms");
 			setLoading(false);
 		} else if (recordsRef.current.filter((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
 			// Alert if too large finish time
@@ -498,7 +498,29 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { 
+						if (editMode) {
+							Alert.alert(
+								"Are You Sure?", 
+								"Are you sure you want to leave? Any unsaved changes will be lost!",
+								[
+									{
+										text: "Leave",
+										style: "destructive",
+										onPress: (): void => {
+											navigation.pop(); 
+										}
+									},
+									{
+										text: "Cancel",
+										style: "default",
+										onPress: (): void => { return; }
+									},
+								]);
+						} else {
+							navigation.pop(); 
+						}
+					}} labelVisible={false} tintColor="white"></HeaderBackButton>
 				),
 				gestureEnabled: true
 			});
@@ -578,10 +600,10 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
 						)}
 						ListHeaderComponent={<View style={globalstyles.tableHead}>
-							<Text style={globalstyles.tableTextThree}>Place</Text>
-							<Text style={globalstyles.tableTextOne}>Bib #</Text>
-							<Text style={globalstyles.tableTextOne}>Time</Text>
-							{context.online && <Text style={globalstyles.tableTextTwo}>Name</Text>}
+							<Text style={globalstyles.placeTableText}>Place</Text>
+							<Text style={globalstyles.bibTableText}>Bib #</Text>
+							<Text style={globalstyles.timeTableText}>Time</Text>
+							{context.online && <Text style={globalstyles.nameTableText}>Name</Text>}
 							{editMode && <Text style={globalstyles.tableHeadButtonText}>-</Text>}
 						</View>}
 						stickyHeaderIndices={[0]}

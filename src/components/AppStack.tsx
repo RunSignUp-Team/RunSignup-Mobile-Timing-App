@@ -31,7 +31,6 @@ export default function StartNavigator(): React.ReactElement {
 			headerBackVisible: false,
 			headerStyle: { backgroundColor: GREEN_COLOR },
 			headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontWeight: "bold", color: "white" },
-			headerLargeTitle: true
 		}}>
 			<AppStack.Screen name="SplashScreen" component={Loader} options={{
 				headerShown: false,
@@ -60,7 +59,7 @@ export default function StartNavigator(): React.ReactElement {
 				gestureEnabled: false
 			}} />
 			<AppStack.Screen name="VerificationMode" component={VerificationModeScreen} options={{
-				title: "Verification Mode",
+				title: "Results",
 			}} />
 		</AppStack.Navigator>
 	);

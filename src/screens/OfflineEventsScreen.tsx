@@ -75,7 +75,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Create event
 	const createEvent = async (): Promise<void> => {
-		if ((/^[0-9a-zA-Z ]+$/gm).test(eventName)) {
+		if ((/^[0-9a-zA-Z().-]+$/gm).test(eventName)) {
 			setAlertVisible(false);
 			const createTime = new Date().getTime();
 			const offlineEvent: OfflineEvent = {

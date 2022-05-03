@@ -47,7 +47,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 			>
 
 				{/* Place */}
-				<Text style={globalstyles.tableTextThree}
+				<Text style={globalstyles.placeTableText}
 					onPress={(): void => {
 						if (props.editMode) {
 							props.swapEntries(index);
@@ -58,7 +58,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 				{/* No Conflict Bib */}
 				{!conflictItem && <TextInput
 					editable={props.editMode}
-					style={globalstyles.tableTextTwo}
+					style={globalstyles.bibTableText}
 					keyboardType="numbers-and-punctuation"
 					maxLength={6}
 					onChangeText={updateBib}
@@ -67,13 +67,13 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 				</TextInput>}
 
 				{/* Conflict Bib */}
-				{conflictItem && <Text style={globalstyles.tableTextTwo}>
+				{conflictItem && <Text style={globalstyles.bibTableText}>
 					{`${props.record[0]} /\n${props.record[2]}`}</Text>}
 
 				{/* No Conflict Time */}
 				{!conflictItem && <TextInput
 					editable={props.editMode}
-					style={globalstyles.tableTextOne}
+					style={globalstyles.timeTableText}
 					keyboardType="numbers-and-punctuation"
 					maxLength={11}
 					onChangeText={updateTime}
@@ -82,16 +82,16 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 				</TextInput>}
 
 				{/* Conflict Time */}
-				{conflictItem && <Text style={globalstyles.tableTextOne}>
+				{conflictItem && <Text style={globalstyles.timeTableText}>
 					{getClockTime(props.record[1])}</Text>}
 
 				{/* No Conflict Participant */}
 				{!conflictItem && props.online &&
-					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{props.findParticipant(props.record[0])}</Text>}
+					<Text style={[globalstyles.nameTableText, { fontWeight: "normal" }]}>{props.findParticipant(props.record[0])}</Text>}
 
 				{/* Conflict Participant */}
 				{conflictItem && props.online &&
-					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
+					<Text style={[globalstyles.nameTableText, { fontWeight: "normal" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
 				{/* Delete Button */}
 				{props.editMode && <TouchableOpacity

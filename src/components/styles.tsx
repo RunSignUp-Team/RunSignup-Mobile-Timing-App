@@ -11,6 +11,36 @@ export const BORDER_RADIUS = 12;
 export const TABLE_ITEM_HEIGHT = 40;
 export const LONG_TABLE_ITEM_HEIGHT = 50;
 
+interface GenericTableText {
+	fontSize: number,
+	fontWeight: "bold" | "normal",
+	textAlign: "left" | "center" | "right",
+	paddingVertical: number
+}
+
+interface GenericTableItem {
+	borderBottomWidth: number,
+	borderBottomColor: string,
+	flexDirection: "row" | "column",
+	paddingHorizontal: number,
+	alignItems: "flex-start" | "center" | "flex-end"
+}
+
+const genericTableText: GenericTableText = {
+	fontSize: TABLE_FONT_SIZE,
+	fontWeight: "bold",
+	textAlign: "left",
+	paddingVertical: 5
+};
+
+const genericTableItem: GenericTableItem = {
+	borderBottomWidth: 1,
+	borderBottomColor: "grey",
+	flexDirection: "row",
+	paddingHorizontal: 10,
+	alignItems: "center"
+};
+
 export const globalstyles = StyleSheet.create({
 	// Containers
 	container: {
@@ -47,7 +77,7 @@ export const globalstyles = StyleSheet.create({
 
 	// Flat Lists
 	flatList: {
-		height: "40%",
+		height: "50%",
 		flexGrow: 0,
 		borderWidth: 1,
 		marginBottom: 10,
@@ -62,48 +92,38 @@ export const globalstyles = StyleSheet.create({
 		borderRadius: BORDER_RADIUS
 	},
 
-	// Tables
+	// Table Items
 	tableItem: {
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		paddingLeft: 10,
-		minHeight: TABLE_ITEM_HEIGHT
+		...genericTableItem
 	},
 	longTableItem: {
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		padding: 5,
-		paddingLeft: 20,
-		minHeight: LONG_TABLE_ITEM_HEIGHT
+		...genericTableItem,
+		paddingVertical: 5,
+		minHeight: LONG_TABLE_ITEM_HEIGHT,
 	},
 	selectedLongTableItem: {
+		...genericTableItem,
 		backgroundColor: GREEN_COLOR,
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		padding: 5,
-		paddingLeft: 20,
-		minHeight: LONG_TABLE_ITEM_HEIGHT
+		paddingVertical: 5,
+		minHeight: LONG_TABLE_ITEM_HEIGHT,
 	},
 	conflictLongTableItem: {
+		...genericTableItem,
 		backgroundColor: RED_COLOR,
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		padding: 5,
-		paddingLeft: 20,
-		minHeight: LONG_TABLE_ITEM_HEIGHT
+		paddingVertical: 5,
+		minHeight: LONG_TABLE_ITEM_HEIGHT,
 	},
+
+	// Table Head
 	tableHead: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
-		paddingLeft: 15,
+		paddingHorizontal: 10,
 		paddingVertical: 8,
 		backgroundColor: BACKGROUND_COLOR,
 		borderTopRightRadius: BORDER_RADIUS,
-		borderTopLeftRadius: BORDER_RADIUS
+		borderTopLeftRadius: BORDER_RADIUS,
+		alignItems: "center"
 	},
 	tableHeadButtonText: {
 		fontSize: TABLE_FONT_SIZE,
@@ -114,33 +134,27 @@ export const globalstyles = StyleSheet.create({
 		paddingRight: 10,
 		marginHorizontal: 5,
 	},
-	tableTextOne: {
-		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
-		flex: 2,
-		alignSelf: "center",
-		textAlign: "left",
-		paddingTop: 5,
-		paddingBottom: 5,
-	},
-	tableTextTwo: {
-		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
-		flex: 1.5,
-		alignSelf: "center",
-		textAlign: "left",
-		paddingTop: 5,
-		paddingBottom: 5,
-	},
-	tableTextThree: {
-		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
+
+	// Table Text
+	placeTableText: {
+		...genericTableText,
 		flex: 1,
-		alignSelf: "center",
-		textAlign: "left",
-		paddingTop: 5,
-		paddingBottom: 5,
 	},
+	bibTableText: {
+		...genericTableText,
+		flex: 1.5,
+	},
+	timeTableText: {
+		...genericTableText,
+		flex: 1.5,
+	},
+	nameTableText: {
+		...genericTableText,
+		paddingLeft: 20,
+		flex: 1.5,
+	},
+
+	// Table Buttons
 	tableDeleteButton: {
 		justifyContent: "center",
 		backgroundColor: RED_COLOR,

@@ -429,7 +429,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						:
 						<>
 							<View style={{ flexDirection: "row", width: "100%" }}>
-								<Text style={[globalstyles.timer, timerOn ? { backgroundColor: GREEN_COLOR } : { backgroundColor: BACKGROUND_COLOR }]}>{getClockTime(displayTime)}</Text>
+								<Text style={[globalstyles.timer, timerOn ? { backgroundColor: GREEN_COLOR } : { backgroundColor: BACKGROUND_COLOR }]}>{getClockTime(displayTime, true)}</Text>
 								<TextInput
 									onChangeText={setBibText}
 									editable={timerOn}
@@ -454,9 +454,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								keyExtractor={(_item, index): string => (index + 1).toString()}
 								keyboardShouldPersistTaps="handled"
 								ListHeaderComponent={<View style={globalstyles.tableHead}>
-									<Text style={globalstyles.tableTextThree}>Place</Text>
-									<Text style={globalstyles.tableTextOne}>Time</Text>
-									<Text style={globalstyles.tableTextTwo}>Bib #</Text>
+									<Text style={globalstyles.placeTableText}>Place</Text>
+									<Text style={globalstyles.timeTableText}>Time</Text>
+									<Text style={globalstyles.bibTableText}>Bib #</Text>
 									<Text style={globalstyles.tableHeadButtonText}>+</Text>
 									<Text style={globalstyles.tableHeadButtonText}>-</Text>
 								</View>}

@@ -38,10 +38,10 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 	return (
 		<View style={globalstyles.tableItem}
 			onStartShouldSetResponder={(): boolean => true}>
-			<Text style={globalstyles.tableTextThree}>{props.index + 1}</Text>
-			<Text style={globalstyles.tableTextOne}>{getClockTime(props.time)}</Text>
+			<Text style={globalstyles.placeTableText}>{props.index + 1}</Text>
+			<Text style={globalstyles.timeTableText}>{getClockTime(props.time)}</Text>
 			<TextInput
-				style={globalstyles.tableTextTwo}
+				style={globalstyles.bibTableText}
 				keyboardType="number-pad"
 				maxLength={6}
 				onChangeText={updateCheckerBib}>
