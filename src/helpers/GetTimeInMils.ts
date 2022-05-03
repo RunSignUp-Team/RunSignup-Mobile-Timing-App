@@ -28,7 +28,6 @@ export default function GetTimeInMils(clockTime: string): number {
 		// If format is ss.ms, it is initially stored as [ss, ms],
 		// But we want to convert it to [ss.ms]
 		if (!clockTime.includes(":") && clockTime.includes(".")) {
-			// console.log(clockTime);
 			clockSplit[0] = clockSplit[0] + "." + clockSplit[1];
 			clockSplit.pop();
 		}

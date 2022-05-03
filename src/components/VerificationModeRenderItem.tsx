@@ -35,7 +35,6 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 			props.recordsRef.current[index][0] = -1;
 			props.recordsRef.current[index][2] = -1;
 			props.updateRecords([...props.recordsRef.current]);
-			console.log("here");
 		} else {
 			props.recordsRef.current[index][0] = parseInt(newBib);
 			props.recordsRef.current[index][2] = parseInt(newBib);
