@@ -41,11 +41,11 @@ module.exports = {
             "unix"
         ],
         "quotes": [
-            "error",
+            "warn",
             "double"
         ],
         "semi": [
-            "error",
+            "warn",
             "always"
         ],
         "react/prop-types": [
