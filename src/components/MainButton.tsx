@@ -19,13 +19,16 @@ export default function MainButton(props: Props): React.ReactElement {
 				{
 					alignItems: props.listButton ? "flex-start" : "center",
 					paddingHorizontal: 10,
-					width: "100%",
 					marginHorizontal: 10,
+					marginVertical: props.listButton ? 5 : 10,
+					paddingVertical: props.listButton ? 5 : 10,
+					minHeight: props.listButton ? 50 : 70,
+					width: "100%",
 					borderRadius: BORDER_RADIUS,
 					alignSelf: "center",
-					paddingVertical: props.listButton ? 15 : 20,
-					marginVertical: props.listButton ? 5 : 10,
-					backgroundColor: props.color === "Red" ? RED_COLOR : GREEN_COLOR
+					justifyContent: "center",
+					backgroundColor: props.color === "Red" ? RED_COLOR : GREEN_COLOR,
+					flexDirection: props.listButton ? "column" : "row"
 				},
 				props.buttonStyle]} 
 			onPress={props.onPress}>

@@ -546,7 +546,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 		navigation.setOptions({
 			headerRight: () => (
-				<View style={{ flexDirection: "row", alignItems: "center" }}>
+				<View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
 					{editMode && !loading && <TouchableOpacity onPress={(): void => addRecord()} >
 						<Image
 							style={globalstyles.headerImage}

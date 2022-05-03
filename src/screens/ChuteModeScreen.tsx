@@ -278,7 +278,8 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						onChangeText={setBibText}
 						value={bibText}
 						maxLength={6}
-						placeholder="Enter Bib #"
+						placeholder="Record Bib #"
+						placeholderTextColor={GRAY_COLOR}
 						keyboardType="number-pad"
 						onSubmitEditing={bibText !== "" ? recordBib : (): void => { return; }}
 						autoFocus={true}

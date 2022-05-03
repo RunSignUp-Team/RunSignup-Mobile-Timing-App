@@ -6,9 +6,11 @@ export const LIGHT_GREEN_COLOR = "#00cc77";
 
 export const RED_COLOR = "#ff3b30";
 
-export const BACKGROUND_COLOR = "#f2f2f2";
+export const BLACK_COLOR = "#000";
+export const DARK_GRAY_COLOR = "#4f4f4f";
 export const GRAY_COLOR = "#a5a5a5";
 export const LIGHT_GRAY_COLOR = "#e6e6e6";
+export const BACKGROUND_COLOR = "#f2f2f2";
 
 export const TABLE_FONT_SIZE = 14;
 export const BIG_FONT_SIZE = 23;
@@ -107,12 +109,14 @@ export const globalstyles = StyleSheet.create({
 		height: "50%",
 		flexGrow: 0,
 		marginBottom: 10,
-		borderBottomWidth: 1,
+		borderWidth: 1,
+		borderColor: DARK_GRAY_COLOR,
 		overflow: "hidden",
 	},
 	longFlatList: {
 		overflow: "hidden",
-		borderBottomWidth: 1,
+		borderWidth: 1,
+		borderColor: DARK_GRAY_COLOR
 	},
 
 	// Table Items
@@ -141,6 +145,7 @@ export const globalstyles = StyleSheet.create({
 	tableHead: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
+		borderColor: DARK_GRAY_COLOR,
 		paddingHorizontal: UNIVERSAL_PADDING,
 		paddingVertical: 10,
 		backgroundColor: LIGHT_GRAY_COLOR,
@@ -220,7 +225,7 @@ export const globalstyles = StyleSheet.create({
 
 	// Text Input
 	input: {
-		height: 40,
+		height: 45,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
 		margin: 10,
@@ -248,21 +253,23 @@ export const globalstyles = StyleSheet.create({
 
 	// Timer
 	timer: {
-		padding: 10,
+		padding: 8,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
 		margin: 10,
 		marginRight: 0,
 		flex: 2,
+		height: 45,
 		fontSize: BIG_FONT_SIZE,
 		overflow: "hidden",
 	},
 	timerBibInput: {
-		padding: 10,
+		padding: 8,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
 		margin: 10,
 		flex: 1,
+		height: 45,
 		fontSize: BIG_FONT_SIZE,
 		backgroundColor: LIGHT_GRAY_COLOR
 	},
