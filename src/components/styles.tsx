@@ -146,7 +146,7 @@ export const globalstyles = StyleSheet.create({
 	},
 	timeTableText: {
 		...genericTableText,
-		flex: 1.5,
+		flex: 1.7,
 	},
 	nameTableText: {
 		...genericTableText,
