@@ -14,6 +14,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { ItemLayout } from "../models/ItemLayout";
 import { useFocusEffect } from "@react-navigation/native";
+import Logger from "../helpers/Logger";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -189,7 +190,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						} else {
 							// Something else
 							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+							Logger.log(error);
 						}
 					}
 				}
@@ -371,7 +372,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					} else {
 						// Something else
 						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+						Logger.log(error);
 					}
 				}
 				if (!isUnmountedRef.current) {

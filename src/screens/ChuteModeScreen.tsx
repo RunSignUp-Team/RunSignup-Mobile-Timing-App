@@ -13,6 +13,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import MainButton from "../components/MainButton";
 import { ItemLayout } from "../models/ItemLayout";
+import Logger from "../helpers/Logger";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -90,7 +91,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								} else {
 									// Something else
 									Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+									Logger.log(error);
 								}
 							}
 							setLoading(false);

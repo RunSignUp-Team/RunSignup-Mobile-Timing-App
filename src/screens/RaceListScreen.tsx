@@ -140,7 +140,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 					} else {
 						// Something else
 						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+						Logger.log(error);
 					}
 				}
 				setLoading(false);
