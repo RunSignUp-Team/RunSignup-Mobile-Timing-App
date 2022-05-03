@@ -2,7 +2,7 @@ import React, { memo, useCallback } from "react";
 import { View, TextInput, Text, TouchableOpacity } from "react-native";
 import removeOne from "../helpers/RemoveOne";
 import { globalstyles } from "./styles";
-import getClockTime from "../helpers/GetClockTime";
+import GetClockTime from "../helpers/GetClockTime";
 
 interface Props {
 	checkerBibsRef: {
@@ -39,7 +39,7 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 		<View style={globalstyles.tableItem}
 			onStartShouldSetResponder={(): boolean => true}>
 			<Text style={globalstyles.placeTableText}>{props.index + 1}</Text>
-			<Text style={globalstyles.timeTableText}>{getClockTime(props.time)}</Text>
+			<Text style={globalstyles.timeTableText}>{GetClockTime(props.time)}</Text>
 			<TextInput
 				style={globalstyles.bibTableText}
 				keyboardType="number-pad"
@@ -47,16 +47,20 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 				onChangeText={updateCheckerBib}>
 				{props.bib}
 			</TextInput>
-			<TouchableOpacity
-				style={globalstyles.tableAddButton}
-				onPress={addOne}>
-				<Text style={globalstyles.tableButtonText}>+</Text>
-			</TouchableOpacity>
-			<TouchableOpacity
-				style={globalstyles.finishTableDeleteButton}
-				onPress={removeSelf}>
-				<Text style={globalstyles.tableButtonText}>-</Text>
-			</TouchableOpacity>
+			<View style={{ flex: 0.5, alignItems: "center" }}>
+				<TouchableOpacity
+					style={globalstyles.tableAddButton}
+					onPress={addOne}>
+					<Text style={globalstyles.tableButtonText}>+</Text>
+				</TouchableOpacity>
+			</View>
+			<View style={{ flex: 0.5, alignItems: "center" }}>
+				<TouchableOpacity
+					style={globalstyles.tableDeleteButton}
+					onPress={removeSelf}>
+					<Text style={globalstyles.tableButtonText}>-</Text>
+				</TouchableOpacity>
+			</View>
 		</View>
 	);
 }

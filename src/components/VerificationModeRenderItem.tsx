@@ -2,9 +2,10 @@ import React, { memo, useCallback } from "react";
 import { View, TextInput, Text, TouchableOpacity, Keyboard } from "react-native";
 import { globalstyles } from "./styles";
 import removeOne from "../helpers/RemoveOne";
-import getClockTime from "../helpers/GetClockTime";
-import getTimeInMils from "../helpers/GetTimeInMils";
+import GetClockTime from "../helpers/GetClockTime";
+import GetTimeInMils from "../helpers/GetTimeInMils";
 import ConflictBoolean from "../helpers/ConflictBoolean";
+import GetBibDisplay from "../helpers/GetBibDisplay";
 
 interface Props {
 	record: [number, number, number],
@@ -29,13 +30,21 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
 
 	const updateBib = useCallback((newBib) => {
-		props.recordsRef.current[index][0] = Number(newBib);
-		props.recordsRef.current[index][2] = Number(newBib);
-		props.updateRecords([...props.recordsRef.current]);
+		if (isNaN(parseInt(newBib))) {
+			// Store as -1 if invalid data
+			props.recordsRef.current[index][0] = -1;
+			props.recordsRef.current[index][2] = -1;
+			props.updateRecords([...props.recordsRef.current]);
+			console.log("here");
+		} else {
+			props.recordsRef.current[index][0] = parseInt(newBib);
+			props.recordsRef.current[index][2] = parseInt(newBib);
+			props.updateRecords([...props.recordsRef.current]);
+		}
 	}, [index, props]);
 
 	const updateTime = useCallback((newTime) => {
-		props.recordsRef.current[index][1] = getTimeInMils(newTime);
+		props.recordsRef.current[index][1] = GetTimeInMils(newTime);
 		props.updateRecords([...props.recordsRef.current]);
 	}, [index, props]);
 
@@ -47,13 +56,14 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 			>
 
 				{/* Place */}
-				<Text style={globalstyles.placeTableText}
+				<TouchableOpacity style={{flex: 1, flexDirection: "row", alignItems: "center"}}
+					hitSlop={{top: 30, bottom: 30, left: 30, right: 30}}
+					disabled={!props.editMode}
 					onPress={(): void => {
-						if (props.editMode) {
-							props.swapEntries(index);
-						}
-					}}>{index + 1}
-				</Text>
+						props.swapEntries(index);
+					}}>
+					<Text style={globalstyles.placeTableText}>{index + 1}</Text>
+				</TouchableOpacity>
 
 				{/* No Conflict Bib */}
 				{!conflictItem && <TextInput
@@ -63,7 +73,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 					maxLength={6}
 					onChangeText={updateBib}
 					onSubmitEditing={Keyboard.dismiss}>
-					{props.record[0]}
+					{GetBibDisplay(props.record[0])}
 				</TextInput>}
 
 				{/* Conflict Bib */}
@@ -78,12 +88,12 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 					maxLength={11}
 					onChangeText={updateTime}
 					onSubmitEditing={Keyboard.dismiss}>
-					{getClockTime(props.record[1])}
+					{GetClockTime(props.record[1])}
 				</TextInput>}
 
 				{/* Conflict Time */}
 				{conflictItem && <Text style={globalstyles.timeTableText}>
-					{getClockTime(props.record[1])}</Text>}
+					{GetClockTime(props.record[1])}</Text>}
 
 				{/* No Conflict Participant */}
 				{!conflictItem && props.online &&
@@ -94,11 +104,15 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 					<Text style={[globalstyles.nameTableText, { fontWeight: "normal", flexWrap: "wrap" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
 				{/* Delete Button */}
-				{props.editMode && <TouchableOpacity
-					style={globalstyles.verificationTableDeleteButton}
-					onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
-					<Text style={globalstyles.tableButtonText}>-</Text>
-				</TouchableOpacity>}
+				{props.editMode &&
+					<View style={{ flex: 0.5, alignItems: "center" }}>
+						<TouchableOpacity
+							style={globalstyles.tableDeleteButton}
+							onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
+							<Text style={globalstyles.tableButtonText}>-</Text>
+						</TouchableOpacity>
+					</View>
+				}
 			</TouchableOpacity>
 		</View>
 	);

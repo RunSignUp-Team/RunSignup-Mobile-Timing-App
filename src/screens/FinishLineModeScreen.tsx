@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR } from "../components/styles";
+import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, BIG_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
 import { postFinishTimes, postStartTime, postBibs, getBibs } from "../helpers/AxiosCalls";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
-import getClockTime from "../helpers/GetClockTime";
+import GetClockTime from "../helpers/GetClockTime";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
@@ -433,8 +433,12 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} />
 						:
 						<>
-							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
-								<Text style={[globalstyles.timer, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR, color: timerOn ? BLACK_COLOR : GRAY_COLOR}]}>{getClockTime(displayTime, true)}</Text>
+							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
+								<View style={[globalstyles.timerView, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR}]}>
+									<Text style={{fontSize: BIG_FONT_SIZE, color: timerOn ? BLACK_COLOR : GRAY_COLOR}}>
+										{GetClockTime(displayTime, true)}
+									</Text>
+								</View>
 								<TextInput
 									onChangeText={setBibText}
 									editable={timerOn}

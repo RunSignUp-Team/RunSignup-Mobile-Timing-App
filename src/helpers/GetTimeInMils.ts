@@ -12,7 +12,7 @@
 // :dd | .dd
 
 // Returns float value of time string
-export default function getTimeInMils(clockTime: string): number {
+export default function GetTimeInMils(clockTime: string): number {
 	if (/^(\d{1,2}:){0,2}\d{1,2}((\.|:)\d{1,2})$/gm.test((clockTime))) {
 		// Clock Time split into array
 		const clockSplit: Array<string> = clockTime.split(/[:.]+/);

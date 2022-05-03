@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import { oAuthLogin } from "./oAuth2Helper";
 import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
-import getClockTime from "./GetClockTime";
+import GetClockTime from "./GetClockTime";
 
 interface RaceResponse {
 	races: Array<{
@@ -199,7 +199,7 @@ export const postFinishTimes = async (raceID: number, eventID: number, times: Ar
 	const timeString = [];
 
 	for (let i = 0; i < times.length; i++) {
-		timeString[i] = getClockTime(times[i]);
+		timeString[i] = GetClockTime(times[i]);
 	}
 
 	const formData = new FormData();

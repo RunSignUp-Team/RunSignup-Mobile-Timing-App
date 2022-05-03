@@ -27,6 +27,7 @@ interface GenericTableText {
 	fontSize: number,
 	fontWeight: "bold" | "normal",
 	textAlign: "left" | "center" | "right",
+	color: string
 }
 
 interface GenericTableItem {
@@ -42,6 +43,7 @@ interface GenericTableButton {
 	width: number,
 	height: number,
 	borderRadius: number,
+	alignItems: "flex-start" | "center" | "flex-end",
 	justifyContent: "flex-start" | "center" | "flex-end",
 }
 
@@ -49,6 +51,7 @@ const genericTableText: GenericTableText = {
 	fontSize: TABLE_FONT_SIZE,
 	fontWeight: "bold",
 	textAlign: "left",
+	color: BLACK_COLOR
 };
 
 const genericTableItem: GenericTableItem = {
@@ -61,9 +64,10 @@ const genericTableItem: GenericTableItem = {
 };
 
 const genericTableButton: GenericTableButton = {
-	width: 31,
-	height: 31,
+	width: 30,
+	height: 30,
 	borderRadius: 20,
+	alignItems: "center",
 	justifyContent: "center",
 };
 
@@ -109,13 +113,13 @@ export const globalstyles = StyleSheet.create({
 		height: "50%",
 		flexGrow: 0,
 		marginBottom: 10,
-		borderWidth: 1,
+		borderBottomWidth: 1,
 		borderColor: DARK_GRAY_COLOR,
 		overflow: "hidden",
 	},
 	longFlatList: {
 		overflow: "hidden",
-		borderWidth: 1,
+		borderBottomWidth: 1,
 		borderColor: DARK_GRAY_COLOR
 	},
 
@@ -147,9 +151,9 @@ export const globalstyles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderColor: DARK_GRAY_COLOR,
 		paddingHorizontal: UNIVERSAL_PADDING,
-		paddingVertical: 10,
+		height: TABLE_ITEM_HEIGHT,
 		backgroundColor: LIGHT_GRAY_COLOR,
-		alignItems: "center"
+		alignItems: "center",
 	},
 
 	// Table Text
@@ -173,50 +177,38 @@ export const globalstyles = StyleSheet.create({
 	finishDeleteTableText: {
 		...genericTableText,
 		textAlign: "center",
-		flex: 0.5,
-		marginLeft: 5
+		flex: 0.5, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	chuteDeleteTableText: {
 		...genericTableText,
 		textAlign: "center",
-		flex: 0.25,
+		flex: 0.25, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	verificationDeleteTableText: {
 		...genericTableText,
 		textAlign: "center",
-		flex: 0.45,
+		flex: 0.5, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	addTableText: {
 		...genericTableText,
 		textAlign: "center",
-		flex: 0.5
+		flex: 0.5, // Need to update everywhere this style is used as well (for the corresponding button)
+		marginRight: 5
 	},
 	
-	// Table Buttons
-	finishTableDeleteButton: {
+	// Table Buttons (flex set in individual files)
+	tableDeleteButton: {
 		...genericTableButton,
 		backgroundColor: RED_COLOR,
-		marginLeft: 5,
-		flex: 0.5
-	},
-	chuteTableDeleteButton: {
-		...genericTableButton,
-		backgroundColor: RED_COLOR,
-		flex: 0.25
-	},
-	verificationTableDeleteButton: {
-		...genericTableButton,
-		backgroundColor: RED_COLOR,
-		flex: 0.45
 	},
 	tableAddButton: {
 		...genericTableButton,
 		backgroundColor: GREEN_COLOR,
-		flex: 0.5
+		textAlignVertical: "center",
+		marginRight: 5
 	},
 	tableButtonText: {
-		fontSize: 24,
-		paddingBottom: 31,
+		fontSize: MEDIUM_FONT_SIZE,
 		fontWeight: "bold",
 		color: "white",
 		textAlign: "center",
@@ -253,8 +245,8 @@ export const globalstyles = StyleSheet.create({
 	},
 
 	// Timer
-	timer: {
-		padding: 8,
+	timerView: {
+		paddingLeft: 10,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
 		borderColor: DARK_GRAY_COLOR,
@@ -262,11 +254,11 @@ export const globalstyles = StyleSheet.create({
 		marginRight: 0,
 		flex: 2,
 		height: 45,
-		fontSize: BIG_FONT_SIZE,
 		overflow: "hidden",
+		justifyContent: "center"
 	},
 	timerBibInput: {
-		padding: 8,
+		paddingLeft: 10,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
 		borderColor: DARK_GRAY_COLOR,

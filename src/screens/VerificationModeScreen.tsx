@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/AxiosCalls";
 import { MemoVerificationItem } from "../components/VerificationModeRenderItem";
-import getTimeInMils from "../helpers/GetTimeInMils";
+import GetTimeInMils from "../helpers/GetTimeInMils";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
@@ -168,7 +168,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						if (i > recordsRef.current.length - 1) {
 							recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 						}
-						recordsRef.current[i][1] = getTimeInMils(finishTimes[i].time);
+						recordsRef.current[i][1] = GetTimeInMils(finishTimes[i].time);
 					}
 
 					// Participants
@@ -389,6 +389,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			});
 			setEditMode(false);
 			setLoading(false);
+
+			Alert.alert("Success", "Edits have been saved to your local device!");
 		}
 	}, [context.eventID, context.online, context.raceID, context.time, updateRecords]);
 

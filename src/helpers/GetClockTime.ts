@@ -1,6 +1,6 @@
 import addLeadingZeros from "./AddLeadingZeros";
 
-export default function getClockTime(timeInMils: number, timer?: boolean): string {
+export default function GetClockTime(timeInMils: number, timer?: boolean): string {
 	if (timeInMils) {
 		// If empty or incorrect time
 		if (timeInMils === Number.MAX_SAFE_INTEGER) {
