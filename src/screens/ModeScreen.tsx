@@ -18,6 +18,9 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
+const FinishLineModeMsg = "You may not re-enter Finish Line Mode on the same device, or enter Finish Line Mode data after recording Chute Mode data.\nIf you have completed all data entry, see Verification Mode to view or edit results.";
+const ChuteModeMsg = "You may not re-enter Chute Mode data on the same device.\nIf you have completed all data entry, see Verification Mode to view or edit results.";
+
 const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
@@ -67,8 +70,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			async (_err, result) => {
 				if (result === "true") {
 					Alert.alert(
-						"Already Entered",
-						"You have already entered the Finish Line Mode data. Please see Verification Mode for more details or to edit results."
+						"Cannot Re-Enter Data",
+						FinishLineModeMsg
 					);
 				} else {
 					// Check if Finish Times have already been recorded for this event
@@ -96,8 +99,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
 			if (result === "true") {
 				Alert.alert(
-					"Already Entered",
-					"You have already entered the Finish Line Mode data. Please see Verification Mode for more details or to edit results."
+					"Cannot Re-Enter Data",
+					FinishLineModeMsg
 				);
 			} else {
 				navigation.navigate("FinishLineMode");
@@ -112,8 +115,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			(_err, result) => {
 				if (result === "true") {
 					Alert.alert(
-						"Already Entered",
-						"You have already entered the Chute Mode data. Please see Verification Mode for more details or to edit results."
+						"Cannot Re-Enter Data",
+						ChuteModeMsg
 					);
 				} else {
 					navigation.navigate("ChuteMode");
@@ -126,7 +129,10 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const chuteTappedOffline = (): void => {
 		AsyncStorage.getItem(`chuteDone:${context.time}`, (_err, result) => {
 			if (result === "true") {
-				Alert.alert("Already Entered", "You have already entered the Chute Mode data. Please see Verification Mode for more details or to edit results.");
+				Alert.alert(
+					"Cannot Re-Enter Data", 
+					ChuteModeMsg
+				);
 			} else {
 				navigation.navigate("ChuteMode");
 			}
@@ -147,7 +153,10 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			if (finishTimes !== null && finishTimes.length > 0 && bibsExist) {
 				navigation.navigate("VerificationMode");
 			} else {
-				Alert.alert("No Data Found", "No Finish Line / Chute data found on RunSignup. Please enter that data first and try again.");
+				Alert.alert(
+					"No Data Found", 
+					"No Finish Line / Chute data found on RunSignup. Please enter that data first and try again."
+				);
 			}
 		} catch (error) {
 			if (error instanceof Error) {
@@ -169,7 +178,10 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			if (resultFinish === "true") {
 				navigation.navigate("VerificationMode");
 			} else {
-				Alert.alert("No Data Entered", "You have not saved Chute and Finish Line data yet. Please enter that data first and try again.");
+				Alert.alert(
+					"No Data Entered", 
+					"You have not saved Chute and Finish Line data yet. Please enter that data first and try again."
+				);
 			}
 		}
 		);
