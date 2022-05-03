@@ -64,14 +64,28 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const finishLineTapped = (): void => {
 		AsyncStorage.getItem(
 			`finishLineDone:${context.raceID}:${context.eventID}`,
-			(_err, result) => {
+			async (_err, result) => {
 				if (result === "true") {
 					Alert.alert(
 						"Already Entered",
 						"You have already entered the Finish Line Mode data. Please see Verification Mode for more details or to edit results."
 					);
 				} else {
-					navigation.navigate("FinishLineMode");
+					// Check if Finish Times have already been recorded for this event
+					try {
+						const finishTimes = await getFinishTimes(context.raceID, context.eventID);
+						if (finishTimes && finishTimes.length > 0) {
+							Alert.alert(
+								"Already Entered",
+								"Runsignup already has Finish Times recorded for this event."
+							);
+						} else {
+							navigation.navigate("FinishLineMode");
+						}
+					} catch (err) {
+						Logger.log("Finish Times Check", err);
+						navigation.navigate("FinishLineMode");
+					}
 				}
 			}
 		);
