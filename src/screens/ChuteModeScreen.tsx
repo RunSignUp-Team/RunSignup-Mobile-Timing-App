@@ -32,8 +32,8 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
 
-	// Log out with alert
-	const BackTapped = useCallback(() => {
+	// Leave with alert
+	const backTapped = useCallback(() => {
 		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
 			{
 				text: "Leave",
@@ -140,7 +140,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	useFocusEffect(
 		useCallback(() => {
 			const onBackPress = (): boolean => {
-				BackTapped();
+				backTapped();
 				return true;
 			};
 
@@ -148,13 +148,13 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			return () =>
 				BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-		}, [BackTapped]),
+		}, [backTapped]),
 	);
 
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={BackTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
 			)
 		});
 
@@ -186,7 +186,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		return () => {
 			isUnmounted.current = true;
 		};
-	}, [BackTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateBibNums]);
+	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateBibNums]);
 
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {

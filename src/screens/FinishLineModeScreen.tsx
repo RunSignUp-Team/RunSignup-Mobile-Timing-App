@@ -39,8 +39,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
 
-	// Log out with alert
-	const BackTapped = useCallback(() => {
+	// Leave with alert
+	const backTapped = useCallback(() => {
 		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
 			{
 				text: "Leave",
@@ -148,7 +148,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	useFocusEffect(
 		useCallback(() => {
 			const onBackPress = (): boolean => {
-				BackTapped();
+				backTapped();
 				return true;
 			};
 
@@ -156,14 +156,14 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 			return () =>
 				BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-		}, [BackTapped]),
+		}, [backTapped]),
 	);
 
 	/** Get old data in case screen closed before saving */
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={BackTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
 			)
 		});
 
@@ -213,7 +213,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		return () => {
 			isUnmounted.current = true;
 		};
-	}, [BackTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]);
+	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]);
 
 	// Start the timer interval when user asks to record times
 	useEffect(() => {

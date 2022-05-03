@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
 import { globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -13,6 +13,7 @@ import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { ItemLayout } from "../models/ItemLayout";
+import { useFocusEffect } from "@react-navigation/native";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -59,6 +60,45 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setRecords(newRecords);
 		recordsRef.current = newRecords;
 	}, []);
+
+	// Leave with alert
+	const backTapped = useCallback(() => {
+		if (editMode) {
+			Alert.alert(
+				"Are You Sure?", 
+				"Are you sure you want to leave? Any unsaved changes will be lost!",
+				[
+					{
+						text: "Leave",
+						style: "destructive",
+						onPress: (): void => {
+							navigation.pop(); 
+						}
+					},
+					{
+						text: "Cancel",
+						style: "default",
+						onPress: (): void => { return; }
+					},
+				]);
+		} else {
+			navigation.pop(); 
+		}
+	}, [editMode, navigation]);
+
+	useFocusEffect(
+		useCallback(() => {
+			const onBackPress = (): boolean => {
+				backTapped();
+				return true;
+			};
+
+			BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+			return () =>
+				BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+		}, [backTapped]),
+	);
 
 	useEffect(() => {
 		setLoading(true);
@@ -498,31 +538,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={(): void => { 
-						if (editMode) {
-							Alert.alert(
-								"Are You Sure?", 
-								"Are you sure you want to leave? Any unsaved changes will be lost!",
-								[
-									{
-										text: "Leave",
-										style: "destructive",
-										onPress: (): void => {
-											navigation.pop(); 
-										}
-									},
-									{
-										text: "Cancel",
-										style: "default",
-										onPress: (): void => { return; }
-									},
-								]);
-						} else {
-							navigation.pop(); 
-						}
-					}} labelVisible={false} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { backTapped(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 				),
-				gestureEnabled: true
 			});
 		}
 
@@ -550,7 +567,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				</View>
 			),
 		});
-	}, [addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
 
 	// Renders item on screen
 	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement => (

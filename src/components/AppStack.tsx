@@ -60,6 +60,7 @@ export default function StartNavigator(): React.ReactElement {
 			}} />
 			<AppStack.Screen name="VerificationMode" component={VerificationModeScreen} options={{
 				title: "Results",
+				gestureEnabled: false
 			}} />
 		</AppStack.Navigator>
 	);
