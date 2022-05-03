@@ -72,7 +72,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (bibs && bibs.length > 0) {
 						// If there are already bibs saved from Chute Mode, navigate to Verification Mode
 						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 						setLoading(false);
 						navigation.navigate("ModeScreen");
 						navigation.navigate("VerificationMode");
@@ -89,11 +88,16 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						);
 
 						await postBibs(context.raceID, context.eventID, formData);
-						// Don't allow further changes
-						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 						setLoading(false);
 						navigation.navigate("ModeScreen");
 					}
+
+					// Don't allow further changes to Finish Line Mode
+					// However, there is a use case where someone could complete Finish Line Mode without adding bibs,
+					// And then want to add the bibs at the end of the race in Chute Mode,
+					// So we leave that option open to them
+					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+
 				} catch (error) {
 					if (error instanceof Error) {
 						if (error.message === undefined || error.message === "Network Error") {

@@ -60,8 +60,6 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 							if (bibs !== null && bibs.length > 0) {
 								// If there are already bibs saved from Finish Line Mode, navigate to Verification Mode
-								AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-								AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 								setLoading(false);
 								navigation.navigate("ModeScreen");
 								navigation.navigate("VerificationMode");
@@ -78,10 +76,13 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 								await postBibs(context.raceID, context.eventID, formData);
 								// Don't allow further changes
-								AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 								setLoading(false);
 								navigation.navigate("ModeScreen");
 							}
+
+							// No use case currently for a user to use Chute Mode followed by Finish Line Mode on one device
+							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 						} catch (error) {
 							if (error instanceof Error) {
 								if (error.message === undefined || error.message === "Network Error") {
@@ -114,6 +115,8 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						await AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
 							if (result === "true") {
 								navigation.navigate("VerificationMode");
+							} else {
+								AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
 							}
 						});
 
