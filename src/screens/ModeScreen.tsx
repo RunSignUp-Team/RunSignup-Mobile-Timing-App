@@ -150,7 +150,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				bibsExist = true;
 			}
 			const finishTimes = await getFinishTimes(context.raceID, context.eventID);
-			if (finishTimes !== null && finishTimes.length > 0 && bibsExist) {
+			if ((finishTimes !== null && finishTimes.length > 0) || bibsExist) {
 				navigation.navigate("VerificationMode");
 			} else {
 				Alert.alert(
@@ -165,7 +165,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				} else {
 					// Something else
 					Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+					Logger.log(error);
 				}
 			}
 		}

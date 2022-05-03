@@ -13,6 +13,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
 import { ItemLayout } from "../models/ItemLayout";
+import Logger from "../helpers/Logger";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -103,27 +104,30 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Delete old Bib Numbers and upload new Bib Numbers
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
-		await deleteBibs(context.raceID, context.eventID);
-
 		// Appending bib numbers
 		const formData = new FormData();
-		if (item.bib_nums === null || item.bib_nums.length < 1) {
+		// Post checker bibs if any of them are non-zero
+		if ((!item.bib_nums || item.bib_nums.length < 1) && item.checker_bibs.find(checkerBib => checkerBib !== 0) !== undefined) {
+			await deleteBibs(context.raceID, context.eventID);
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
 				item.checker_bibs +
 				"]}"
 			);
-		} else {
+			await postBibs(context.raceID, context.eventID, formData);
+		// Else post bib numbers
+		} else if (item.bib_nums && item.bib_nums.length > 0) {
+			await deleteBibs(context.raceID, context.eventID);
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
 				item.bib_nums +
 				"]}"
 			);
+			await postBibs(context.raceID, context.eventID, formData);
 		}
 
-		await postBibs(context.raceID, context.eventID, formData);
 	}, [context.eventID, context.raceID]);
 
 	// Delete old Finish Times and upload new Finish Times
@@ -166,39 +170,49 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 		if (!conflicts) {
 			// Assign offline bib numbers, finish times, and start time, if any
-			if ((item.bib_nums.length !== 0 || item.checker_bibs.length !== 0) && item.finish_times.length !== 0 && (item.real_start_time !== -1 || item.real_start_time !== null)) {
-				try {
+			try {
+				if (item.bib_nums.length > 0 || item.checker_bibs.length > 0) {
 					await assignBibNums(item);
+				}
+				if (item.finish_times.length > 0 && (item.real_start_time !== -1 || item.real_start_time !== null)) {
 					await assignFinishTimes(item);
-				} catch (error) {
-					if (error instanceof Error) {
-						if (error.message === undefined || error.message === "Network Error") {
-							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-						} else {
-							// Something else
-							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-						}
+				}
+			} catch (error) {
+				if (error instanceof Error) {
+					if (error.message === undefined || error.message === "Network Error") {
+						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+					} else {
+						// Something else
+						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
+						Logger.log(error.message);
 					}
 				}
 			}
 
-			// If no bib numbers, finish times, or checker bibs
-			if ((item.bib_nums.length < 1 && item.checker_bibs.length < 1) || item.finish_times.length < 1) {
+			// If no bib numbers, finish times, and checker bibs
+			if (item.bib_nums.length < 1 && item.checker_bibs.length < 1 && item.finish_times.length < 1) {
 				Alert.alert("No Data", `The Offline Event "${item.name}" does not have saved Bib Numbers and Finish Times. Please make sure to save your data in the "${item.name}" Finish Line and Chute Modes and try again.`);
 				setLoading(false);
 			} else {
-				await AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-				await AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-
-				raceList[raceIndex].events[eventIndex].checker_bibs = [];
-				raceList[raceIndex].events[eventIndex].finish_times = item.finish_times;
-				if (item.bib_nums === null || item.bib_nums.length < 1) {
-					// If offline event bibs are checker_bibs
-					raceList[raceIndex].events[eventIndex].bib_nums = item.checker_bibs;
-				} else {
-					// If offline event bibs are bib_nums
-					raceList[raceIndex].events[eventIndex].bib_nums = item.bib_nums;
+				// Assign Finish Times
+				if (item.finish_times.length > 0) {
+					await AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+					raceList[raceIndex].events[eventIndex].finish_times = item.finish_times;
 				}
+				// Assign Bibs
+				if (item.bib_nums.length > 0 || item.checker_bibs.length > 0) {
+					await AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
+
+					raceList[raceIndex].events[eventIndex].checker_bibs = [];
+					if (item.bib_nums === null || item.bib_nums.length < 1) {
+						// If offline event bibs are checker_bibs
+						raceList[raceIndex].events[eventIndex].bib_nums = item.checker_bibs;
+					} else {
+						// If offline event bibs are bib_nums
+						raceList[raceIndex].events[eventIndex].bib_nums = item.bib_nums;
+					}
+				}
+				
 
 				await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 				setLoading(false);
