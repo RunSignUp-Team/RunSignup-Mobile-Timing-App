@@ -87,11 +87,11 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 
 				{/* No Conflict Participant */}
 				{!conflictItem && props.online &&
-					<Text style={[globalstyles.nameTableText, { fontWeight: "normal" }]}>{props.findParticipant(props.record[0])}</Text>}
+					<Text style={[globalstyles.nameTableText, { fontWeight: "normal", flexWrap: "wrap" }]}>{props.findParticipant(props.record[0])}</Text>}
 
 				{/* Conflict Participant */}
 				{conflictItem && props.online &&
-					<Text style={[globalstyles.nameTableText, { fontWeight: "normal" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
+					<Text style={[globalstyles.nameTableText, { fontWeight: "normal", flexWrap: "wrap" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
 				{/* Delete Button */}
 				{props.editMode && <TouchableOpacity

@@ -25,7 +25,6 @@ interface GenericTableText {
 	fontSize: number,
 	fontWeight: "bold" | "normal",
 	textAlign: "left" | "center" | "right",
-	paddingVertical: number
 }
 
 interface GenericTableItem {
@@ -48,7 +47,6 @@ const genericTableText: GenericTableText = {
 	fontSize: TABLE_FONT_SIZE,
 	fontWeight: "bold",
 	textAlign: "left",
-	paddingVertical: 5
 };
 
 const genericTableItem: GenericTableItem = {
