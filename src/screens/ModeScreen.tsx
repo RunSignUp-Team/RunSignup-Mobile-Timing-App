@@ -25,11 +25,6 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const handleLogOut = useCallback(async () => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
 			{
-				text: "Cancel",
-				style: "default",
-				onPress: (): void => { return; }
-			},
-			{
 				text: "Log Out",
 				style: "destructive",
 				onPress: async (): Promise<void> => {
@@ -40,6 +35,11 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 						Logger.log(error);
 					}
 				}
+			},
+			{
+				text: "Cancel",
+				style: "default",
+				onPress: (): void => { return; }
 			}
 		]);
 	}, [navigation]);
@@ -77,7 +77,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 						if (finishTimes && finishTimes.length > 0) {
 							Alert.alert(
 								"Already Entered",
-								"Runsignup already has Finish Times recorded for this event."
+								"Runsignup already has a record of finish times for this event.\nSee Verification Mode for more details."
 							);
 						} else {
 							navigation.navigate("FinishLineMode");
