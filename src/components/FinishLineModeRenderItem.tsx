@@ -53,7 +53,7 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 				<Text style={globalstyles.tableButtonText}>+</Text>
 			</TouchableOpacity>
 			<TouchableOpacity
-				style={globalstyles.tableDeleteButton}
+				style={globalstyles.finishTableDeleteButton}
 				onPress={removeSelf}>
 				<Text style={globalstyles.tableButtonText}>-</Text>
 			</TouchableOpacity>

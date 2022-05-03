@@ -95,7 +95,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 
 				{/* Delete Button */}
 				{props.editMode && <TouchableOpacity
-					style={globalstyles.tableDeleteButton}
+					style={globalstyles.verificationTableDeleteButton}
 					onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
 					<Text style={globalstyles.tableButtonText}>-</Text>
 				</TouchableOpacity>}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
+import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/AxiosCalls";
@@ -592,17 +592,19 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.container}
+			<KeyboardAvoidingView style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : "height"}
 				keyboardVerticalOffset={170}>
 
-				<TextInput
-					style={globalstyles.input}
-					onChangeText={setSearch}
-					value={search}
-					placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
-				/>
-
+				<View style={{backgroundColor: DARK_GREEN_COLOR, flexDirection: "row"}}>
+					<TextInput
+						style={globalstyles.input}
+						onChangeText={setSearch}
+						value={search}
+						placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
+					/>
+				</View>
+				
 				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> :
 					<FlatList
 						keyboardShouldPersistTaps="handled"
@@ -622,7 +624,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							<Text style={globalstyles.bibTableText}>Bib #</Text>
 							<Text style={globalstyles.timeTableText}>Time</Text>
 							{context.online && <Text style={globalstyles.nameTableText}>Name</Text>}
-							{editMode && <Text style={globalstyles.tableHeadButtonText}>-</Text>}
+							{editMode && <Text style={globalstyles.verificationDeleteTableText}>-</Text>}
 						</View>}
 						stickyHeaderIndices={[0]}
 					/>}

@@ -36,7 +36,7 @@ export default function ChuteModeRenderItem(props: Props): React.ReactElement {
 			</TextInput>
 
 			<TouchableOpacity
-				style={globalstyles.tableDeleteButton}
+				style={globalstyles.chuteTableDeleteButton}
 				onPress={removeSelf}>
 				<Text style={globalstyles.tableButtonText}>-</Text>
 			</TouchableOpacity>

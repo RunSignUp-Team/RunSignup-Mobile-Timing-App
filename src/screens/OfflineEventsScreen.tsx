@@ -281,7 +281,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 					</TouchableOpacity>
 				</View>
 				<TextInput
-					style={[globalstyles.input, { width: "80%", position: "absolute", top: 120 }]}
+					style={[globalstyles.input, { width: "80%", position: "absolute", top: 70, height: 50 }]}
 					maxLength={20}
 					ref={addEventRef}
 					placeholder="Event Name"

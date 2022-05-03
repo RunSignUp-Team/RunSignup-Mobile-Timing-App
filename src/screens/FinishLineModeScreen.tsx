@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, BACKGROUND_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR } from "../components/styles";
+import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -427,14 +427,14 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.container} behavior={Platform.OS == "ios" ? "padding" : "height"}>
+			<KeyboardAvoidingView style={globalstyles.tableContainer} behavior={Platform.OS == "ios" ? "padding" : "height"}>
 				{
 					loading ?
 						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} />
 						:
 						<>
-							<View style={{ flexDirection: "row", width: "100%" }}>
-								<Text style={[globalstyles.timer, timerOn ? { backgroundColor: GREEN_COLOR } : { backgroundColor: BACKGROUND_COLOR }]}>{getClockTime(displayTime, true)}</Text>
+							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
+								<Text style={[globalstyles.timer, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR}]}>{getClockTime(displayTime, true)}</Text>
 								<TextInput
 									onChangeText={setBibText}
 									editable={timerOn}
@@ -462,15 +462,20 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									<Text style={globalstyles.placeTableText}>Place</Text>
 									<Text style={globalstyles.timeTableText}>Time</Text>
 									<Text style={globalstyles.bibTableText}>Bib #</Text>
-									<Text style={globalstyles.tableHeadButtonText}>+</Text>
-									<Text style={globalstyles.tableHeadButtonText}>-</Text>
+									<Text style={globalstyles.addTableText}>+</Text>
+									<Text style={globalstyles.finishDeleteTableText}>-</Text>
 								</View>}
 								stickyHeaderIndices={[0]} />
 
-							<MainButton onPress={timerOn ? recordTime : startTimer} text={timerOn ? "Record" : "Start Timer"} color={timerOn ? "Red" : "Green"} />
+							
+							<View style={{paddingHorizontal: UNIVERSAL_PADDING}}>
+								<MainButton 
+									onPress={timerOn ? recordTime : startTimer} 
+									text={timerOn ? "Record" : "Start Timer"} 
+									color={timerOn ? "Red" : "Green"} 
+								/>
+							</View>
 						</>
-
-
 				}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>

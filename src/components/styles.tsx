@@ -1,15 +1,25 @@
 import { StyleSheet } from "react-native";
 
 export const GREEN_COLOR = "#00ac65";
+export const DARK_GREEN_COLOR = "#00663C";
+export const LIGHT_GREEN_COLOR = "#00cc77";
+
 export const RED_COLOR = "#ff3b30";
+
 export const BACKGROUND_COLOR = "#f2f2f2";
 export const GRAY_COLOR = "#a5a5a5";
+export const LIGHT_GRAY_COLOR = "#e6e6e6";
+
 export const TABLE_FONT_SIZE = 14;
-export const BIG_FONT_SIZE = 25;
+export const BIG_FONT_SIZE = 23;
 export const MEDIUM_FONT_SIZE = 20;
+
 export const BORDER_RADIUS = 12;
-export const TABLE_ITEM_HEIGHT = 40;
+
+export const TABLE_ITEM_HEIGHT = 50;
 export const LONG_TABLE_ITEM_HEIGHT = 50;
+
+export const UNIVERSAL_PADDING = 20;
 
 interface GenericTableText {
 	fontSize: number,
@@ -21,9 +31,17 @@ interface GenericTableText {
 interface GenericTableItem {
 	borderBottomWidth: number,
 	borderBottomColor: string,
+	height: number,
 	flexDirection: "row" | "column",
 	paddingHorizontal: number,
 	alignItems: "flex-start" | "center" | "flex-end"
+}
+
+interface GenericTableButton {
+	width: number,
+	height: number,
+	borderRadius: number,
+	justifyContent: "flex-start" | "center" | "flex-end",
 }
 
 const genericTableText: GenericTableText = {
@@ -35,10 +53,18 @@ const genericTableText: GenericTableText = {
 
 const genericTableItem: GenericTableItem = {
 	borderBottomWidth: 1,
-	borderBottomColor: "grey",
+	borderBottomColor: GRAY_COLOR,
+	height: TABLE_ITEM_HEIGHT,
 	flexDirection: "row",
-	paddingHorizontal: 10,
+	paddingHorizontal: UNIVERSAL_PADDING,
 	alignItems: "center"
+};
+
+const genericTableButton: GenericTableButton = {
+	width: 31,
+	height: 31,
+	borderRadius: 20,
+	justifyContent: "center",
 };
 
 export const globalstyles = StyleSheet.create({
@@ -46,7 +72,11 @@ export const globalstyles = StyleSheet.create({
 	container: {
 		justifyContent: "flex-start",
 		flex: 1,
-		padding: 16,
+		padding: UNIVERSAL_PADDING,
+		backgroundColor: BACKGROUND_COLOR
+	},
+	tableContainer: {
+		flex: 0.9,
 		backgroundColor: BACKGROUND_COLOR
 	},
 
@@ -60,7 +90,6 @@ export const globalstyles = StyleSheet.create({
 	headerButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
 		color: "white",
-		fontWeight: "bold"
 	},
 
 	// Text
@@ -72,24 +101,20 @@ export const globalstyles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: "black",
 		borderRadius: BORDER_RADIUS,
-		padding: 20
+		padding: UNIVERSAL_PADDING
 	},
 
 	// Flat Lists
 	flatList: {
 		height: "50%",
 		flexGrow: 0,
-		borderWidth: 1,
 		marginBottom: 10,
+		borderBottomWidth: 1,
 		overflow: "hidden",
-		borderRadius: BORDER_RADIUS
 	},
 	longFlatList: {
-		height: "80%",
-		flexGrow: 0,
-		borderWidth: 1,
 		overflow: "hidden",
-		borderRadius: BORDER_RADIUS
+		borderBottomWidth: 1,
 	},
 
 	// Table Items
@@ -118,21 +143,10 @@ export const globalstyles = StyleSheet.create({
 	tableHead: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
-		paddingHorizontal: 10,
-		paddingVertical: 8,
-		backgroundColor: BACKGROUND_COLOR,
-		borderTopRightRadius: BORDER_RADIUS,
-		borderTopLeftRadius: BORDER_RADIUS,
+		paddingHorizontal: UNIVERSAL_PADDING,
+		paddingVertical: 10,
+		backgroundColor: LIGHT_GRAY_COLOR,
 		alignItems: "center"
-	},
-	tableHeadButtonText: {
-		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
-		alignSelf: "center",
-		textAlign: "center",
-		padding: 5,
-		paddingRight: 10,
-		marginHorizontal: 5,
 	},
 
 	// Table Text
@@ -150,48 +164,74 @@ export const globalstyles = StyleSheet.create({
 	},
 	nameTableText: {
 		...genericTableText,
-		paddingLeft: 20,
+		paddingLeft: UNIVERSAL_PADDING,
 		flex: 1.5,
 	},
+	finishDeleteTableText: {
+		...genericTableText,
+		textAlign: "center",
+		flex: 0.5,
+		marginLeft: 5
+	},
+	chuteDeleteTableText: {
+		...genericTableText,
+		textAlign: "center",
+		flex: 0.25,
+	},
+	verificationDeleteTableText: {
+		...genericTableText,
+		textAlign: "center",
+		flex: 0.45,
+	},
+	addTableText: {
+		...genericTableText,
+		textAlign: "center",
+		flex: 0.5
+	},
+	
 
 	// Table Buttons
-	tableDeleteButton: {
-		justifyContent: "center",
+	finishTableDeleteButton: {
+		...genericTableButton,
 		backgroundColor: RED_COLOR,
-		paddingVertical: 5,
-		paddingHorizontal: 8,
-		margin: 5,
-		borderWidth: 1,
-		borderRadius: 20,
-		alignSelf: "center",
+		marginLeft: 5,
+		flex: 0.5
+	},
+	chuteTableDeleteButton: {
+		...genericTableButton,
+		backgroundColor: RED_COLOR,
+		flex: 0.25
+	},
+	verificationTableDeleteButton: {
+		...genericTableButton,
+		backgroundColor: RED_COLOR,
+		flex: 0.45
 	},
 	tableAddButton: {
-		justifyContent: "center",
+		...genericTableButton,
 		backgroundColor: GREEN_COLOR,
-		paddingVertical: 5,
-		paddingHorizontal: 8,
-		margin: 5,
-		borderWidth: 1,
-		borderRadius: 20,
-		alignSelf: "center",
+		flex: 0.5
 	},
 	tableButtonText: {
-		fontSize: TABLE_FONT_SIZE,
+		fontSize: 24,
+		paddingBottom: 31,
+		fontWeight: "bold",
 		color: "white",
-		textAlign: "center"
+		textAlign: "center",
+		textAlignVertical: "center"
 	},
 
 	// Text Input
 	input: {
-		height: 50,
-		margin: 12,
-		marginTop: 1,
+		height: 40,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
-		padding: 10,
-		width: "100%",
+		margin: 10,
+		paddingHorizontal: 10,
+		flex: 1,
 		alignSelf: "center",
 		fontSize: MEDIUM_FONT_SIZE,
+		backgroundColor: LIGHT_GRAY_COLOR
 	},
 
 	// Images
@@ -211,24 +251,22 @@ export const globalstyles = StyleSheet.create({
 
 	// Timer
 	timer: {
-		paddingHorizontal: 10,
-		paddingVertical: 7,
+		padding: 10,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
-		marginBottom: 10,
-		marginRight: 5,
+		margin: 10,
+		marginRight: 0,
 		flex: 2,
 		fontSize: BIG_FONT_SIZE,
-		overflow: "hidden"
+		overflow: "hidden",
 	},
 	timerBibInput: {
-		paddingHorizontal: 10,
-		paddingVertical: 7,
+		padding: 10,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
-		marginBottom: 10,
-		marginLeft: 5,
+		margin: 10,
 		flex: 1,
 		fontSize: BIG_FONT_SIZE,
+		backgroundColor: LIGHT_GRAY_COLOR
 	},
 });
