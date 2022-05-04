@@ -29,6 +29,8 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
 
+	console.log(props.record);
+
 	const updateBib = useCallback((newBib) => {
 		if (isNaN(parseInt(newBib))) {
 			// Store as -1 if invalid data
@@ -55,7 +57,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 			>
 
 				{/* Place */}
-				<TouchableOpacity style={{flex: 1, flexDirection: "row", alignItems: "center"}}
+				<TouchableOpacity style={[globalstyles.placeTableText, { flexDirection: "row", alignItems: "center" }]}
 					hitSlop={{top: 30, bottom: 30, left: 30, right: 30}}
 					disabled={!props.editMode}
 					onPress={(): void => {

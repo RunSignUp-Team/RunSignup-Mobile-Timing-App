@@ -180,7 +180,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			} else {
 				Alert.alert(
 					"No Data Entered", 
-					"You have not saved Chute and Finish Line data yet. Please enter that data first and try again."
+					"You have not saved any finish times or bibs yet. Please enter that data first and try again."
 				);
 			}
 		}

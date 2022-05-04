@@ -299,8 +299,8 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					)}
 					keyboardShouldPersistTaps="handled"
 					ListHeaderComponent={<View style={globalstyles.tableHead}>
-						<Text style={[globalstyles.placeTableHeadText, { flex: 1.5 }]}>Place</Text>
-						<Text style={globalstyles.bibTableHeadText}>Bib #</Text>
+						<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
+						<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 						<Text style={globalstyles.chuteDeleteTableText}>-</Text>
 					</View>}
 					stickyHeaderIndices={[0]}

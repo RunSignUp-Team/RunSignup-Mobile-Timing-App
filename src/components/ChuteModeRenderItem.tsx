@@ -26,7 +26,7 @@ export default function ChuteModeRenderItem(props: Props): React.ReactElement {
 	return (
 		<View style={globalstyles.tableItem}
 			onStartShouldSetResponder={(): boolean => true}>
-			<Text style={[globalstyles.placeTableText, { flex: 1.5 }]}>{props.index + 1}</Text>
+			<Text style={[globalstyles.placeTableText, { flex: 0.3 }]}>{props.index + 1}</Text>
 			<TextInput
 				style={globalstyles.bibTableText}
 				keyboardType="number-pad"

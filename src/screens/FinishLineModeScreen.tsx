@@ -464,9 +464,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								keyExtractor={(_item, index): string => (index + 1).toString()}
 								keyboardShouldPersistTaps="handled"
 								ListHeaderComponent={<View style={globalstyles.tableHead}>
-									<Text style={globalstyles.placeTableHeadText}>Place</Text>
+									<Text style={globalstyles.placeTableHeadText}>#</Text>
 									<Text style={globalstyles.timeTableHeadText}>Time</Text>
-									<Text style={globalstyles.bibTableHeadText}>Bib #</Text>
+									<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 									<Text style={globalstyles.addTableText}>+</Text>
 									<Text style={globalstyles.finishDeleteTableText}>-</Text>
 								</View>}

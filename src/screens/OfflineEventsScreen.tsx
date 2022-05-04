@@ -245,7 +245,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 
 	// Rendered item in the Flatlist
-	const renderItem = ({ item }: { item: OfflineEvent }): React.ReactElement => {
+	const renderItem = ({ item, index }: { item: OfflineEvent, index: number }): React.ReactElement => {
 		const setEventTitle = context.setEventTitle;
 		const setTime = context.setTime;
 		navigationRef.current = navigation;
@@ -253,6 +253,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		return (
 			<MemoOfflineEventsItem
 				item={item}
+				index={index}
 				setEventTitle={setEventTitle}
 				setTime={setTime}
 				online={context.online}

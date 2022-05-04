@@ -39,9 +39,9 @@ export default function EventsListRenderItem(props: Props): React.ReactElement {
 
 	return (
 		<MainButton 
-			text={`${props.item.id}.\t${props.item.title}`} 
-			subtitle={`\t${startDate} - ${startTime}`}
-			listButton
+			text={props.item.title} 
+			subtitle={`${startDate} - ${startTime}`}
+			listButton={props.item.id}
 			onPress={(): void => {
 				props.setEventID(props.item.event_id);
 				props.setEventTitle(props.item.title);

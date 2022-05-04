@@ -169,15 +169,15 @@ export const globalstyles = StyleSheet.create({
 	// Table Text
 	placeTableText: {
 		...genericTableText,
-		flex: 1, // Overriden on Chute mode
+		flex: 0.75, // Overriden on Chute mode
 	},
 	bibTableText: {
 		...genericTableText,
-		flex: 1.5,
+		flex: 1.1,
 	},
 	timeTableText: {
 		...genericTableText,
-		flex: 2,
+		flex: 1.75,
 	},
 	nameTableText: {
 		fontSize: TABLE_FONT_SIZE,
@@ -188,15 +188,15 @@ export const globalstyles = StyleSheet.create({
 
 	placeTableHeadText: {
 		...genericTableHeadText,
-		flex: 1, // Overriden on Chute mode
+		flex: 0.75, // Overriden on Chute mode
 	},
 	bibTableHeadText: {
 		...genericTableHeadText,
-		flex: 1.5,
+		flex: 1.1,
 	},
 	timeTableHeadText: {
 		...genericTableHeadText,
-		flex: 2,
+		flex: 1.75,
 	},
 	nameTableHeadText: {
 		...genericTableHeadText,
@@ -277,23 +277,24 @@ export const globalstyles = StyleSheet.create({
 
 	// Timer
 	timerView: {
-		paddingLeft: 10,
+		paddingHorizontal: 8,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
 		borderColor: DARK_GRAY_COLOR,
 		margin: 10,
-		marginRight: 0,
+		marginLeft: UNIVERSAL_PADDING,
 		flex: 2,
 		height: 45,
 		overflow: "hidden",
 		justifyContent: "center"
 	},
 	timerBibInput: {
-		paddingLeft: 10,
+		paddingHorizontal: 8,
 		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
 		borderColor: DARK_GRAY_COLOR,
 		margin: 10,
+		marginRight: UNIVERSAL_PADDING,
 		flex: 1,
 		height: 45,
 		fontSize: BIG_FONT_SIZE,

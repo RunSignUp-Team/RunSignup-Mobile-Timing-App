@@ -9,6 +9,7 @@ type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface Props {
 	online: boolean,
+	index: number,
 	item: OfflineEvent,
 	navigationRef: {
 		current: ScreenNavigationProp,
@@ -23,7 +24,9 @@ interface Props {
 
 export default function OfflineEventsRenderItem(props: Props): React.ReactElement {
 	return (
-		<MainButton text={props.item.name} listButton
+		<MainButton 
+			text={props.item.name} 
+			listButton={props.index + 1}
 			onPress={(): void => {
 				if (!props.online) {
 					props.setEventTitle(props.item.name);

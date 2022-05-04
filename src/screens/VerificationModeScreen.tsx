@@ -622,8 +622,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
 						)}
 						ListHeaderComponent={<View style={globalstyles.tableHead}>
-							<Text style={globalstyles.placeTableHeadText}>Place</Text>
-							<Text style={globalstyles.bibTableHeadText}>Bib #</Text>
+							<Text style={globalstyles.placeTableHeadText}>#</Text>
+							<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 							<Text style={globalstyles.timeTableHeadText}>Time</Text>
 							{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
 							{editMode && <Text style={globalstyles.verificationDeleteTableText}>-</Text>}
