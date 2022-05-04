@@ -161,7 +161,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		const smallerArray = Math.min(item.bib_nums.length, item.checker_bibs.length);
 		for (let i = 0; i < smallerArray; i++) {
 			if (ConflictBoolean(item.bib_nums[i], item.checker_bibs[i])) {
-				Alert.alert("Conflicts Remaining", `The Offline Event "${item.name}" contains conflicts. Please resolve them in the "${item.name}" Verification Mode and try again.`);
+				Alert.alert("Conflicts Remaining", `The Offline Event "${item.name}" contains conflicts. Please resolve them in the "${item.name}" Results and try again.`);
 				conflicts = true;
 				setLoading(false);
 				break;
@@ -273,11 +273,11 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				visible={alertVisible}>
 				<View style={{ flexDirection: "row", justifyContent: "center" }}>
 					<TouchableOpacity style={{ position: "absolute", top: 6, left: 3 }} onPress={(): void => setAlertVisible(false)}>
-						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
+						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "Roboto_700Bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
 					</TouchableOpacity>
-					<Text style={[globalstyles.modalHeader, { fontWeight: "bold", top: 17 }]}>Set Event Name</Text>
+					<Text style={[globalstyles.modalHeader, { top: 16 }]}>Set Event Name</Text>
 					<TouchableOpacity style={{ position: "absolute", top: 6, right: 3 }} onPress={(): void => { createEvent(); }}>
-						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
+						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "Roboto_700Bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
 					</TouchableOpacity>
 				</View>
 				<TextInput

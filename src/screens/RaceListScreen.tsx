@@ -75,7 +75,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={{ color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold" }}>Log Out</Text>
+					<Text style={globalstyles.headerButtonText}>Log Out</Text>
 				</TouchableOpacity>
 			)
 		});

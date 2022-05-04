@@ -9,6 +9,8 @@
     "lint-and-fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix"
   },
   "dependencies": {
+    "@expo-google-fonts/roboto": "^0.2.2",
+    "@expo-google-fonts/roboto-mono": "^0.2.2",
     "@react-native-async-storage/async-storage": "^1.15.11",
     "@react-navigation/elements": "^1.2.1",
     "@react-navigation/native": "^6.0.4",
@@ -19,6 +21,7 @@
     "expo": "~42.0.2",
     "expo-auth-session": "^3.3.1",
     "expo-cli": "^5.1.2",
+    "expo-font": "~9.2.1",
     "expo-linking": "^2.3.1",
     "expo-random": "^11.2.0",
     "expo-secure-store": "^10.2.0",

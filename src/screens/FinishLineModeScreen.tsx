@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, BIG_FONT_SIZE } from "../components/styles";
+import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -42,7 +42,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
-		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
+		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
 			{
 				text: "Leave",
 				onPress: (): void => {
@@ -435,7 +435,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						<>
 							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 								<View style={[globalstyles.timerView, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR}]}>
-									<Text style={{fontSize: BIG_FONT_SIZE, color: timerOn ? BLACK_COLOR : GRAY_COLOR}}>
+									<Text style={{fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono_400Regular", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
 										{GetClockTime(displayTime, true)}
 									</Text>
 								</View>
@@ -464,9 +464,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								keyExtractor={(_item, index): string => (index + 1).toString()}
 								keyboardShouldPersistTaps="handled"
 								ListHeaderComponent={<View style={globalstyles.tableHead}>
-									<Text style={globalstyles.placeTableText}>Place</Text>
-									<Text style={globalstyles.timeTableText}>Time</Text>
-									<Text style={globalstyles.bibTableText}>Bib #</Text>
+									<Text style={globalstyles.placeTableHeadText}>Place</Text>
+									<Text style={globalstyles.timeTableHeadText}>Time</Text>
+									<Text style={globalstyles.bibTableHeadText}>Bib #</Text>
 									<Text style={globalstyles.addTableText}>+</Text>
 									<Text style={globalstyles.finishDeleteTableText}>-</Text>
 								</View>}
@@ -477,7 +477,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								<MainButton 
 									onPress={timerOn ? recordTime : startTimer} 
 									text={timerOn ? "Record" : "Start Timer"} 
-									color={timerOn ? "Red" : "Green"} 
+									color={timerOn ? "Green" : "Gray"} 
 								/>
 							</View>
 						</>

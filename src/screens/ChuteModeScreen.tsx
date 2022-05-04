@@ -35,7 +35,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
-		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
+		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
 			{
 				text: "Leave",
 				onPress: (): void => {
@@ -299,8 +299,8 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					)}
 					keyboardShouldPersistTaps="handled"
 					ListHeaderComponent={<View style={globalstyles.tableHead}>
-						<Text style={globalstyles.placeTableText}>Place</Text>
-						<Text style={globalstyles.bibTableText}>Bib #</Text>
+						<Text style={[globalstyles.placeTableHeadText, { flex: 1.5 }]}>Place</Text>
+						<Text style={globalstyles.bibTableHeadText}>Bib #</Text>
 						<Text style={globalstyles.chuteDeleteTableText}>-</Text>
 					</View>}
 					stickyHeaderIndices={[0]}

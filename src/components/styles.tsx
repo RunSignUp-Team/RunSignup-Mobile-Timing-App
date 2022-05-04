@@ -12,9 +12,10 @@ export const GRAY_COLOR = "#a5a5a5";
 export const LIGHT_GRAY_COLOR = "#e6e6e6";
 export const BACKGROUND_COLOR = "#f2f2f2";
 
-export const TABLE_FONT_SIZE = 14;
 export const BIG_FONT_SIZE = 23;
 export const MEDIUM_FONT_SIZE = 20;
+export const SMALL_FONT_SIZE = 17;
+export const TABLE_FONT_SIZE = 14;
 
 export const BORDER_RADIUS = 12;
 
@@ -25,9 +26,9 @@ export const UNIVERSAL_PADDING = 20;
 
 interface GenericTableText {
 	fontSize: number,
-	fontWeight: "bold" | "normal",
 	textAlign: "left" | "center" | "right",
-	color: string
+	color?: string,
+	fontFamily: string
 }
 
 interface GenericTableItem {
@@ -47,11 +48,17 @@ interface GenericTableButton {
 	justifyContent: "flex-start" | "center" | "flex-end",
 }
 
+const genericTableHeadText: GenericTableText = {
+	fontSize: SMALL_FONT_SIZE,
+	textAlign: "left",
+	fontFamily: "Roboto_700Bold",
+};
+
 const genericTableText: GenericTableText = {
 	fontSize: TABLE_FONT_SIZE,
-	fontWeight: "bold",
 	textAlign: "left",
-	color: BLACK_COLOR
+	color: BLACK_COLOR, // Needed for Android
+	fontFamily: "RobotoMono_400Regular",
 };
 
 const genericTableItem: GenericTableItem = {
@@ -87,25 +94,28 @@ export const globalstyles = StyleSheet.create({
 	// Headers
 	modalHeader: {
 		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "Roboto_700Bold",
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
 	},
 	headerButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "Roboto_400Regular",
 		color: "white",
 	},
 
 	// Text
 	info: {
 		fontSize: BIG_FONT_SIZE,
+		fontFamily: "Roboto_400Regular",
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
 		borderWidth: 1,
 		borderColor: "black",
 		borderRadius: BORDER_RADIUS,
-		padding: UNIVERSAL_PADDING
+		padding: UNIVERSAL_PADDING,
 	},
 
 	// Flat Lists
@@ -159,7 +169,7 @@ export const globalstyles = StyleSheet.create({
 	// Table Text
 	placeTableText: {
 		...genericTableText,
-		flex: 1,
+		flex: 1, // Overriden on Chute mode
 	},
 	bibTableText: {
 		...genericTableText,
@@ -170,27 +180,47 @@ export const globalstyles = StyleSheet.create({
 		flex: 2,
 	},
 	nameTableText: {
-		...genericTableText,
+		fontSize: TABLE_FONT_SIZE,
+		fontFamily: "Roboto_400Regular",
 		paddingLeft: UNIVERSAL_PADDING,
 		flex: 1.5,
 	},
+
+	placeTableHeadText: {
+		...genericTableHeadText,
+		flex: 1, // Overriden on Chute mode
+	},
+	bibTableHeadText: {
+		...genericTableHeadText,
+		flex: 1.5,
+	},
+	timeTableHeadText: {
+		...genericTableHeadText,
+		flex: 2,
+	},
+	nameTableHeadText: {
+		...genericTableHeadText,
+		paddingLeft: UNIVERSAL_PADDING,
+		flex: 1.5,
+	},
+
 	finishDeleteTableText: {
-		...genericTableText,
+		...genericTableHeadText,
 		textAlign: "center",
 		flex: 0.5, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	chuteDeleteTableText: {
-		...genericTableText,
+		...genericTableHeadText,
 		textAlign: "center",
 		flex: 0.25, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	verificationDeleteTableText: {
-		...genericTableText,
+		...genericTableHeadText,
 		textAlign: "center",
 		flex: 0.5, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	addTableText: {
-		...genericTableText,
+		...genericTableHeadText,
 		textAlign: "center",
 		flex: 0.5, // Need to update everywhere this style is used as well (for the corresponding button)
 		marginRight: 5
@@ -209,7 +239,7 @@ export const globalstyles = StyleSheet.create({
 	},
 	tableButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
-		fontWeight: "bold",
+		fontFamily: "Roboto_400Regular",
 		color: "white",
 		textAlign: "center",
 		textAlignVertical: "center"
@@ -226,7 +256,8 @@ export const globalstyles = StyleSheet.create({
 		flex: 1,
 		alignSelf: "center",
 		fontSize: MEDIUM_FONT_SIZE,
-		backgroundColor: LIGHT_GRAY_COLOR
+		fontFamily: "Roboto_400Regular",
+		backgroundColor: LIGHT_GRAY_COLOR,
 	},
 
 	// Images
@@ -266,6 +297,7 @@ export const globalstyles = StyleSheet.create({
 		flex: 1,
 		height: 45,
 		fontSize: BIG_FONT_SIZE,
-		backgroundColor: LIGHT_GRAY_COLOR
+		fontFamily: "Roboto_400Regular",
+		backgroundColor: LIGHT_GRAY_COLOR,
 	},
 });

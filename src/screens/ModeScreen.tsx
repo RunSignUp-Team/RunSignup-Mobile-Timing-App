@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect } from "react";
 import { View, TouchableOpacity, Text, Alert } from "react-native";
-import { globalstyles, MEDIUM_FONT_SIZE } from "../components/styles";
+import { globalstyles } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getBibs, getFinishTimes } from "../helpers/AxiosCalls";
@@ -18,8 +18,8 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const FinishLineModeMsg = "You may not re-enter Finish Line Mode on the same device, or enter Finish Line Mode data after recording Chute Mode data.\nIf you have completed all data entry, see Verification Mode to view or edit results.";
-const ChuteModeMsg = "You may not re-enter Chute Mode data on the same device.\nIf you have completed all data entry, see Verification Mode to view or edit results.";
+const FinishLineModeMsg = "You may not re-enter Finish Line Mode on the same device, or enter Finish Line Mode data after recording Chute Mode data.\nIf you have completed all data entry, see Results to view or edit results.";
+const ChuteModeMsg = "You may not re-enter Chute Mode data on the same device.\nIf you have completed all data entry, see Results to view or edit results.";
 
 const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
@@ -56,7 +56,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			headerRight: () => (
 				context.online ?
 					<TouchableOpacity onPress={handleLogOut}>
-						<Text style={{ color: "white", fontSize: MEDIUM_FONT_SIZE, fontWeight: "bold" }}>Log Out</Text>
+						<Text style={globalstyles.headerButtonText}>Log Out</Text>
 					</TouchableOpacity> :
 					null
 			)
@@ -80,7 +80,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 						if (finishTimes && finishTimes.length > 0) {
 							Alert.alert(
 								"Already Entered",
-								"Runsignup already has a record of finish times for this event.\nSee Verification Mode for more details."
+								"Runsignup already has a record of finish times for this event.\nSee Results for more details."
 							);
 						} else {
 							navigation.navigate("FinishLineMode");
@@ -226,8 +226,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
 				<MainButton onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"} />
 				<MainButton onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"} />
-				<MainButton onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Verification Mode"} />
-				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color="Red" />
+				<MainButton onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
+				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
 			</View>
 		</View>
 	);

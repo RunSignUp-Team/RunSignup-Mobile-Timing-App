@@ -30,7 +30,7 @@ export default function StartNavigator(): React.ReactElement {
 		<AppStack.Navigator screenOptions={{
 			headerBackVisible: false,
 			headerStyle: { backgroundColor: GREEN_COLOR },
-			headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontWeight: "bold", color: "white" },
+			headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "Roboto_700Bold", color: "white" },
 		}}>
 			<AppStack.Screen name="SplashScreen" component={Loader} options={{
 				headerShown: false,
