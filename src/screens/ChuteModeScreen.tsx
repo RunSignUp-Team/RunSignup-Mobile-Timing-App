@@ -307,7 +307,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				/>
 
 				<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
-					<MainButton onPress={recordBib} text={"Record"} color={"Red"} />
+					<MainButton onPress={recordBib} text={"Record"} />
 				</View>
 				</>}
 			</KeyboardAvoidingView>

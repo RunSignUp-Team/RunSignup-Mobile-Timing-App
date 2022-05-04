@@ -212,12 +212,12 @@ export const globalstyles = StyleSheet.create({
 	chuteDeleteTableText: {
 		...genericTableHeadText,
 		textAlign: "center",
-		flex: 0.25, // Need to update everywhere this style is used as well (for the corresponding button)
+		flex: 0.1, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	verificationDeleteTableText: {
 		...genericTableHeadText,
 		textAlign: "center",
-		flex: 0.5, // Need to update everywhere this style is used as well (for the corresponding button)
+		flex: 0.1, // Need to update everywhere this style is used as well (for the corresponding button)
 	},
 	addTableText: {
 		...genericTableHeadText,
@@ -234,7 +234,6 @@ export const globalstyles = StyleSheet.create({
 	tableAddButton: {
 		...genericTableButton,
 		backgroundColor: GREEN_COLOR,
-		textAlignVertical: "center",
 		marginRight: 5
 	},
 	tableButtonText: {

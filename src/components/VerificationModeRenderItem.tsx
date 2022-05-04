@@ -29,8 +29,6 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
 
-	console.log(props.record);
-
 	const updateBib = useCallback((newBib) => {
 		if (isNaN(parseInt(newBib))) {
 			// Store as -1 if invalid data
@@ -106,7 +104,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 
 				{/* Delete Button */}
 				{props.editMode &&
-					<View style={{ flex: 0.5, alignItems: "center" }}>
+					<View style={{ flex: 0.1, alignItems: "center" }}>
 						<TouchableOpacity
 							style={globalstyles.tableDeleteButton}
 							onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
