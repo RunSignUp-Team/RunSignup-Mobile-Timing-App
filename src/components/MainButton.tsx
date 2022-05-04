@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, TouchableOpacity, ViewStyle } from "react-native";
-import { BIG_FONT_SIZE, BORDER_RADIUS, DARK_GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR } from "./styles";
+import { BIG_FONT_SIZE, BORDER_RADIUS, DARK_GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, SMALL_FONT_SIZE, TABLE_FONT_SIZE } from "./styles";
 
 type ButtonColor = "Red" | "Gray" | "Green";
 
@@ -8,6 +8,7 @@ interface Props {
 	onPress: () => void | Promise<void>,
 	buttonStyle?: ViewStyle,
 	text: string,
+	subtitle?: string,
 	listButton?: boolean,
 	color?: ButtonColor
 }
@@ -53,6 +54,17 @@ export default function MainButton(props: Props): React.ReactElement {
 				}}>
 				{props.text}
 			</Text>
+			{props.subtitle && 
+				<Text
+					style={{
+						fontSize: SMALL_FONT_SIZE,
+						fontFamily: "Roboto_400Regular",
+						color: "white",
+						paddingHorizontal: 1,
+					}}>
+					{props.subtitle}
+				</Text>
+			}
 		</TouchableOpacity>
 	);
 }

@@ -16,8 +16,12 @@ interface Props {
 
 export default function RaceListRenderItem(props: Props): React.ReactElement {
 
+
 	return (
-		<MainButton text={props.item.id + ". " + props.item.title + " (" + props.item.next_date + ")"} listButton
+		<MainButton 
+			text={props.item.id + ".\t" + props.item.title} 
+			subtitle={`\t${props.item.next_date}`}
+			listButton
 			onPress={(): void => {
 				props.setRaceID(props.item.race_id);
 				props.navigationRef.current.navigate("EventsList");
