@@ -14,6 +14,8 @@ import { RootStackParamList } from "../components/AppStack";
 import MainButton from "../components/MainButton";
 import { ItemLayout } from "../models/ItemLayout";
 import Logger from "../helpers/Logger";
+import TextInputAlert from "../components/TextInputAlert";
+import GetBibDisplay from "../helpers/GetBibDisplay";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -32,6 +34,9 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
+
+	const [alertVisible, setAlertVisible] = useState(false);
+	const [alertIndex, setAlertIndex] = useState<number>();
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
@@ -242,6 +247,12 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
+	// Show Edit Alert
+	const showAlert = (index: number): void => {
+		setAlertIndex(index);
+		setAlertVisible(true);
+	};
+
 	// Renders item on screen
 	const renderItem = ({ item, index }: { item: number, index: number }): React.ReactElement => (
 		<MemoChuteItem
@@ -249,6 +260,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			index={index}
 			bibNumsRef={bibNumsRef}
 			updateBibNums={updateBibNums}
+			showAlert={showAlert}
 		/>
 	);
 
@@ -310,6 +322,32 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<MainButton onPress={recordBib} text={"Record"} />
 				</View>
 				</>}
+				
+				{alertIndex !== undefined && <TextInputAlert
+					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					placeholder="Enter Bib #"
+					initialValue={GetBibDisplay(bibNumsRef.current[alertIndex] !== undefined ? bibNumsRef.current[alertIndex] : -1)}
+					keyboardType={"number-pad"}
+					maxLength={6}
+					visible={alertVisible}
+					actionOnPress={(valArray): void => {
+						if (alertIndex) {
+							if (!isNaN(parseInt(valArray[0]))) {
+								// Valid Bib
+								bibNumsRef.current[alertIndex] = parseInt(valArray[0]);
+								updateBibNums([...bibNumsRef.current]);
+								setAlertVisible(false);
+							} else {
+								Alert.alert(
+									"Incorrect Bib Entry", 
+									"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+								);
+							}
+						}
+					}} cancelOnPress={(): void => {
+						setAlertVisible(false);
+					}} />}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);

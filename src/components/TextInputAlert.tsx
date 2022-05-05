@@ -1,5 +1,5 @@
-import React, { ForwardedRef, useEffect, useRef, useState } from "react";
-import { KeyboardTypeOptions, Modal, Platform, ScrollView, Text, TextInput, TouchableHighlight, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Dimensions, KeyboardTypeOptions, Modal, Platform, ScrollView, Text, TextInput, TouchableHighlight, View } from "react-native";
 import { APPLE_BLUE_COLOR, BACKGROUND_COLOR, GRAY_COLOR, GREEN_COLOR, LIGHT_GRAY_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, UNIVERSAL_PADDING } from "./styles";
 
 interface Props {
@@ -37,8 +37,9 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	const droid = Platform.OS === "android";
 	const androidRadius = 5;
 	const iOSRadius = 12;
-	const minWidth = "70%";
+	const minWidth = Math.max(Dimensions.get('window').width * 0.7, Math.min(Dimensions.get('window').width * 0.9, 300));
 	const maxWidth = 500;
+	const normalWidth = Math.min(minWidth, maxWidth) - (droid ? UNIVERSAL_PADDING * 2 : UNIVERSAL_PADDING);
 
 	// Set text input value whenever initial value changes
 	useEffect(() => {
@@ -78,22 +79,21 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 						borderRadius: droid ? androidRadius : iOSRadius,
 						borderColor: GRAY_COLOR,
 						minHeight: "10%",
-						minWidth: minWidth,
-						maxWidth: maxWidth,
-						marginBottom: droid ? 0 : "40%"
+						width: Math.min(minWidth, maxWidth),
+						marginBottom: droid ? 0 : "40%",
+						alignItems: "center",
 					}}
 				>
 					{/* Wrapping View */}
-					<View>
+					<View style={{alignItems: "center"}}>
 						{/* Title */}
-						<View>
+						<View style={{ alignItems: droid ? "flex-start" : "center" }}>
 							<Text
 								style={{
 									fontSize: MEDIUM_FONT_SIZE,
 									fontWeight: "bold",
 									marginTop: UNIVERSAL_PADDING,
-									marginHorizontal: droid ? 0 : UNIVERSAL_PADDING,
-									marginLeft: UNIVERSAL_PADDING,
+									width: normalWidth,
 									textAlign: droid ? "left" : "center"
 								}}
 							>
@@ -101,14 +101,13 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 							</Text>
 						</View>
 						{/* Message */}
-						<View style={{alignItems: droid ? "flex-start" : "center"}}>
+						<View style={{ alignItems: droid ? "flex-start" : "center" }}>
 							<Text
 								style={{
 									fontSize: SMALL_FONT_SIZE,
-									maxWidth: minWidth,
+									width: normalWidth,
 									marginVertical: 5,
-									marginHorizontal: droid ? 0 : UNIVERSAL_PADDING,
-									marginLeft: UNIVERSAL_PADDING,
+									marginHorizontal: droid ? UNIVERSAL_PADDING : UNIVERSAL_PADDING / 2,
 									flexWrap: "wrap",
 									textAlign: droid ? "left" : "center",
 								}}
@@ -116,7 +115,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 								{props.message}
 							</Text>
 						</View>
-						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center", minWidth: minWidth, maxWidth: maxWidth }}>
+						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
 							{/* Text Input One */}
 							<TextInput
 								ref={inputRef}
@@ -134,9 +133,9 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 									borderWidth: droid ? 0 : 1,
 									borderBottomWidth: 1,
 									borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
-									flex: droid ? 1 : 0.9,
 									marginVertical: 5,
-									marginHorizontal: UNIVERSAL_PADDING,
+									marginHorizontal: droid ? UNIVERSAL_PADDING : 0,
+									width: normalWidth,
 									paddingHorizontal: 8,
 								}}
 								placeholder={props.placeholder}
@@ -145,7 +144,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 								keyboardType={props.keyboardType}
 							/>
 						</View>
-						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center", minWidth: minWidth, maxWidth: maxWidth }}>
+						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
 							{/* Text Input Two */}
 							{props.secondPlaceholder &&
 								<TextInput
@@ -163,9 +162,9 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 										borderWidth: droid ? 0 : 1,
 										borderBottomWidth: 1,
 										borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
-										flex: droid ? 1 : 0.9,
 										marginVertical: 5,
-										marginHorizontal: UNIVERSAL_PADDING,
+										marginHorizontal: droid ? UNIVERSAL_PADDING : 0,
+										width: normalWidth,
 										paddingHorizontal: 8,
 									}}
 									placeholder={props.secondPlaceholder}
@@ -182,20 +181,23 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 								opacity: 0.7,
 								height: 1,
 								marginTop: 10,
-								maxWidth: maxWidth,
+								width: Math.min(minWidth, maxWidth) - 2,
 							}}
 						/>
 						{/* Buttons Wrapper View */}
-						<View
-							style={{
-								flexDirection: "row",
-								height: 50,
-								minWidth: minWidth,
-								maxWidth: maxWidth - 5,
+						<View 
+							style={{ 
+								height: 50, 
+								flexDirection: "row", 
+								alignItems: "center", 
+								maxWidth: Math.min(minWidth, maxWidth),
+								backgroundColor: BACKGROUND_COLOR,
+								borderBottomLeftRadius: droid ? androidRadius : iOSRadius,
+								borderBottomRightRadius: droid ? androidRadius : iOSRadius
 							}}
 						>
 							{/* Cancel Button */}
-							<TouchableHighlight style={{ flex: 1, borderBottomLeftRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
+							<TouchableHighlight style={{ width: (Math.min(minWidth, maxWidth) - 4) / 2, borderBottomLeftRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
 								props.cancelOnPress();
 							}}>
 								{/* Cancel Button Text */}
@@ -222,7 +224,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 								}}
 							/>
 							{/* Action Button */}
-							<TouchableHighlight style={{ flex: 1, borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
+							<TouchableHighlight style={{ width: (Math.min(minWidth, maxWidth) - 4) / 2, borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
 								props.actionOnPress([value, secondValue]);
 							}}>
 								{/* Action Button Text */}

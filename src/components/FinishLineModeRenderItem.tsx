@@ -21,12 +21,6 @@ interface Props {
 }
 
 export default function FinishLineModeRenderItem(props: Props): React.ReactElement {
-
-	const updateCheckerBib = useCallback((newBib) => {
-		props.checkerBibsRef.current[props.index] = parseInt(newBib);
-		props.updateCheckerBibs([...props.checkerBibsRef.current]);
-	}, [props]);
-
 	const addOne = useCallback(() => {
 		props.addOne(props.time, props.index);
 	}, [props]);

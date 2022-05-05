@@ -18,7 +18,6 @@ import { ItemLayout } from "../models/ItemLayout";
 import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
-import GetTimeInMils from "../helpers/GetTimeInMils";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -495,6 +494,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							</View>
 						</>
 				}
+				
 				{alertIndex !== undefined && <TextInputAlert
 					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
 					message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
