@@ -57,7 +57,7 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 		if (props.visible) {
 			setTimeout(() => {
 				inputRef.current?.focus();
-			}, 100);
+			}, 200);
 		}
 	}, [props.visible])
 
@@ -68,18 +68,17 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 	return (
 		<Modal transparent={true} animationType={"fade"}>
 			{/* Main View */}
-			<ScrollView scrollEnabled={false} contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }} keyboardShouldPersistTaps='handled'>
+			<ScrollView scrollEnabled={false} contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }} style={{ backgroundColor: "rgba(0,0,0,0.4)" }} keyboardShouldPersistTaps='handled'>
 				<View
 					style={{
 						backgroundColor: BACKGROUND_COLOR,
 						borderWidth: 1,
 						borderRadius: droid ? androidRadius : iOSRadius,
 						borderColor: GRAY_COLOR,
-						minHeight: "20%",
+						minHeight: "10%",
 						maxHeight: "40%",
 						minWidth: "45%",
 						maxWidth: "80%",
-						justifyContent: "space-between",
 						marginBottom: droid ? 0 : "40%"
 					}}
 				>
@@ -106,14 +105,13 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 								alignSelf: "center",
 								width: "90%",
 								flexWrap: "wrap",
-								textAlign: droid ? "left" : "center"
+								textAlign: droid ? "left" : "center",
 							}}
 						>
 							{props.message}
 						</Text>
 						{/* Text Input One */}
 						<TextInput
-							// autoFocus={true}
 							ref={inputRef}
 							value={value}
 							onChangeText={(val): void => {
@@ -184,8 +182,6 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 						<View
 							style={{
 								flexDirection: "row",
-								justifyContent: "space-between",
-								alignItems: "center",
 								height: 50,
 							}}
 						>

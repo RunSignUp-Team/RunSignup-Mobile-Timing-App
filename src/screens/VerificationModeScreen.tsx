@@ -648,11 +648,13 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 				{alertVisible !== undefined && alertIndex !== undefined && alertRecord !== undefined && <TextInputAlert
 					title={`Edit Row ${alertIndex ? alertIndex + 1 : ""}`}
-					message="This is a test message that is longer than the alert width and so it should definitely wrap when it reaches the end."
+					message={`Edit the bib number or finish time for Row ${alertIndex ? alertIndex + 1 : ""}.`}
 					placeholder="Enter Bib #"
 					secondPlaceholder="Enter Finish Time"
 					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
 					secondInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
+					keyboardType={"number-pad"}
+					secondKeyboardType={"numbers-and-punctuation"}
 					maxLength={6}
 					secondMaxLength={11}
 					visible={alertVisible}
