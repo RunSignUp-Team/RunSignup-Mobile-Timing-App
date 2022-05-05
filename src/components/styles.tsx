@@ -18,7 +18,7 @@ export const BACKGROUND_COLOR = "#f2f2f2";
 export const BIG_FONT_SIZE = 23;
 export const MEDIUM_FONT_SIZE = 20;
 export const SMALL_FONT_SIZE = 16;
-export const TABLE_FONT_SIZE = 14;
+export const TABLE_FONT_SIZE = 15;
 
 export const BORDER_RADIUS = 12;
 

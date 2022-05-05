@@ -102,7 +102,7 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
 			return null;
 		}
 
-		// We have the successfull token data
+		// We have the successful token data
 		return resData;
 
 	} catch (error) {
@@ -148,7 +148,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 			authorizationEndpoint: requestGrantUrl,
 		});
 
-		// Not successfull
+		// Not successful
 		if (authCodeRes.type !== "success") {
 			Logger.log("Unable to get Authorization Code. ", authCodeRes.type);
 			return null;

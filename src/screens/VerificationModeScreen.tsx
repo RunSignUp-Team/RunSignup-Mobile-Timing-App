@@ -369,7 +369,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					}
 				});
 
-				Alert.alert("Success", "Results successfuly uploaded to Runsignup!");
+				Alert.alert("Success", "Results successfully uploaded to Runsignup!");
 
 				setEditMode(false);
 				setLoading(false);
