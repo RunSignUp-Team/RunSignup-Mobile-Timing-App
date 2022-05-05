@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { View, TouchableOpacity, FlatList, Alert, ActivityIndicator, Platform, Image, Modal, TextInput, Text } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { View, TouchableOpacity, FlatList, Alert, ActivityIndicator, Platform, Image, TextInput, Text } from "react-native";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { AppContext } from "../components/AppContext";
@@ -77,36 +77,36 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Create event
 	useEffect(() => {
-		console.log("here", eventName);
-		const createEvent = async (): Promise<void> => {
-			if ((/^[0-9a-zA-Z(). -]+$/gm).test(eventName)) {
-				setAlertVisible(false);
-				const createTime = new Date().getTime();
-				const offlineEvent: OfflineEvent = {
-					time: createTime,
-					name: eventName,
-					start_time: "",
-					real_start_time: -1,
-					finish_times: [],
-					bib_nums: [],
-					checker_bibs: [],
-				};
-				eventList.push(offlineEvent);
-				setEventList([...eventList]);
-	
-				const flatListRefCurrent = flatListRef.current;
-				if (flatListRefCurrent !== null) {
-					setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * eventList.length }); }, 200);
-				}
-				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-				setEventName("");
-			} else {
-				console.log("YO", eventName);
-				Alert.alert("Incorrect Event Name", "You have created an invalid name for this event. Please try again.");
+		if (eventName) {
+			const createTime = new Date().getTime();
+			const offlineEvent: OfflineEvent = {
+				time: createTime,
+				name: eventName,
+				start_time: "",
+				real_start_time: -1,
+				finish_times: [],
+				bib_nums: [],
+				checker_bibs: [],
+			};
+			eventList.push(offlineEvent);
+			setEventList([...eventList]);
+			const flatListRefCurrent = flatListRef.current;
+			if (flatListRefCurrent !== null) {
+				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * eventList.length }); }, 200);
 			}
-		};
 
-		createEvent();
+			setAlertVisible(false);
+			setEventName("");
+		}
+	}, [eventList, eventName]);
+
+	useEffect(() => {
+		if (eventName) {
+			const createEvent = async (): Promise<void> => {
+				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+			};
+			createEvent();
+		}
 	}, [eventList, eventName]);
 	
 
@@ -281,8 +281,9 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				title={"Set Event Name"}
 				message={"Enter the name for your offline event."}
 				placeholder={"Event Name"}
+				initialValue={eventName}
+				maxLength={15}
 				actionOnPress={(valArray): void => {
-					console.log(valArray);
 					setEventName(valArray[0]);
 				}}
 				cancelOnPress={(): void => {
