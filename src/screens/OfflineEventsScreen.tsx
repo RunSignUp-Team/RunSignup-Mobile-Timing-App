@@ -235,6 +235,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			navigation.setOptions({
 				headerRight: () => (
 					<TouchableOpacity
+						style={{ paddingLeft: 20, paddingVertical: 10 }}
 						onPress={(): void => {
 							// Add event
 							setAlertVisible(true);
