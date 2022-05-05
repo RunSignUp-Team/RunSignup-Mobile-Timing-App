@@ -580,6 +580,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		});
 	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
 
+	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]) => {
 		setAlertRecord(record);
 		setAlertIndex(index);
@@ -646,9 +647,9 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						stickyHeaderIndices={[0]}
 					/>
 				}
-				{alertVisible !== undefined && alertIndex !== undefined && alertRecord !== undefined && <TextInputAlert
-					title={`Edit Row ${alertIndex ? alertIndex + 1 : ""}`}
-					message={`Edit the bib number or finish time for Row ${alertIndex ? alertIndex + 1 : ""}.`}
+				{alertIndex !== undefined && alertRecord !== undefined && <TextInputAlert
+					title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number or finish time for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
 					placeholder="Enter Bib #"
 					secondPlaceholder="Enter Finish Time"
 					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}

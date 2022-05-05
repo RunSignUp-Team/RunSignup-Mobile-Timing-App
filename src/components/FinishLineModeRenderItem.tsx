@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from "react";
-import { View, TextInput, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import removeOne from "../helpers/RemoveOne";
 import { globalstyles } from "./styles";
 import GetClockTime from "../helpers/GetClockTime";
@@ -12,6 +12,7 @@ interface Props {
 	updateCheckerBibs(checkerBibs: Array<number>): void,
 	updateFinishTimes(finishTimes: Array<number>): void,
 	addOne(time: number, index: number): void,
+	showAlert(index: number): void,
 	time: number,
 	bib: string | number
 	finishTimesRef: {
@@ -39,14 +40,15 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 		<View style={globalstyles.tableItem}
 			onStartShouldSetResponder={(): boolean => true}>
 			<Text style={globalstyles.placeTableText}>{props.index + 1}</Text>
-			<Text style={globalstyles.timeTableText}>{GetClockTime(props.time)}</Text>
-			<TextInput
-				style={globalstyles.bibTableText}
-				keyboardType="number-pad"
-				maxLength={6}
-				onChangeText={updateCheckerBib}>
-				{props.bib}
-			</TextInput>
+			<TouchableOpacity 
+				style={{flex: globalstyles.timeTableText.flex + globalstyles.bibTableText.flex, flexDirection: "row", justifyContent: "center"}}
+				onPress={(): void => {
+					props.showAlert(props.index);
+				}}
+			>
+				<Text style={globalstyles.bibTableText}>{props.bib}</Text>
+				<Text style={globalstyles.timeTableText}>{GetClockTime(props.time)}</Text>
+			</TouchableOpacity>
 			<View style={{ flex: 0.5, alignItems: "center" }}>
 				<TouchableOpacity
 					style={globalstyles.tableAddButton}

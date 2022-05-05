@@ -1,6 +1,6 @@
 import React, { ForwardedRef, useEffect, useRef, useState } from "react";
 import { KeyboardTypeOptions, Modal, Platform, ScrollView, Text, TextInput, TouchableHighlight, View } from "react-native";
-import { APPLE_BLUE_COLOR, BACKGROUND_COLOR, GRAY_COLOR, GREEN_COLOR, LIGHT_GRAY_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE } from "./styles";
+import { APPLE_BLUE_COLOR, BACKGROUND_COLOR, GRAY_COLOR, GREEN_COLOR, LIGHT_GRAY_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, UNIVERSAL_PADDING } from "./styles";
 
 interface Props {
 	visible: boolean,
@@ -28,7 +28,7 @@ interface Props {
 	secondKeyboardType?: KeyboardTypeOptions
 }
 
-export default function TextInputAlert (props: Props): React.ReactElement | null {
+export default function TextInputAlert(props: Props): React.ReactElement | null {
 	const inputRef = useRef<TextInput>(null);
 
 	const [value, setValue] = useState("");
@@ -37,6 +37,8 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 	const droid = Platform.OS === "android";
 	const androidRadius = 5;
 	const iOSRadius = 12;
+	const minWidth = "70%";
+	const maxWidth = 500;
 
 	// Set text input value whenever initial value changes
 	useEffect(() => {
@@ -76,106 +78,111 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 						borderRadius: droid ? androidRadius : iOSRadius,
 						borderColor: GRAY_COLOR,
 						minHeight: "10%",
-						maxHeight: "40%",
-						minWidth: "45%",
-						maxWidth: "80%",
+						minWidth: minWidth,
+						maxWidth: maxWidth,
 						marginBottom: droid ? 0 : "40%"
 					}}
 				>
 					{/* Wrapping View */}
 					<View>
 						{/* Title */}
-						<Text
-							style={{
-								fontSize: MEDIUM_FONT_SIZE,
-								fontWeight: "bold",
-								marginTop: 20,
-								width: "90%",
-								alignSelf: "center",
-								textAlign: droid ? "left" : "center"
-							}}
-						>
-							{props.title}
-						</Text>
+						<View>
+							<Text
+								style={{
+									fontSize: MEDIUM_FONT_SIZE,
+									fontWeight: "bold",
+									marginTop: UNIVERSAL_PADDING,
+									marginHorizontal: droid ? 0 : UNIVERSAL_PADDING,
+									marginLeft: UNIVERSAL_PADDING,
+									textAlign: droid ? "left" : "center"
+								}}
+							>
+								{props.title}
+							</Text>
+						</View>
 						{/* Message */}
-						<Text
-							style={{
-								fontSize: SMALL_FONT_SIZE,
-								marginVertical: 5,
-								alignSelf: "center",
-								width: "90%",
-								flexWrap: "wrap",
-								textAlign: droid ? "left" : "center",
-							}}
-						>
-							{props.message}
-						</Text>
-						{/* Text Input One */}
-						<TextInput
-							ref={inputRef}
-							value={value}
-							onChangeText={(val): void => {
-								setValue(val);
-							}}
-							onSubmitEditing={() => {
-								props.actionOnPress([value, secondValue]);
-							}}
-							style={{
-								alignSelf: "center",
-								textAlign: "left",
-								width: "90%",
-								backgroundColor: LIGHT_GRAY_COLOR,
-								height: droid ? 50 : 40,
-								borderRadius: droid ? 0 : 8,
-								borderWidth: droid ? 0 : 1,
-								borderBottomWidth: 1,
-								borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
-								marginVertical: 5,
-								paddingHorizontal: 8,
-								marginHorizontal: 20,
-							}}
-							placeholder={props.placeholder}
-							placeholderTextColor={GRAY_COLOR}
-							maxLength={props.maxLength}
-							keyboardType={props.keyboardType}
-						/>
-						{/* Text Input Two */}
-						{props.secondPlaceholder &&
+						<View style={{alignItems: droid ? "flex-start" : "center"}}>
+							<Text
+								style={{
+									fontSize: SMALL_FONT_SIZE,
+									maxWidth: minWidth,
+									marginVertical: 5,
+									marginHorizontal: droid ? 0 : UNIVERSAL_PADDING,
+									marginLeft: UNIVERSAL_PADDING,
+									flexWrap: "wrap",
+									textAlign: droid ? "left" : "center",
+								}}
+							>
+								{props.message}
+							</Text>
+						</View>
+						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center", minWidth: minWidth, maxWidth: maxWidth }}>
+							{/* Text Input One */}
 							<TextInput
-								value={secondValue}
+								ref={inputRef}
+								value={value}
 								onChangeText={(val): void => {
-									setSecondValue(val);
+									setValue(val);
 								}}
 								onSubmitEditing={() => {
 									props.actionOnPress([value, secondValue]);
 								}}
 								style={{
-									alignSelf: "center",
-									textAlign: "left",
-									width: "90%",
 									backgroundColor: LIGHT_GRAY_COLOR,
 									height: droid ? 50 : 40,
 									borderRadius: droid ? 0 : 8,
 									borderWidth: droid ? 0 : 1,
 									borderBottomWidth: 1,
 									borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
+									flex: droid ? 1 : 0.9,
 									marginVertical: 5,
+									marginHorizontal: UNIVERSAL_PADDING,
 									paddingHorizontal: 8,
-									marginHorizontal: 20
 								}}
-								placeholder={props.secondPlaceholder}
+								placeholder={props.placeholder}
 								placeholderTextColor={GRAY_COLOR}
-								maxLength={props.secondMaxLength}
-								keyboardType={props.secondKeyboardType}
+								maxLength={props.maxLength}
+								keyboardType={props.keyboardType}
 							/>
-						}
+						</View>
+						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center", minWidth: minWidth, maxWidth: maxWidth }}>
+							{/* Text Input Two */}
+							{props.secondPlaceholder &&
+								<TextInput
+									value={secondValue}
+									onChangeText={(val): void => {
+										setSecondValue(val);
+									}}
+									onSubmitEditing={() => {
+										props.actionOnPress([value, secondValue]);
+									}}
+									style={{
+										backgroundColor: LIGHT_GRAY_COLOR,
+										height: droid ? 50 : 40,
+										borderRadius: droid ? 0 : 8,
+										borderWidth: droid ? 0 : 1,
+										borderBottomWidth: 1,
+										borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
+										flex: droid ? 1 : 0.9,
+										marginVertical: 5,
+										marginHorizontal: UNIVERSAL_PADDING,
+										paddingHorizontal: 8,
+									}}
+									placeholder={props.secondPlaceholder}
+									placeholderTextColor={GRAY_COLOR}
+									maxLength={props.secondMaxLength}
+									keyboardType={props.secondKeyboardType}
+								/>
+							}
+						</View>
 						{/* Top Border Line for Buttons */}
 						<View
 							style={{
 								backgroundColor: GRAY_COLOR,
 								opacity: 0.7,
 								height: 1,
-								marginTop: 10
+								marginTop: 10,
+								maxWidth: maxWidth,
 							}}
 						/>
 						{/* Buttons Wrapper View */}
@@ -183,6 +190,8 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 							style={{
 								flexDirection: "row",
 								height: 50,
+								minWidth: minWidth,
+								maxWidth: maxWidth - 5,
 							}}
 						>
 							{/* Cancel Button */}
@@ -190,17 +199,17 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 								props.cancelOnPress();
 							}}>
 								{/* Cancel Button Text */}
-								<View style={{flex: 1, backgroundColor: BACKGROUND_COLOR, justifyContent: "center" }}>
-								<Text
-									style={{
-										fontSize: SMALL_FONT_SIZE,
-										fontWeight: "bold",
-										color: droid ? GREEN_COLOR : "#ff443a",
-										textAlign: "center",
-									}}
-								>
-									{props.cancelButtonTitle ? props.cancelButtonTitle : "Cancel"}
-								</Text>
+								<View style={{ flex: 1, backgroundColor: BACKGROUND_COLOR, justifyContent: "center" }}>
+									<Text
+										style={{
+											fontSize: SMALL_FONT_SIZE,
+											fontWeight: "bold",
+											color: droid ? GREEN_COLOR : "#ff443a",
+											textAlign: "center",
+										}}
+									>
+										{props.cancelButtonTitle ? props.cancelButtonTitle : "Cancel"}
+									</Text>
 								</View>
 							</TouchableHighlight>
 							{/* Middle Border Line for Buttons */}
@@ -217,7 +226,7 @@ export default function TextInputAlert (props: Props): React.ReactElement | null
 								props.actionOnPress([value, secondValue]);
 							}}>
 								{/* Action Button Text */}
-								<View style={{flex: 1, backgroundColor: BACKGROUND_COLOR, justifyContent: "center" }}>
+								<View style={{ flex: 1, backgroundColor: BACKGROUND_COLOR, justifyContent: "center" }}>
 									<Text
 										style={{
 											fontSize: SMALL_FONT_SIZE,

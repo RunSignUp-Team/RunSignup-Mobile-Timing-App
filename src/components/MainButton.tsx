@@ -35,7 +35,7 @@ export default function MainButton(props: Props): React.ReactElement {
 					paddingHorizontal: 10,
 					marginHorizontal: 10,
 					marginVertical: props.listButton !== undefined ? 5 : 10,
-					paddingVertical: props.listButton !== undefined ? 5 : 10,
+					paddingVertical: props.listButton !== undefined ? 7 : 10,
 					minHeight: props.listButton !== undefined ? 50 : 70,
 					width: "100%",
 					borderRadius: BORDER_RADIUS,

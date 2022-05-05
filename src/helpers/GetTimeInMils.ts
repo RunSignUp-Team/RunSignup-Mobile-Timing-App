@@ -22,7 +22,7 @@ export default function GetTimeInMils(clockTime: string): number {
 		// But we want to convert it to [hh, mm, ss.ms]
 		// Similarly with mm:ss.ms -> [mm, ss, ms] -> [mm, ss.ms]
 		// Similarly with ss.ms -> [ss, ms] -> [ss.ms]
-		if (clockSplit.length >= 2 && clockTime.includes(".")) {
+		if (clockSplit.length === 4 || (clockSplit.length >= 2 && clockTime.includes("."))) {
 			clockSplit[clockSplit.length - 2] = clockSplit[clockSplit.length - 2] + "." + clockSplit[clockSplit.length - 1];
 			clockSplit.pop();
 		}

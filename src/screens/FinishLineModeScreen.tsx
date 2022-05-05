@@ -16,6 +16,9 @@ import { RootStackParamList } from "../components/AppStack";
 import MainButton from "../components/MainButton";
 import { ItemLayout } from "../models/ItemLayout";
 import Logger from "../helpers/Logger";
+import TextInputAlert from "../components/TextInputAlert";
+import GetBibDisplay from "../helpers/GetBibDisplay";
+import GetTimeInMils from "../helpers/GetTimeInMils";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -35,6 +38,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const finishTimesRef = useRef(finishTimes);
 	const checkerBibsRef = useRef(checkerBibs);
+
+	const [alertVisible, setAlertVisible] = useState(false);
+	const [alertIndex, setAlertIndex] = useState<number>();
 
 	const startTime = useRef<number>(-1);
 	const isUnmounted = useRef(false);
@@ -411,6 +417,12 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		updateCheckerBibs([...checkerBibsRef.current]);
 	}, [updateCheckerBibs, updateFinishTimes]);
 
+	// Show Edit Alert
+	const showAlert = (index: number): void => {
+		setAlertIndex(index);
+		setAlertVisible(true);
+	};
+
 	// Renders item on screen
 	const renderItem = useCallback(({ item, index }) => (
 		<MemoFinishLineItem
@@ -422,6 +434,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			checkerBibsRef={checkerBibsRef}
 			updateCheckerBibs={updateCheckerBibs}
 			addOne={addOne}
+			showAlert={showAlert}
 		/>
 	), [addOne, updateCheckerBibs, updateFinishTimes]);
 
@@ -465,8 +478,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								keyboardShouldPersistTaps="handled"
 								ListHeaderComponent={<View style={globalstyles.tableHead}>
 									<Text style={globalstyles.placeTableHeadText}>#</Text>
-									<Text style={globalstyles.timeTableHeadText}>Time</Text>
 									<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+									<Text style={globalstyles.timeTableHeadText}>Time</Text>
 									<Text style={globalstyles.addTableText}>+</Text>
 									<Text style={globalstyles.finishDeleteTableText}>-</Text>
 								</View>}
@@ -482,6 +495,31 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							</View>
 						</>
 				}
+				{alertIndex !== undefined && <TextInputAlert
+					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					placeholder="Enter Bib #"
+					initialValue={GetBibDisplay(checkerBibsRef.current[alertIndex] !== undefined ? checkerBibsRef.current[alertIndex] : -1)}
+					keyboardType={"number-pad"}
+					maxLength={6}
+					visible={alertVisible}
+					actionOnPress={(valArray): void => {
+						if (alertIndex) {
+							if (!isNaN(parseInt(valArray[0]))) {
+								// Valid Bib
+								checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
+								updateCheckerBibs([...checkerBibsRef.current]);
+								setAlertVisible(false);
+							} else {
+								Alert.alert(
+									"Incorrect Bib Entry", 
+									"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+								);
+							}
+						}
+					}} cancelOnPress={(): void => {
+						setAlertVisible(false);
+					}} />}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);
