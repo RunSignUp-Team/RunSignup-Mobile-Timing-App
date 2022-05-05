@@ -39,7 +39,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	const iOSRadius = 12;
 	const minWidth = Math.max(Dimensions.get('window').width * 0.7, Math.min(Dimensions.get('window').width * 0.9, 300));
 	const maxWidth = 500;
-	const normalWidth = Math.min(minWidth, maxWidth) - (droid ? UNIVERSAL_PADDING * 2 : UNIVERSAL_PADDING);
+	const normalWidth = Math.min(minWidth, maxWidth) - (UNIVERSAL_PADDING * 2);
 
 	// Set text input value whenever initial value changes
 	useEffect(() => {
@@ -107,7 +107,6 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 									fontSize: SMALL_FONT_SIZE,
 									width: normalWidth,
 									marginVertical: 5,
-									marginHorizontal: droid ? UNIVERSAL_PADDING : UNIVERSAL_PADDING / 2,
 									flexWrap: "wrap",
 									textAlign: droid ? "left" : "center",
 								}}
@@ -134,7 +133,6 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 									borderBottomWidth: 1,
 									borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
 									marginVertical: 5,
-									marginHorizontal: droid ? UNIVERSAL_PADDING : 0,
 									width: normalWidth,
 									paddingHorizontal: 8,
 								}}
@@ -163,7 +161,6 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 										borderBottomWidth: 1,
 										borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
 										marginVertical: 5,
-										marginHorizontal: droid ? UNIVERSAL_PADDING : 0,
 										width: normalWidth,
 										paddingHorizontal: 8,
 									}}
