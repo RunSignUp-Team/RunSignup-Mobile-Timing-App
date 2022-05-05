@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
+import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler, StyleSheet } from "react-native";
 import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -642,7 +642,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 							<Text style={globalstyles.timeTableHeadText}>Time</Text>
 							{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
-							{editMode && <Text style={globalstyles.verificationDeleteTableText}>-</Text>}
+							{editMode &&
+								<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+									<Text style={globalstyles.deleteTableText}>-</Text>
+								</View>
+							}
 						</View>}
 						stickyHeaderIndices={[0]}
 					/>
@@ -660,7 +664,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					secondMaxLength={11}
 					visible={alertVisible}
 					actionOnPress={(valArray): void => {
-						if (alertIndex && alertRecord) {
+						if (alertIndex !== undefined && alertRecord) {
 							if (!isNaN(parseInt(valArray[0])) && GetTimeInMils(valArray[1]) !== -1) {
 								// Valid Bib
 								recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
@@ -682,6 +686,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 									);
 								}
 							}
+						} else {
+							setAlertVisible(false);
 						}
 					}} cancelOnPress={(): void => {
 						setAlertVisible(false);

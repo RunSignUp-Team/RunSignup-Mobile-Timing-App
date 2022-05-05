@@ -26,17 +26,24 @@ type Props = {
 const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
+	// Bib Input
 	const [bibText, setBibText] = useState("");
-	const [loading, setLoading] = useState(true);
+	const [inputWasFocused, setInputWasFocused] = useState(true);
+	const bibInputRef = useRef<TextInput>(null);
 
+	// Bib Nums
 	const [bibNums, setBibNums] = useState<Array<number>>([]);
 	const bibNumsRef = useRef<Array<number>>(bibNums);
 
+	// Alert
+	const [alertVisible, setAlertVisible] = useState(false);
+	const [alertIndex, setAlertIndex] = useState<number>();	
+
+	// Other
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
+	const [loading, setLoading] = useState(true);
 
-	const [alertVisible, setAlertVisible] = useState(false);
-	const [alertIndex, setAlertIndex] = useState<number>();
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
@@ -251,6 +258,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const showAlert = (index: number): void => {
 		setAlertIndex(index);
 		setAlertVisible(true);
+		setInputWasFocused(!!bibInputRef.current?.isFocused());
 	};
 
 	// Renders item on screen
@@ -286,6 +294,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
 					<TextInput
+						ref={bibInputRef}
 						style={globalstyles.input}
 						onChangeText={setBibText}
 						value={bibText}
@@ -313,7 +322,9 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					ListHeaderComponent={<View style={globalstyles.tableHead}>
 						<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
 						<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-						<Text style={globalstyles.chuteDeleteTableText}>-</Text>
+						<View style={[globalstyles.tableDeleteButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
+							<Text style={globalstyles.deleteTableText}>-</Text>
+						</View>
 					</View>}
 					stickyHeaderIndices={[0]}
 				/>
@@ -332,18 +343,23 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					maxLength={6}
 					visible={alertVisible}
 					actionOnPress={(valArray): void => {
-						if (alertIndex) {
+						if (alertIndex !== undefined) {
 							if (!isNaN(parseInt(valArray[0]))) {
 								// Valid Bib
 								bibNumsRef.current[alertIndex] = parseInt(valArray[0]);
 								updateBibNums([...bibNumsRef.current]);
-								setAlertVisible(false);
+								setAlertVisible(false);	
+								if (inputWasFocused) {
+									bibInputRef.current?.focus();
+								}
 							} else {
 								Alert.alert(
 									"Incorrect Bib Entry", 
 									"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
 								);
 							}
+						} else {
+							setAlertVisible(false);
 						}
 					}} cancelOnPress={(): void => {
 						setAlertVisible(false);

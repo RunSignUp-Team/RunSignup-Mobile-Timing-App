@@ -34,29 +34,25 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 		<View style={globalstyles.tableItem}
 			onStartShouldSetResponder={(): boolean => true}>
 			<Text style={globalstyles.placeTableText}>{props.index + 1}</Text>
-			<TouchableOpacity 
-				style={{flex: globalstyles.timeTableText.flex + globalstyles.bibTableText.flex, flexDirection: "row", justifyContent: "center"}}
+			<TouchableOpacity
+				style={{ flex: globalstyles.bibTableText.flex, flexDirection: "row", justifyContent: "center" }}
 				onPress={(): void => {
 					props.showAlert(props.index);
 				}}
 			>
 				<Text style={globalstyles.bibTableText}>{props.bib}</Text>
-				<Text style={globalstyles.timeTableText}>{GetClockTime(props.time)}</Text>
 			</TouchableOpacity>
-			<View style={{ flex: 0.5, alignItems: "center" }}>
-				<TouchableOpacity
-					style={globalstyles.tableAddButton}
-					onPress={addOne}>
-					<Text style={globalstyles.tableButtonText}>+</Text>
-				</TouchableOpacity>
-			</View>
-			<View style={{ flex: 0.5, alignItems: "center" }}>
-				<TouchableOpacity
-					style={globalstyles.tableDeleteButton}
-					onPress={removeSelf}>
-					<Text style={globalstyles.tableButtonText}>-</Text>
-				</TouchableOpacity>
-			</View>
+			<Text style={globalstyles.timeTableText}>{GetClockTime(props.time)}</Text>
+			<TouchableOpacity
+				style={globalstyles.tableAddButton}
+				onPress={addOne}>
+				<Text style={globalstyles.tableButtonText}>+</Text>
+			</TouchableOpacity>
+			<TouchableOpacity
+				style={globalstyles.tableDeleteButton}
+				onPress={removeSelf}>
+				<Text style={globalstyles.tableButtonText}>-</Text>
+			</TouchableOpacity>
 		</View>
 	);
 }

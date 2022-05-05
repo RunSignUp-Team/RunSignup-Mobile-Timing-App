@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE } from "../components/styles";
+import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -28,20 +28,30 @@ type Props = {
 export default function FinishLineModeScreen({ navigation }: Props): React.ReactElement {
 	const context = useContext(AppContext);
 
+	// Bib Input
 	const [bibText, setBibText] = useState("");
-	const [timerOn, setTimerOn] = useState(false);
-	const [loading, setLoading] = useState(true);
-	const [displayTime, setDisplayTime] = useState(0);
+	const [inputWasFocused, setInputWasFocused] = useState(true);
+	const bibInputRef = useRef<TextInput>(null);
 
+	// Timer
+	const [timerOn, setTimerOn] = useState(false);
+	const [displayTime, setDisplayTime] = useState(0);
+	const startTime = useRef<number>(-1);
+
+	// Finish Times
 	const [finishTimes, setFinishTimes] = useState<Array<number>>([]);
-	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const finishTimesRef = useRef(finishTimes);
+
+	// Checker Bibs
+	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const checkerBibsRef = useRef(checkerBibs);
 
+	// Alert
 	const [alertVisible, setAlertVisible] = useState(false);
 	const [alertIndex, setAlertIndex] = useState<number>();
 
-	const startTime = useRef<number>(-1);
+	// Other
+	const [loading, setLoading] = useState(true);
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
 
@@ -420,6 +430,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const showAlert = (index: number): void => {
 		setAlertIndex(index);
 		setAlertVisible(true);
+		setInputWasFocused(!!bibInputRef.current?.isFocused());
 	};
 
 	// Renders item on screen
@@ -452,6 +463,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									</Text>
 								</View>
 								<TextInput
+									ref={bibInputRef}
 									onChangeText={setBibText}
 									editable={timerOn}
 									style={globalstyles.timerBibInput}
@@ -479,8 +491,12 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									<Text style={globalstyles.placeTableHeadText}>#</Text>
 									<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 									<Text style={globalstyles.timeTableHeadText}>Time</Text>
-									<Text style={globalstyles.addTableText}>+</Text>
-									<Text style={globalstyles.finishDeleteTableText}>-</Text>
+									<View style={[globalstyles.tableAddButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
+										<Text style={{textAlign: "center", fontFamily: "Roboto_700Bold", fontSize: SMALL_FONT_SIZE}}>+</Text>
+									</View>
+									<View style={[globalstyles.tableDeleteButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
+										<Text style={globalstyles.deleteTableText}>-</Text>
+									</View>
 								</View>}
 								stickyHeaderIndices={[0]} />
 
@@ -504,18 +520,23 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					maxLength={6}
 					visible={alertVisible}
 					actionOnPress={(valArray): void => {
-						if (alertIndex) {
+						if (alertIndex !== undefined) {
 							if (!isNaN(parseInt(valArray[0]))) {
 								// Valid Bib
 								checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
 								updateCheckerBibs([...checkerBibsRef.current]);
 								setAlertVisible(false);
+								if (inputWasFocused) {
+									bibInputRef.current?.focus();
+								}
 							} else {
 								Alert.alert(
 									"Incorrect Bib Entry", 
 									"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
 								);
 							}
+						} else {
+							setAlertVisible(false);
 						}
 					}} cancelOnPress={(): void => {
 						setAlertVisible(false);
