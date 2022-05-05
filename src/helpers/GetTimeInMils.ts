@@ -48,8 +48,6 @@ export default function GetTimeInMils(clockTime: string): number {
 				break;
 		}
 
-		console.log(clockTime, timeSplit, timeInMils);
-
 		return timeInMils;
 	} else {
 		return -1;
