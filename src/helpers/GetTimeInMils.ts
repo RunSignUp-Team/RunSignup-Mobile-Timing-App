@@ -17,18 +17,13 @@ export default function GetTimeInMils(clockTime: string): number {
 		// Clock Time split into array
 		const clockSplit: Array<string> = clockTime.split(/[:.]+/);
 
-		// If format is hh:mm:ss:ms, effectively convert it to hh:mm:ss.ms,
-		// so at the switch statement, there are a maximum of three elements in the array,
-		// with ss.ms being treated as a decimal number
-		if (clockSplit.length === 4) {
-			clockSplit[2] = clockSplit[2] + "." + clockSplit[3];
-			clockSplit.pop();
-		}
 
-		// If format is ss.ms, it is initially stored as [ss, ms],
-		// But we want to convert it to [ss.ms]
-		if (!clockTime.includes(":") && clockTime.includes(".")) {
-			clockSplit[0] = clockSplit[0] + "." + clockSplit[1];
+		// If format is hh:mm:ss.ms, it is initially stored as [hh, mm, ss, ms],
+		// But we want to convert it to [hh, mm, ss.ms]
+		// Similarly with mm:ss.ms -> [mm, ss, ms] -> [mm, ss.ms]
+		// Similarly with ss.ms -> [ss, ms] -> [ss.ms]
+		if (clockSplit.length >= 2 && clockTime.includes(".")) {
+			clockSplit[clockSplit.length - 2] = clockSplit[clockSplit.length - 2] + "." + clockSplit[clockSplit.length - 1];
 			clockSplit.pop();
 		}
 
@@ -52,6 +47,8 @@ export default function GetTimeInMils(clockTime: string): number {
 				timeInMils = timeSplit[0] * 1000;
 				break;
 		}
+
+		console.log(clockTime, timeSplit, timeInMils);
 
 		return timeInMils;
 	} else {

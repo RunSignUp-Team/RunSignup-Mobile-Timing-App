@@ -58,10 +58,10 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 
 			<View style={{ flexDirection: "column", flex: 1 }}>
 				<Image
-					style={[globalstyles.image, { marginTop: "10%" }]}
+					style={[globalstyles.image, { marginTop: 10 }]}
 					source={require("../assets/logo.png")}
 				/>
-				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: "25%" }} />
+				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
 				<MainButton text={"Offline Races"} onPress={handleRecordOfflineClick} />
 			</View>
 

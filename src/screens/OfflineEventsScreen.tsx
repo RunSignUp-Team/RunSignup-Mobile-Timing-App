@@ -14,6 +14,7 @@ import { RootStackParamList } from "../components/AppStack";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
 import { ItemLayout } from "../models/ItemLayout";
 import Logger from "../helpers/Logger";
+import TextInputAlert from "../components/TextInputAlert";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -75,32 +76,39 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [isVisible]);
 
 	// Create event
-	const createEvent = async (): Promise<void> => {
-		if ((/^[0-9a-zA-Z().-]+$/gm).test(eventName)) {
-			setAlertVisible(false);
-			const createTime = new Date().getTime();
-			const offlineEvent: OfflineEvent = {
-				time: createTime,
-				name: eventName,
-				start_time: "",
-				real_start_time: -1,
-				finish_times: [],
-				bib_nums: [],
-				checker_bibs: [],
-			};
-			eventList.push(offlineEvent);
-			setEventList([...eventList]);
-
-			const flatListRefCurrent = flatListRef.current;
-			if (flatListRefCurrent !== null) {
-				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * eventList.length }); }, 200);
+	useEffect(() => {
+		console.log("here", eventName);
+		const createEvent = async (): Promise<void> => {
+			if ((/^[0-9a-zA-Z(). -]+$/gm).test(eventName)) {
+				setAlertVisible(false);
+				const createTime = new Date().getTime();
+				const offlineEvent: OfflineEvent = {
+					time: createTime,
+					name: eventName,
+					start_time: "",
+					real_start_time: -1,
+					finish_times: [],
+					bib_nums: [],
+					checker_bibs: [],
+				};
+				eventList.push(offlineEvent);
+				setEventList([...eventList]);
+	
+				const flatListRefCurrent = flatListRef.current;
+				if (flatListRefCurrent !== null) {
+					setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * eventList.length }); }, 200);
+				}
+				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+				setEventName("");
+			} else {
+				console.log("YO", eventName);
+				Alert.alert("Incorrect Event Name", "You have created an invalid name for this event. Please try again.");
 			}
-			await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-			setEventName("");
-		} else {
-			Alert.alert("Incorrect Event Name", "You have created an invalid name for this event. Please try again.");
-		}
-	};
+		};
+
+		createEvent();
+	}, [eventList, eventName]);
+	
 
 	// Delete old Bib Numbers and upload new Bib Numbers
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
@@ -268,31 +276,19 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			<Modal
-				animationType="slide"
-				presentationStyle="formSheet"
-				visible={alertVisible}>
-				<View style={{ flexDirection: "row", justifyContent: "center" }}>
-					<TouchableOpacity style={{ position: "absolute", top: 6, left: 3 }} onPress={(): void => setAlertVisible(false)}>
-						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "Roboto_700Bold", color: RED_COLOR, padding: 10 }}>Cancel</Text>
-					</TouchableOpacity>
-					<Text style={[globalstyles.modalHeader, { top: 16 }]}>Set Event Name</Text>
-					<TouchableOpacity style={{ position: "absolute", top: 6, right: 3 }} onPress={(): void => { createEvent(); }}>
-						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "Roboto_700Bold", color: GREEN_COLOR, padding: 10 }}>Add</Text>
-					</TouchableOpacity>
-				</View>
-				<TextInput
-					style={[globalstyles.input, { width: "80%", position: "absolute", top: 70 }]}
-					maxLength={20}
-					ref={addEventRef}
-					placeholder="Event Name"
-					placeholderTextColor={GRAY_COLOR}
-					onChangeText={(input): void => setEventName(input)}
-					onSubmitEditing={(): void => { createEvent(); }}>
-				</TextInput>
-				<View style={{ flexDirection: "row", marginTop: 20 }}>
-				</View>
-			</Modal>
+			<TextInputAlert 
+				visible={alertVisible} 
+				title={"Set Event Name"}
+				message={"Enter the name for your offline event."}
+				placeholder={"Event Name"}
+				actionOnPress={(valArray): void => {
+					console.log(valArray);
+					setEventName(valArray[0]);
+				}}
+				cancelOnPress={(): void => {
+					setAlertVisible(false);
+				}}
+			/>
 			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : eventList.length < 1 ? <Text style={globalstyles.info}>{"No Offline Events.\nClick the + button to create a new Offline Event."}</Text> :
 				<FlatList
 					data={eventList}

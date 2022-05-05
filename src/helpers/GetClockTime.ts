@@ -15,6 +15,8 @@ export default function GetClockTime(timeInMils: number, timer?: boolean): strin
 		const GetTwoChars = (str: string): string => {
 			if (str.length > 2) {
 				return str.substring(0, 2);
+			} else if (str.length === 2) {
+				return "0" + str.substring(0, 1);
 			} else {
 				return addLeadingZeros(parseInt(str));
 			}

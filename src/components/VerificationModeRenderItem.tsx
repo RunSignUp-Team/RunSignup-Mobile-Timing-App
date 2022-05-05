@@ -1,9 +1,8 @@
-import React, { memo, useCallback } from "react";
-import { View, TextInput, Text, TouchableOpacity, Keyboard } from "react-native";
+import React, { memo } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import { globalstyles } from "./styles";
 import removeOne from "../helpers/RemoveOne";
 import GetClockTime from "../helpers/GetClockTime";
-import GetTimeInMils from "../helpers/GetTimeInMils";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 
@@ -20,6 +19,7 @@ interface Props {
 	conflictBoolean: boolean,
 	conflictResolution(index: number): void,
 	swapEntries(index: number): void,
+	showAlert(index: number, record: [number, number, number]): void,
 	findParticipant(bib: number): string,
 	updateRecords(records: Array<[number, number, number]>): void,
 }
@@ -28,24 +28,6 @@ interface Props {
 export default function VerificationModeRenderItem(props: Props): React.ReactElement {
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
-
-	const updateBib = useCallback((newBib) => {
-		if (isNaN(parseInt(newBib))) {
-			// Store as -1 if invalid data
-			props.recordsRef.current[index][0] = -1;
-			props.recordsRef.current[index][2] = -1;
-			props.updateRecords([...props.recordsRef.current]);
-		} else {
-			props.recordsRef.current[index][0] = parseInt(newBib);
-			props.recordsRef.current[index][2] = parseInt(newBib);
-			props.updateRecords([...props.recordsRef.current]);
-		}
-	}, [index, props]);
-
-	const updateTime = useCallback((newTime) => {
-		props.recordsRef.current[index][1] = GetTimeInMils(newTime);
-		props.updateRecords([...props.recordsRef.current]);
-	}, [index, props]);
 
 	return (
 		<View onStartShouldSetResponder={(): boolean => true} style={{ padding: 0, margin: 0 }}>
@@ -56,7 +38,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 
 				{/* Place */}
 				<TouchableOpacity style={[globalstyles.placeTableText, { flexDirection: "row", alignItems: "center" }]}
-					hitSlop={{top: 30, bottom: 30, left: 30, right: 30}}
+					hitSlop={{ top: 30, bottom: 30, left: 30 }}
 					disabled={!props.editMode}
 					onPress={(): void => {
 						props.swapEntries(index);
@@ -64,31 +46,36 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 					<Text style={globalstyles.placeTableText}>{index + 1}</Text>
 				</TouchableOpacity>
 
-				{/* No Conflict Bib */}
-				{!conflictItem && <TextInput
-					editable={props.editMode}
-					style={globalstyles.bibTableText}
-					keyboardType="numbers-and-punctuation"
-					maxLength={6}
-					onChangeText={updateBib}
-					onSubmitEditing={Keyboard.dismiss}>
-					{GetBibDisplay(props.record[0])}
-				</TextInput>}
+
+				{!conflictItem &&
+					<TouchableOpacity
+						hitSlop={{ top: 30, bottom: 30 }}
+						style={{
+							flex: globalstyles.bibTableText.flex + globalstyles.timeTableText.flex,
+							flexDirection: "row",
+							alignItems: "center"
+						}}
+						disabled={!props.editMode}
+						onPress={(): void => {
+							props.showAlert(index, props.record);
+						}}
+					>
+						{/* No Conflict Bib */}
+						<Text style={globalstyles.bibTableText}>
+							{GetBibDisplay(props.record[0])}
+						</Text>
+
+						{/* No Conflict Time */}
+						<Text style={globalstyles.timeTableText}>
+							{GetClockTime(props.record[1])}
+						</Text>
+					</TouchableOpacity>
+				}
 
 				{/* Conflict Bib */}
 				{conflictItem && <Text style={globalstyles.bibTableText}>
 					{`${props.record[0]} /\n${props.record[2]}`}</Text>}
 
-				{/* No Conflict Time */}
-				{!conflictItem && <TextInput
-					editable={props.editMode}
-					style={globalstyles.timeTableText}
-					keyboardType="numbers-and-punctuation"
-					maxLength={11}
-					onChangeText={updateTime}
-					onSubmitEditing={Keyboard.dismiss}>
-					{GetClockTime(props.record[1])}
-				</TextInput>}
 
 				{/* Conflict Time */}
 				{conflictItem && <Text style={globalstyles.timeTableText}>

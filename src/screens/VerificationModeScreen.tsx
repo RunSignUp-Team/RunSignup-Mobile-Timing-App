@@ -15,6 +15,9 @@ import { RootStackParamList } from "../components/AppStack";
 import { ItemLayout } from "../models/ItemLayout";
 import { useFocusEffect } from "@react-navigation/native";
 import Logger from "../helpers/Logger";
+import TextInputAlert from "../components/TextInputAlert";
+import GetBibDisplay from "../helpers/GetBibDisplay";
+import GetClockTime from "../helpers/GetClockTime";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -50,6 +53,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [participants, setParticipants] = useState<Array<ParticipantDetails>>([]);
 	const [searchRecords, setSearchRecords] = useState<VRecords>(recordsRef.current);
 	const [search, setSearch] = useState("");
+
+	// Edit Alert
+	const [alertVisible, setAlertVisible] = useState(false);
+	const [alertRecord, setAlertRecord] = useState<[number, number, number]>();
+	const [alertIndex, setAlertIndex] = useState<number>();
 
 	// Other
 	const flatListRef = useRef<FlatList>(null);
@@ -441,7 +449,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			setLoading(false);
 		} else if (recordsRef.current.filter((entry) => (entry[1] === -1)).length > 0) {
 			// Alert if blank or incorrect finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish Times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nmm:ss\nss.ms");
+			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms");
 			setLoading(false);
 		} else if (recordsRef.current.filter((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
 			// Alert if too large finish time
@@ -572,6 +580,12 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		});
 	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
 
+	const showAlert = (index: number, record: [number, number, number]) => {
+		setAlertRecord(record);
+		setAlertIndex(index);
+		setAlertVisible(true);
+	}
+
 	// Renders item on screen
 	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement => (
 		<MemoVerificationItem
@@ -587,6 +601,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			editMode={editMode}
 			conflictResolution={conflictResolution}
 			swapEntries={swapEntries}
+			showAlert={showAlert}
 			findParticipant={findParticipant}
 			online={context.online}
 		/>
@@ -629,7 +644,45 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							{editMode && <Text style={globalstyles.verificationDeleteTableText}>-</Text>}
 						</View>}
 						stickyHeaderIndices={[0]}
-					/>}
+					/>
+				}
+				{alertVisible !== undefined && alertIndex !== undefined && alertRecord !== undefined && <TextInputAlert
+					title={`Edit Row ${alertIndex ? alertIndex + 1 : ""}`}
+					message="This is a test message that is longer than the alert width and so it should definitely wrap when it reaches the end."
+					placeholder="Enter Bib #"
+					secondPlaceholder="Enter Finish Time"
+					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
+					secondInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
+					maxLength={6}
+					secondMaxLength={11}
+					visible={alertVisible}
+					actionOnPress={(valArray): void => {
+						if (alertIndex && alertRecord) {
+							if (!isNaN(parseInt(valArray[0])) && GetTimeInMils(valArray[1]) !== -1) {
+								// Valid Bib
+								recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
+								// Valid Time
+								recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
+								updateRecords([...recordsRef.current]);
+								setAlertVisible(false);
+							} else {
+								if (isNaN(parseInt(valArray[0]))) {
+									Alert.alert(
+										"Incorrect Bib Entry", 
+										"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+									);
+								} else {
+									// Invalid Time
+									Alert.alert(
+										"Incorrect Finish Time Entry", 
+										"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms",
+									);
+								}
+							}
+						}
+					}} cancelOnPress={(): void => {
+						setAlertVisible(false);
+					}} />}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);
