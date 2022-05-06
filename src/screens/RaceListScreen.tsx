@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, Text, ActivityIndicator, Platform, BackHandler, TouchableOpacity } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getRaces } from "../helpers/AxiosCalls";
