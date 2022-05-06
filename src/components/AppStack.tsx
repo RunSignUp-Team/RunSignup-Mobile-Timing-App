@@ -1,5 +1,4 @@
 import React from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "../screens/LoginScreen";
 import RaceListScreen from "../screens/RaceListScreen";
 import EventsListScreen from "../screens/EventsListScreen";
@@ -10,6 +9,7 @@ import VerificationModeScreen from "../screens/VerificationModeScreen";
 import OfflineEventsListScreen from "../screens/OfflineEventsScreen";
 import Loader from "../screens/SplashScreen";
 import { BIG_FONT_SIZE, GREEN_COLOR } from "./styles";
+import { createStackNavigator } from "@react-navigation/stack";
 
 export type RootStackParamList = {
 	SplashScreen: undefined,
@@ -23,20 +23,21 @@ export type RootStackParamList = {
 	VerificationMode: undefined
 };
 
-const AppStack = createNativeStackNavigator<RootStackParamList>();
+const AppStack = createStackNavigator<RootStackParamList>();
 
 export default function StartNavigator(): React.ReactElement {
 	return (
 		<AppStack.Navigator screenOptions={{
-			headerBackVisible: false,
 			headerStyle: { backgroundColor: GREEN_COLOR },
 			headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "Roboto_700Bold", color: "white" },
 		}}>
 			<AppStack.Screen name="SplashScreen" component={Loader} options={{
 				headerShown: false,
+				headerLeft: () => ( null )
 			}} />
 			<AppStack.Screen name="Login" component={LoginScreen} options={{
 				title: "Home",
+				headerLeft: () => ( null )
 			}} />
 			<AppStack.Screen name="OfflineEventsList" component={OfflineEventsListScreen} options={{
 				title: "Offline Events",

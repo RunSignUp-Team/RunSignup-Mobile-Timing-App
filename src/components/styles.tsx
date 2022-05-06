@@ -106,6 +106,7 @@ export const globalstyles = StyleSheet.create({
 		fontSize: MEDIUM_FONT_SIZE,
 		fontFamily: "Roboto_400Regular",
 		color: "white",
+		marginRight: 10
 	},
 
 	// Text

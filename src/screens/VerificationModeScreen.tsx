@@ -369,10 +369,13 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					}
 				});
 
-				Alert.alert("Success", "Results successfully uploaded to Runsignup!");
+				AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+				AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");		
 
 				setEditMode(false);
 				setLoading(false);
+
+				Alert.alert("Success", "Results successfully uploaded to Runsignup!");
 			} catch (error) {
 				if (error instanceof Error) {
 					if (error.message === undefined || error.message === "Network Error") {
@@ -395,6 +398,10 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
 				AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 			});
+
+			AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
+			AsyncStorage.setItem(`chuteDone:${context.time}`, "true");	
+
 			setEditMode(false);
 			setLoading(false);
 
@@ -531,7 +538,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const editTable = useCallback(() => {
 		setEditMode(true);
 		Alert.alert(
-			"Edit Mode", "Tap on a bib number or finish time to edit it. Tap on two places to swap the entries in the list.\nWARNING: Do not edit data until results have been saved in both the Finish Line and Chute Modes.");
+			"Edit Mode", "Tap on a bib number or finish time to edit it. Tap on two places to swap the entries in the list.\nWARNING: Do not edit data until results have been saved in both the Finish Line and Chute Modes. Once data has been edited, you will not be able to re-open either mode.");
 	}, []);
 
 	// Display edit / save button in header
