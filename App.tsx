@@ -1,4 +1,4 @@
-import Bugsnag from '@bugsnag/expo';
+import Bugsnag from "@bugsnag/expo";
 Bugsnag.start();
 
 import React from "react";
@@ -15,7 +15,6 @@ import {
 import {
 	RobotoMono_400Regular
 } from "@expo-google-fonts/roboto-mono";
-
 
 const App = () => {
 	let [fontsLoaded] = useFonts({

@@ -192,7 +192,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 					} else {
 						// Something else
 						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-						Logger.log(error.message);
+						Logger("Unknown Error (Offline)", error, true, context.raceID, context.eventID, context.eventTitle);
 					}
 				}
 			}
@@ -227,7 +227,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				navigationRef.current.navigate("ModeScreen");
 			}
 		}
-	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID]);
+	}, [assignBibNums, assignFinishTimes, context.eventID, context.eventTitle, context.raceID]);
 
 	// Display save button in header
 	useEffect(() => {

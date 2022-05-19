@@ -1,5 +1,5 @@
 import React, { useContext, useCallback } from "react";
-import { View, Image, Alert, BackHandler } from "react-native";
+import { View, Image, BackHandler } from "react-native";
 import { globalstyles } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
@@ -7,6 +7,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { oAuthLogin } from "../helpers/oAuth2Helper";
 import MainButton from "../components/MainButton";
+import Logger from "../helpers/Logger";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -35,7 +36,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 		try {
 			const accessToken = await oAuthLogin(false);
 			if (!accessToken) {
-				Alert.alert("Unable To Authenticate", "Unable to authenticate. Please try again.");
+				Logger("Unable to Authenticate", "Unable to authenticate. Please try again.", true);
 			}
 			else {
 				// Go to their race list
@@ -43,7 +44,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				navigation.push("RaceList");
 			}
 		} catch (error) {
-			Alert.alert("Unable To Authenticate", "Unable to authenticate. Please try again.");
+			Logger("Unable to Authenticate", error, true);
 		}
 	};
 

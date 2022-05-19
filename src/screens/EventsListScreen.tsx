@@ -37,7 +37,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						Logger.log(error);
+						Logger("Could Not Log Out (Events)", error, true, context.raceID, context.eventID, context.eventTitle);
 					}
 				}
 			},
@@ -47,7 +47,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				onPress: (): void => { return; }
 			}
 		]);
-	}, [navigation]);
+	}, [context.eventID, context.eventTitle, context.raceID, navigation]);
 
 	// Set back button
 	useEffect(() => {
@@ -131,15 +131,14 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-						Logger.log(error);
+						Logger("Unknown Error (Events)", error, true, context.raceID, context.eventID, context.eventTitle);
 					}
 				}
 				setLoading(false);
 			}
 		};
 		fetchEvents();
-	}, [context.raceID, finalEventList]);
+	}, [context.eventID, context.eventTitle, context.raceID, finalEventList]);
 
 	// Update local race data
 	const firstRun = useRef(true);

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-interface Context {
+export interface Context {
 	online: boolean;
 	raceID: number;
 	eventID: number;

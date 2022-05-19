@@ -102,8 +102,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 									Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 								} else {
 									// Something else
-									Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-									Logger.log(error);
+									Logger("Unknown Error (Chute)", error, true, context.raceID, context.eventID, context.eventTitle);
 								}
 							}
 							setLoading(false);
@@ -144,7 +143,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			});
 		}
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, navigation]);
 
 	/** Updates Bib Numbers without re-rendering entire list */
 	const updateBibNums = useCallback((newBibNums: Array<number>) => {

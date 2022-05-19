@@ -120,8 +120,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 						} else {
 							// Something else
-							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-							Logger.log(error);
+							Logger("Unknown Error (Post Bibs)", error, true, context.raceID, context.eventID, context.eventTitle);
 						}
 					}
 					setLoading(false);
@@ -149,7 +148,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				});
 			}
 		}
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, navigation]);
 
 	/** Updates Finish Times without re-rendering entire list */
 	const updateFinishTimes = useCallback((newFinishTimes: Array<number>) => {
@@ -319,13 +318,12 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
 				} else {
 					// Something else
-					Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-					Logger.log(error);
+					Logger("Unknown Error (Start Time)", error, true, context.raceID, context.eventID, context.eventTitle);
 				}
 			}
 			setLoading(false);
 		}
-	}, [addToStorage, context.eventID, context.raceID]);
+	}, [addToStorage, context.eventID, context.eventTitle, context.raceID]);
 
 
 	// Check entries for errors

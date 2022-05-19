@@ -42,7 +42,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						Logger.log(error);
+						Logger("Could Not Log Out (Races)", error, true);
 					}
 				}
 			},
@@ -139,8 +139,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-						Logger.log(error);
+						Logger("Unknown Error", error, true);
 					}
 				}
 				setLoading(false);
@@ -148,7 +147,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 		};
 
 		fetchRaces();
-	}, [finalRaceList, setFinalRaceList]);
+	}, [context.eventID, context.eventTitle, context.raceID, finalRaceList, setFinalRaceList]);
 
 	// Update local race data
 	const firstRun = useRef(true);

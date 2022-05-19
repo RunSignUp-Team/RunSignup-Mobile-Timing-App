@@ -35,7 +35,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						Logger.log(error);
+						Logger("Could Not Log Out (Modes)", error, true, context.raceID, context.eventID, context.eventTitle);
 					}
 				}
 			},
@@ -45,10 +45,11 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				onPress: (): void => { return; }
 			}
 		]);
-	}, [navigation]);
+	}, [context.eventID, context.eventTitle, context.raceID, navigation]);
 
 	// Set back button
 	useEffect(() => {
+		Logger("Test", "Test Data", true, context.raceID, context.eventID, context.eventTitle);
 		navigation.setOptions({
 			headerLeft: () => (
 				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
@@ -61,7 +62,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					null
 			)
 		});
-	}, [context.online, handleLogOut, navigation]);
+	}, [context.eventID, context.eventTitle, context.online, context.raceID, handleLogOut, navigation]);
 
 	// Finish Line Mode tapped
 	const finishLineTapped = (): void => {
@@ -86,7 +87,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 							navigation.navigate("FinishLineMode");
 						}
 					} catch (err) {
-						Logger.log("Finish Times Check", err);
+						Logger("Finish Times Check", err, false, context.raceID, context.eventID, context.eventTitle);
 						navigation.navigate("FinishLineMode");
 					}
 				}
@@ -164,8 +165,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 				} else {
 					// Something else
-					Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-					Logger.log(error);
+					Logger("Unknown Error (Modes)", error, true, context.raceID, context.eventID, context.eventTitle);
 				}
 			}
 		}

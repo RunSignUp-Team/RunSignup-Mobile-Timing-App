@@ -62,7 +62,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
 		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(refreshTokenUrl, formData);
 		const resData = res.data;
 		if ("error" in resData) {
-			Logger.log(`Failed to refresh access & refresh tokens. Error: "${resData.error}". Description: "${resData.error_description}". Hint: "${resData.hint}"`);
+			Logger("Failed to Refresh Access & Refresh Tokens", `Error: "${resData.error}". Description: "${resData.error_description}". Hint: "${resData.hint}"`);
 			return null;
 		}
 
@@ -71,7 +71,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
 
 
 	} catch (error) {
-		Logger.log("Error in refresh token: ", error);
+		Logger("Error in Refresh Token", error);
 		return null;
 	}
 }
@@ -98,7 +98,7 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
 		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(accessTokenUrl, formData);
 		const resData = res.data;
 		if ("error" in resData) {
-			Logger.log(createRSUApiErrorString(resData));
+			Logger("Failed to Retrieve Tokens", createRSUApiErrorString(resData));
 			return null;
 		}
 
@@ -106,7 +106,7 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
 		return resData;
 
 	} catch (error) {
-		Logger.log(error);
+		Logger("Unknown Token Error", error);
 		return null;
 	}
 }
@@ -150,7 +150,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 
 		// Not successful
 		if (authCodeRes.type !== "success") {
-			Logger.log("Unable to get Authorization Code. ", authCodeRes.type);
+			Logger("Unable to get Authorization Code", authCodeRes.type);
 			return null;
 		}
 
@@ -159,7 +159,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 
 		// Unable to exchange auth code for access/refresh tokens
 		if (finalTokens === null) {
-			Logger.log("Unable to exchange code for tokens.");
+			Logger("Unable to Exchange Code for Tokens", finalTokens);
 			return null;
 		}
 
@@ -169,7 +169,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 		// Just return the access token
 		return finalTokens.access_token;
 	} catch (error) {
-		Logger.log(error);
+		Logger("Failed Login", error);
 		return null;
 	}
 }

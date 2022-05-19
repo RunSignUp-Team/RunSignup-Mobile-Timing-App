@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler, StyleSheet } from "react-native";
+import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
 import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -147,11 +147,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							recordsRef.current[i][2] = (recordsRef.current[i][0] === checkerBib || (isNaN(recordsRef.current[i][0]) && isNaN(checkerBib))) ? (isNaN(bibNum) ? 0 : bibNum) : (isNaN(checkerBib) ? 0 : checkerBib);
 
 							// Good debugging logs
-							// Logger.log("Stored in API: ", parseInt(recordsRef.current[i][0]));
-							// Logger.log("CheckerBib: ", checkerBib);
-							// Logger.log("BibNum: ", bibNum);
-							// Logger.log("Conflict Bib: ", parseInt(recordsRef.current[i][2]));
-							// Logger.log("\n");
+							// console.log("Stored in API: ", parseInt(recordsRef.current[i][0]));
+							// console.log("CheckerBib: ", checkerBib);
+							// console.log("BibNum: ", bibNum);
+							// console.log("Conflict Bib: ", parseInt(recordsRef.current[i][2]));
+							// console.log("\n");
 
 							// Prefer real bibs to zeros
 							if (!recordsRef.current[i][0]) {
@@ -197,8 +197,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 						} else {
 							// Something else
-							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-							Logger.log(error);
+							Logger("Unknown Error (Get Records)", error, true, context.raceID, context.eventID, context.eventTitle);
 						}
 					}
 				}
@@ -252,7 +251,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		return () => {
 			isUnmountedRef.current = true;
 		};
-	}, [context.eventID, context.online, context.raceID, context.time, updateRecords]);
+	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, updateRecords]);
 
 	// Set conflicts
 	useEffect(() => {
@@ -383,7 +382,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					} else {
 						// Something else
 						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-						Logger.log(error);
+						Logger("Unknown Error (Save Records)", error, true, context.raceID, context.eventID, context.eventTitle);
 					}
 				}
 				if (!isUnmountedRef.current) {
@@ -407,7 +406,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			Alert.alert("Success", "Edits have been saved to your local device!");
 		}
-	}, [context.eventID, context.online, context.raceID, context.time, updateRecords]);
+	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, updateRecords]);
 
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {
@@ -588,11 +587,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
 
 	// Show Edit Alert
-	const showAlert = (index: number, record: [number, number, number]) => {
+	const showAlert = (index: number, record: [number, number, number]): void => {
 		setAlertRecord(record);
 		setAlertIndex(index);
 		setAlertVisible(true);
-	}
+	};
 
 	// Renders item on screen
 	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement => (
