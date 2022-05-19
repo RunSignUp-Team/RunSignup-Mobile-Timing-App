@@ -1,3 +1,6 @@
+import Bugsnag from '@bugsnag/expo';
+Bugsnag.start();
+
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import StartNavigator from "./src/components/AppStack";
