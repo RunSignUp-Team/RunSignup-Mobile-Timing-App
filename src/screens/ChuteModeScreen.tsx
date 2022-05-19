@@ -109,7 +109,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						}
 					}
 				} else {
-					Alert.alert("Local Storage Error", "Something went wrong with local storage. Please try again.");
+					Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
 					setLoading(false);
 				}
 			});
@@ -138,7 +138,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						setLoading(false);
 					}
 				} else {
-					Alert.alert("Local Storage Error", "Something went wrong with local storage. Please try again.");
+					Logger("Local Storage Error (Chute)", [eventList, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
 					setLoading(false);
 				}
 			});

@@ -187,7 +187,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						}
 						setParticipants([...parsedTicipants]);
 					} else {
-						Alert.alert("No Participants", "No participant data found from Runsignup.");
+						Logger("No Participant Data Found", "No data from Runsignup", true, context.raceID, context.eventID, context.eventTitle);
 					}
 
 					updateRecords([...recordsRef.current]);

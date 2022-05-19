@@ -37,7 +37,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	const droid = Platform.OS === "android";
 	const androidRadius = 5;
 	const iOSRadius = 12;
-	const minWidth = Math.max(Dimensions.get('window').width * 0.7, Math.min(Dimensions.get('window').width * 0.9, 300));
+	const minWidth = Math.max(Dimensions.get("window").width * 0.7, Math.min(Dimensions.get("window").width * 0.9, 300));
 	const maxWidth = 500;
 	const normalWidth = Math.min(minWidth, maxWidth) - (UNIVERSAL_PADDING * 2);
 
@@ -46,14 +46,14 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 		if (props.initialValue !== undefined) {
 			setValue(props.initialValue);
 		}
-	}, [props.initialValue])
+	}, [props.initialValue]);
 
 	// Set second text input value whenever second initial value changes
 	useEffect(() => {
 		if (props.secondInitialValue !== undefined) {
 			setSecondValue(props.secondInitialValue);
 		}
-	}, [props.secondInitialValue])
+	}, [props.secondInitialValue]);
 
 	// Focus on text input when modal becomes visible
 	useEffect(() => {
@@ -62,7 +62,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 				inputRef.current?.focus();
 			}, 200);
 		}
-	}, [props.visible])
+	}, [props.visible]);
 
 	if (!props.visible) {
 		return null;
@@ -122,7 +122,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 								onChangeText={(val): void => {
 									setValue(val);
 								}}
-								onSubmitEditing={() => {
+								onSubmitEditing={(): void => {
 									props.actionOnPress([value, secondValue]);
 								}}
 								style={{
@@ -150,7 +150,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 									onChangeText={(val): void => {
 										setSecondValue(val);
 									}}
-									onSubmitEditing={() => {
+									onSubmitEditing={(): void => {
 										props.actionOnPress([value, secondValue]);
 									}}
 									style={{

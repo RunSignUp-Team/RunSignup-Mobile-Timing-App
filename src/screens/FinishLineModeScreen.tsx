@@ -78,6 +78,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
 					raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
 					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				} else {
+					Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
 				}
 			});
 
@@ -132,6 +134,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					eventList[eventIndex].finish_times = finishTimesParam;
 					eventList[eventIndex].checker_bibs = checkerBibsParam;
 					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+				} else {
+					Logger("Local Storage Error (Finish Line)", [eventList, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
 				}
 			});
 

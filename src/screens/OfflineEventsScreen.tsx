@@ -191,7 +191,6 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
 						Logger("Unknown Error (Offline)", error, true, context.raceID, context.eventID, context.eventTitle);
 					}
 				}

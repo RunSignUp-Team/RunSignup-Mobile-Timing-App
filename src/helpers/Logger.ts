@@ -26,7 +26,7 @@ export default function Logger(msg: string, err: unknown | undefined, showAlert?
 	});
 
 	if (showAlert) {
-		Alert.alert(msg, String(err));
+		Alert.alert("Error", msg);
 	}
 
 	return;
