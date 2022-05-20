@@ -212,9 +212,13 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	// Assign offline event to online event
 	const assignEvent = async (): Promise<void> => {
 		const request = await AsyncStorage.getItem("offlineEvents");
-		const requestParse = JSON.parse((request && request !== null) ? request : "");
-		if (requestParse.length > 0) {
-			navigation.navigate("OfflineEventsList");
+		if (request) {
+			const requestParse = JSON.parse(request);
+			if (requestParse.length > 0) {
+				navigation.navigate("OfflineEventsList");
+			} else {
+				Alert.alert("No Offline Events", "You have not created any Offline Events.");
+			}
 		} else {
 			Alert.alert("No Offline Events", "You have not created any Offline Events.");
 		}

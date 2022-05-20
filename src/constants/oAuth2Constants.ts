@@ -1,3 +1,3 @@
-export const CLIENT_ID = 4; // 2
-export const REDIRECT_URI = "exp://localhost:19000"; // "com.rsu.mobile-timing-app://";
-export const RUNSIGNUP_URL = "https://test5.runsignup.com/"; // "https://runsignup.com/";
+export const CLIENT_ID = 2; // TEST: 4
+export const REDIRECT_URI = "com.rsu.mobile-timing-app://"; // TEST: "exp://localhost:19000";;
+export const RUNSIGNUP_URL = "https://runsignup.com/"; // TEST: "https://test5.runsignup.com/";
