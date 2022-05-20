@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "RSU-timingapp",
-    "slug": "RSU-timingapp",
+    "name": "Mobile Timing",
+    "slug": "RDTiming",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "splash": {
-      "image": "./src/assets/logo.png",
+      "image": "./src/assets/splashicon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#f2f2f2"
+      "backgroundColor": "#00ac65"
     },
-    "scheme": "com.rsu.mobile-timing-app",
+    "scheme": "rdtiming",
     "updates": {
       "fallbackToCacheTimeout": 0
     },
@@ -19,16 +19,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.rsu.mobile-timing-app"
+      "bundleIdentifier": "com.runsignup.rdtiming"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "foregroundImage": "./src/assets/icon.png",
         "backgroundColor": "#00ac65"
-      }
-    },
-    "web": {
-      "favicon": "./src/assets/favicon.png"
+      },
+      "package": "com.runsignup.rdtiming"
     },
     "extra": {
       "bugsnag": {

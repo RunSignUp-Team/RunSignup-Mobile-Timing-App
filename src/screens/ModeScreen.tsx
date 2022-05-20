@@ -49,7 +49,6 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Set back button
 	useEffect(() => {
-		Logger("Test", "Test Data", true, context.raceID, context.eventID, context.eventTitle);
 		navigation.setOptions({
 			headerLeft: () => (
 				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
