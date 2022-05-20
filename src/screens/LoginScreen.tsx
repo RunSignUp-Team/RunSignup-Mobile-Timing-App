@@ -8,12 +8,25 @@ import { RootStackParamList } from "../components/AppStack";
 import { oAuthLogin } from "../helpers/oAuth2Helper";
 import MainButton from "../components/MainButton";
 import Logger from "../helpers/Logger";
+import { Buffer } from "buffer";
+import { getUser } from "../helpers/AxiosCalls";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 type Props = {
 	navigation: ScreenNavigationProp;
 };
+
+interface TokenParse {
+	aud: string,
+	exp: number,
+	iat: number,
+	jty: string,
+	nbf: number,
+	scopes: Array<object>,
+	/** User ID */
+	sub: string
+}
 
 const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
@@ -39,6 +52,16 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				Logger("Unable to Authenticate", "Unable to authenticate. Please try again.", true);
 			}
 			else {
+				// Store User ID on login
+				const tokenStr = accessToken.substring(accessToken.indexOf(".")+1, accessToken.indexOf(".", accessToken.indexOf(".")+1));
+				const tokenParse = JSON.parse(Buffer.from(tokenStr, "base64").toString()) as TokenParse;
+
+				try {
+					context.setEmail((await getUser(tokenParse.sub)).user.email);
+				} catch (error) {
+					Logger("No Email Found", error, false);
+				}
+
 				// Go to their race list
 				context.setOnline(true);
 				navigation.push("RaceList");

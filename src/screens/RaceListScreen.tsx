@@ -139,7 +139,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Logger("Unknown Error", error, true);
+						Logger("Unknown Error (Races)", error, true);
 					}
 				}
 				setLoading(false);

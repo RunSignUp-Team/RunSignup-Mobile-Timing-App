@@ -1,7 +1,8 @@
 import Bugsnag from "@bugsnag/expo";
 import { Alert } from "react-native";
+import BugsnagHelper from "./BugsnagHelper";
 
-export default function Logger(msg: string, err: unknown | undefined, showAlert?: boolean, raceId?: number, eventId?: number, eventTitle?: string): void {
+export default function Logger(msg: string, err: unknown | undefined, showAlert?: boolean): void {
 	if (__DEV__) {
 		if (err !== undefined) {
 			console.error(msg, err);
@@ -11,8 +12,11 @@ export default function Logger(msg: string, err: unknown | undefined, showAlert?
 	}
 	// Build error message
 	let tmpError = new Error(msg);
-	if (typeof err === "string" || err instanceof String)
+	if (typeof err === "string" || err instanceof String) {
 		tmpError = new Error(msg + " - " + err);
+	}
+
+	const bugsnagInfo = BugsnagHelper.getInfo();
 
 	// Leave error breadcrumb
 	Bugsnag.leaveBreadcrumb("custom_error_info", {
@@ -22,7 +26,7 @@ export default function Logger(msg: string, err: unknown | undefined, showAlert?
 
 	// Notify error
 	Bugsnag.notify(tmpError, async function (event) {
-		event.setUser(`Race ID: ${raceId}, Event ID: ${eventId}`, undefined, `Event Name: ${eventTitle}`);
+		event.setUser(bugsnagInfo[0].toString(), bugsnagInfo[1], bugsnagInfo[2].toString());
 	});
 
 	if (showAlert) {

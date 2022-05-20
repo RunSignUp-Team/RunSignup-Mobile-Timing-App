@@ -37,7 +37,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						Logger("Could Not Log Out (Events)", error, true, context.raceID, context.eventID, context.eventTitle);
+						Logger("Could Not Log Out (Events)", error, true);
 					}
 				}
 			},
@@ -47,7 +47,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				onPress: (): void => { return; }
 			}
 		]);
-	}, [context.eventID, context.eventTitle, context.raceID, navigation]);
+	}, [navigation]);
 
 	// Set back button
 	useEffect(() => {
@@ -131,7 +131,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Logger("Unknown Error (Events)", error, true, context.raceID, context.eventID, context.eventTitle);
+						Logger("Unknown Error (Events)", error, true);
 					}
 				}
 				setLoading(false);

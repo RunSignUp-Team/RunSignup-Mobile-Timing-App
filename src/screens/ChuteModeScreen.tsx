@@ -102,14 +102,14 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 									Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 								} else {
 									// Something else
-									Logger("Unknown Error (Chute)", error, true, context.raceID, context.eventID, context.eventTitle);
+									Logger("Unknown Error (Chute)", error, true);
 								}
 							}
 							setLoading(false);
 						}
 					}
 				} else {
-					Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
+					Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex], true);
 					setLoading(false);
 				}
 			});
@@ -138,12 +138,12 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						setLoading(false);
 					}
 				} else {
-					Logger("Local Storage Error (Chute)", [eventList, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
+					Logger("Local Storage Error (Chute)", [eventList, eventIndex], true);
 					setLoading(false);
 				}
 			});
 		}
-	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, navigation]);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
 
 	/** Updates Bib Numbers without re-rendering entire list */
 	const updateBibNums = useCallback((newBibNums: Array<number>) => {

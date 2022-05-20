@@ -35,6 +35,27 @@ interface TimesResponse {
 	}>
 }
 
+interface UserResponse {
+	user: {
+		address: {
+			city: string,
+			country_code: string,
+			state: string,
+			street: string,
+			zipcode: string
+		},
+		dob: string | null,
+		email: string,
+		first_name: string,
+		middle_name: string | null,
+		last_name: string,
+		gender: string | null,
+		phone: string,
+		profile_image_url: string,
+		user_id: number
+	}
+}
+
 export type ParticipantDetails = {
 	bib_num: number,
 	user: {
@@ -123,7 +144,7 @@ async function handleAxiosPostCall<T extends FormData | null>(url: string, formD
 
 		const accessToken = await oAuthLogin(force_login);
 		if (accessToken === null) {
-			throw new Error("Unable to authenticate");
+			throw new Error("Unable to Authenticate (API)");
 		}
 
 		// POST call
@@ -153,6 +174,12 @@ async function handleAxiosPostCall<T extends FormData | null>(url: string, formD
 	// clearTimeout(timeout);
 	return response as AxiosResponse<T>;
 }
+
+/** Get Races for a specific User from RSU API */
+export const getUser = async (userId: string): Promise<UserResponse> => {
+	const response = await handleAxiosGetCall<UserResponse>(`${RUNSIGNUP_URL}Rest/user/${userId}?format=json`);
+	return response.data;
+};
 
 /** Get Races for a specific User from RSU API */
 export const getRaces = async (): Promise<RaceResponse["races"]> => {

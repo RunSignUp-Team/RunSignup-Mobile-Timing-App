@@ -191,7 +191,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Logger("Unknown Error (Offline)", error, true, context.raceID, context.eventID, context.eventTitle);
+						Logger("Unknown Error (Offline)", error, true);
 					}
 				}
 			}
@@ -226,7 +226,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				navigationRef.current.navigate("ModeScreen");
 			}
 		}
-	}, [assignBibNums, assignFinishTimes, context.eventID, context.eventTitle, context.raceID]);
+	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID]);
 
 	// Display save button in header
 	useEffect(() => {

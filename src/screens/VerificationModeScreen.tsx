@@ -187,7 +187,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						}
 						setParticipants([...parsedTicipants]);
 					} else {
-						Logger("No Participant Data Found", "No data from Runsignup", true, context.raceID, context.eventID, context.eventTitle);
+						Logger("No Participant Data Found", "No data from Runsignup", true);
 					}
 
 					updateRecords([...recordsRef.current]);
@@ -197,7 +197,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 						} else {
 							// Something else
-							Logger("Unknown Error (Get Records)", error, true, context.raceID, context.eventID, context.eventTitle);
+							Logger("Unknown Error (Get Records)", error, true);
 						}
 					}
 				}
@@ -381,8 +381,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-						Logger("Unknown Error (Save Records)", error, true, context.raceID, context.eventID, context.eventTitle);
+						Logger("Unknown Error (Save Records)", error, true);
 					}
 				}
 				if (!isUnmountedRef.current) {
@@ -406,7 +405,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			Alert.alert("Success", "Edits have been saved to your local device!");
 		}
-	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, updateRecords]);
+	}, [context.eventID, context.online, context.raceID, context.time, updateRecords]);
 
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {

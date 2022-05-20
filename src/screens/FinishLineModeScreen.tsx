@@ -79,7 +79,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
 					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 				} else {
-					Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
+					Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex], true);
 				}
 			});
 
@@ -122,7 +122,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 						} else {
 							// Something else
-							Logger("Unknown Error (Post Bibs)", error, true, context.raceID, context.eventID, context.eventTitle);
+							Logger("Unknown Error (Post Bibs)", error, true);
 						}
 					}
 					setLoading(false);
@@ -135,7 +135,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					eventList[eventIndex].checker_bibs = checkerBibsParam;
 					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 				} else {
-					Logger("Local Storage Error (Finish Line)", [eventList, eventIndex], true, context.raceID, context.eventID, context.eventTitle);
+					Logger("Local Storage Error (Finish Line)", [eventList, eventIndex], true);
 				}
 			});
 
@@ -152,7 +152,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				});
 			}
 		}
-	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, navigation]);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
 
 	/** Updates Finish Times without re-rendering entire list */
 	const updateFinishTimes = useCallback((newFinishTimes: Array<number>) => {
@@ -322,12 +322,12 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
 				} else {
 					// Something else
-					Logger("Unknown Error (Start Time)", error, true, context.raceID, context.eventID, context.eventTitle);
+					Logger("Unknown Error (Start Time)", error, true);
 				}
 			}
 			setLoading(false);
 		}
-	}, [addToStorage, context.eventID, context.eventTitle, context.raceID]);
+	}, [addToStorage, context.eventID, context.raceID]);
 
 
 	// Check entries for errors

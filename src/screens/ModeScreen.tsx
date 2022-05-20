@@ -35,7 +35,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						Logger("Could Not Log Out (Modes)", error, true, context.raceID, context.eventID, context.eventTitle);
+						Logger("Could Not Log Out (Modes)", error, true);
 					}
 				}
 			},
@@ -45,7 +45,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				onPress: (): void => { return; }
 			}
 		]);
-	}, [context.eventID, context.eventTitle, context.raceID, navigation]);
+	}, [navigation]);
 
 	// Set back button
 	useEffect(() => {
@@ -86,7 +86,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 							navigation.navigate("FinishLineMode");
 						}
 					} catch (err) {
-						Logger("Finish Times Check", err, false, context.raceID, context.eventID, context.eventTitle);
+						Logger("Finish Times Check", err, false);
 						navigation.navigate("FinishLineMode");
 					}
 				}
@@ -164,7 +164,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 				} else {
 					// Something else
-					Logger("Unknown Error (Modes)", error, true, context.raceID, context.eventID, context.eventTitle);
+					Logger("Unknown Error (Modes)", error, true);
 				}
 			}
 		}
