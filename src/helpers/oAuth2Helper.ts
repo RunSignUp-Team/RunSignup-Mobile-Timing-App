@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import { ResponseType, AuthRequest } from "expo-auth-session";
 import * as SecureStore from "expo-secure-store";
 import { CLIENT_ID, REDIRECT_URI, RUNSIGNUP_URL } from "../constants/oAuth2Constants";
+import Logger from "./Logger";
 
 // no-op on native mobile apps...
 // WebBrowser.maybeCompleteAuthSession();
@@ -48,7 +49,7 @@ interface LocalTokenInfo {
  * Refresh the access and refresh tokens given a valid refresh token 
  * @param refresh_token
  */
-export async function refreshTokens(refresh_token: string): Promise<RsuTokenResponseData|null> {
+export async function refreshTokens(refresh_token: string): Promise<RsuTokenResponseData | null> {
 	const formData = new FormData();
 
 	formData.append("grant_type", rsuRefreshTokenGrantType);
@@ -61,7 +62,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
 		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(refreshTokenUrl, formData);
 		const resData = res.data;
 		if ("error" in resData) {
-			console.log(`Failed to refresh access & refresh tokens. Error: "${resData.error}". Description: "${resData.error_description}". Hint: "${resData.hint}"`);
+			Logger("Failed to Refresh Access & Refresh Tokens", `Error: "${resData.error}". Description: "${resData.error_description}". Hint: "${resData.hint}"`);
 			return null;
 		}
 
@@ -70,7 +71,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
 
 
 	} catch (error) {
-		console.log("Error in refresh token: ", error);
+		Logger("Error in Refresh Token", error);
 		return null;
 	}
 }
@@ -82,7 +83,7 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
  * @param code_verifier The code verifier initially sent to the RSU API backend
  * @param challenge_method Defaults to `"S256"`.
  */
-export async function exchangeTokens(auth_code: string, code_verifier: string, challenge_method = "S256"): Promise<RsuTokenResponseData|null> {
+export async function exchangeTokens(auth_code: string, code_verifier: string, challenge_method = "S256"): Promise<RsuTokenResponseData | null> {
 	const formData = new FormData();
 
 	formData.append("grant_type", rsuAccessTokenGrantType);
@@ -97,15 +98,15 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
 		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(accessTokenUrl, formData);
 		const resData = res.data;
 		if ("error" in resData) {
-			console.log(createRSUApiErrorString(resData));
+			Logger("Failed to Retrieve Tokens", createRSUApiErrorString(resData));
 			return null;
 		}
 
-		// We have the successfull token data
+		// We have the successful token data
 		return resData;
 
 	} catch (error) {
-		console.log(error);
+		Logger("Unknown Token Error", error);
 		return null;
 	}
 }
@@ -123,7 +124,7 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
  * 
  * @param force_login This will delete the local tokens before performing all other actions. Forces user to log in again.
  */
-export async function oAuthLogin(force_login: boolean): Promise<string|null> {
+export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 	try {
 
 		// Delete local tokens - force user to log in again
@@ -147,9 +148,9 @@ export async function oAuthLogin(force_login: boolean): Promise<string|null> {
 			authorizationEndpoint: requestGrantUrl,
 		});
 
-		// Not successfull
+		// Not successful
 		if (authCodeRes.type !== "success") {
-			console.log("Unable to get Authorization Code. ", authCodeRes.type);
+			Logger("Unable to get Authorization Code", authCodeRes.type);
 			return null;
 		}
 
@@ -158,7 +159,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string|null> {
 
 		// Unable to exchange auth code for access/refresh tokens
 		if (finalTokens === null) {
-			console.log("Unable to exchange code for tokens.");
+			Logger("Unable to Exchange Code for Tokens", finalTokens);
 			return null;
 		}
 
@@ -168,7 +169,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string|null> {
 		// Just return the access token
 		return finalTokens.access_token;
 	} catch (error) {
-		console.log(error);	
+		Logger("Failed Login", error);
 		return null;
 	}
 }
@@ -187,7 +188,7 @@ function createRSUApiErrorString(err_object: RsuTokenErrorData): string {
  */
 export async function storeTokenInfo(tokenInfo: RsuTokenResponseData): Promise<void> {
 	if (!(await canUseSecureStore())) return;
-	
+
 	const stringifiedVal = JSON.stringify({
 		access_token: tokenInfo.access_token,
 		refresh_token: tokenInfo.refresh_token,
@@ -240,7 +241,7 @@ export function isLocalAccessTokenValid(expires_at: number): boolean {
  * Get the local tokens from the SecureStore, and refresh them if necessary.  
  * Returns the access_token if possible, otherwise `null`
  */
-export async function getAndRefreshLocalTokens(): Promise<string|null> {
+export async function getAndRefreshLocalTokens(): Promise<string | null> {
 	// Try getting the local access & refresh tokens
 	const localTokens = await getTokenInfo();
 	let accessToken = null;
@@ -265,4 +266,3 @@ export async function getAndRefreshLocalTokens(): Promise<string|null> {
 
 	return accessToken;
 }
-

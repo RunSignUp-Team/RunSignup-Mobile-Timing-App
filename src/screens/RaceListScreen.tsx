@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, Text, ActivityIndicator, Platform, BackHandler, TouchableOpacity } from "react-native";
-import { globalstyles, GREEN_COLOR } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getRaces } from "../helpers/AxiosCalls";
@@ -9,8 +9,9 @@ import { HeaderBackButton } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
-import { Event } from "./EventsListScreen";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
+import Logger from "../helpers/Logger";
+import { Race } from "../models/Race";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -18,15 +19,7 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-export interface Race {
-	id: number,
-	title: string,
-	next_date: string,
-	race_id: number,
-	events: Array<Event>
-}
-
-const RaceListScreen = ({ navigation }: Props) => {
+const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [finalRaceList, setFinalRaceList] = useState<Array<Race>>([]);
@@ -42,28 +35,28 @@ const RaceListScreen = ({ navigation }: Props) => {
 	const handleLogOut = useCallback(() => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
 			{
-				text: "Cancel",
-				style: "default",
-				onPress: () => {return;}
-			},
-			{
 				text: "Log Out",
 				style: "destructive",
-				onPress: async () => {
+				onPress: async (): Promise<void> => {
 					try {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						console.log(error);
+						Logger("Could Not Log Out (Races)", error, true);
 					}
 				}
+			},
+			{
+				text: "Cancel",
+				style: "default",
+				onPress: (): void => { return; }
 			}
 		]);
-	},[navigation]);
+	}, [navigation]);
 
 	useFocusEffect(
 		useCallback(() => {
-			const onBackPress = () => {
+			const onBackPress = (): boolean => {
 				goToHomeScreen();
 				return true;
 			};
@@ -78,11 +71,11 @@ const RaceListScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={goToHomeScreen} label="Home Screen" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={goToHomeScreen} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={{color: "white", fontSize: 18}}>Log Out</Text>
+					<Text style={globalstyles.headerButtonText}>Log Out</Text>
 				</TouchableOpacity>
 			)
 		});
@@ -91,7 +84,7 @@ const RaceListScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		setLoading(true);
 		// Get Race List data from API
-		const fetchRaces = async () => {
+		const fetchRaces = async (): Promise<void> => {
 			try {
 				let races = await getRaces();
 				const response = await AsyncStorage.getItem("onlineRaces");
@@ -109,7 +102,7 @@ const RaceListScreen = ({ navigation }: Props) => {
 						race_id: 0,
 						events: []
 					};
-					
+
 					if (raceList !== null && raceList.length > 0) {
 						raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
 					}
@@ -146,8 +139,7 @@ const RaceListScreen = ({ navigation }: Props) => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-        
+						Logger("Unknown Error (Races)", error, true);
 					}
 				}
 				setLoading(false);
@@ -155,7 +147,7 @@ const RaceListScreen = ({ navigation }: Props) => {
 		};
 
 		fetchRaces();
-	}, [finalRaceList, setFinalRaceList]);
+	}, [context.eventID, context.eventTitle, context.raceID, finalRaceList, setFinalRaceList]);
 
 	// Update local race data
 	const firstRun = useRef(true);
@@ -164,15 +156,15 @@ const RaceListScreen = ({ navigation }: Props) => {
 			firstRun.current = false;
 			return;
 		}
-		const updateLocalRace = async () => {
+		const updateLocalRace = async (): Promise<void> => {
 			await AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
 		};
 		updateLocalRace();
 	}, [finalRaceList]);
 
-    
+
 	// Rendered item in the Flatlist
-	const renderItem = ({ item } : { item: Race }) => {
+	const renderItem = ({ item }: { item: Race }): React.ReactElement => {
 		const setRaceID = context.setRaceID;
 		navigationRef.current = navigation;
 
@@ -180,17 +172,17 @@ const RaceListScreen = ({ navigation }: Props) => {
 			<MemoRaceListItem
 				item={item}
 				setRaceID={setRaceID}
-				navigationRef={navigationRef} 
+				navigationRef={navigationRef}
 			/>
 		);
 	};
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS !== "ios" ? GREEN_COLOR : "808080"} /> : finalRaceList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : finalRaceList.length < 1 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
 				data={finalRaceList}
 				renderItem={renderItem}
-				keyExtractor={(_item, index) => (index + 1).toString()} />}
+				keyExtractor={(_item, index): string => (index + 1).toString()} />}
 		</View>
 	);
 };

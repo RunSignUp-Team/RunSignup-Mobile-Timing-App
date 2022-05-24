@@ -1,17 +1,23 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
+import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/AxiosCalls";
 import { MemoVerificationItem } from "../components/VerificationModeRenderItem";
-import getTimeInMils from "../helpers/GetTimeInMils";
+import GetTimeInMils from "../helpers/GetTimeInMils";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import { ItemLayout } from "../models/ItemLayout";
+import { useFocusEffect } from "@react-navigation/native";
+import Logger from "../helpers/Logger";
+import TextInputAlert from "../components/TextInputAlert";
+import GetBibDisplay from "../helpers/GetBibDisplay";
+import GetClockTime from "../helpers/GetClockTime";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -20,30 +26,40 @@ type Props = {
 };
 
 type VRecord = [
-    bibNum: number,
-    finishTime: number,
-    checkerBib: number
+	bibNum: number,
+	finishTime: number,
+	checkerBib: number
 ];
 
 type VRecords = Array<VRecord>;
 
-const VerificationModeScreen = ({ navigation }: Props) => {
+const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
+	// Swap
 	const [selectedID, setSelectedID] = useState(-1);
 	const [tapped, setTapped] = useState(1);
 	const [lastIndex, setLastIndex] = useState(-1);
 
+	// Editing
 	const [editMode, setEditMode] = useState(false);
 	const [conflicts, setConflicts] = useState(0);
 
+	// Records
 	const [records, setRecords] = useState<VRecords>([]);
 	const recordsRef = useRef<VRecords>(records);
 
+	// Search
 	const [participants, setParticipants] = useState<Array<ParticipantDetails>>([]);
 	const [searchRecords, setSearchRecords] = useState<VRecords>(recordsRef.current);
 	const [search, setSearch] = useState("");
 
+	// Edit Alert
+	const [alertVisible, setAlertVisible] = useState(false);
+	const [alertRecord, setAlertRecord] = useState<[number, number, number]>();
+	const [alertIndex, setAlertIndex] = useState<number>();
+
+	// Other
 	const flatListRef = useRef<FlatList>(null);
 	const isUnmountedRef = useRef(false);
 	const [loading, setLoading] = useState(false);
@@ -54,11 +70,50 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		recordsRef.current = newRecords;
 	}, []);
 
+	// Leave with alert
+	const backTapped = useCallback(() => {
+		if (editMode) {
+			Alert.alert(
+				"Are You Sure?", 
+				"Are you sure you want to leave? Any unsaved changes will be lost!",
+				[
+					{
+						text: "Leave",
+						style: "destructive",
+						onPress: (): void => {
+							navigation.pop(); 
+						}
+					},
+					{
+						text: "Cancel",
+						style: "default",
+						onPress: (): void => { return; }
+					},
+				]);
+		} else {
+			navigation.pop(); 
+		}
+	}, [editMode, navigation]);
+
+	useFocusEffect(
+		useCallback(() => {
+			const onBackPress = (): boolean => {
+				backTapped();
+				return true;
+			};
+
+			BackHandler.addEventListener("hardwareBackPress", onBackPress);
+
+			return () =>
+				BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+		}, [backTapped]),
+	);
+
 	useEffect(() => {
 		setLoading(true);
 		if (context.online) {
 			// Online Functionality
-			const getRecords = async () => {
+			const getRecords = async (): Promise<void> => {
 				try {
 					// Get bibs from API
 					const bibs = await getBibs(context.raceID, context.eventID);
@@ -99,8 +154,8 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 							// console.log("\n");
 
 							// Prefer real bibs to zeros
-							if (recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === 0) {
-								if (isNaN(recordsRef.current[i][2]) || recordsRef.current[i][2] === undefined) {
+							if (!recordsRef.current[i][0]) {
+								if (!(recordsRef.current[i][2])) {
 									recordsRef.current[i][0] = 0;
 								} else {
 									recordsRef.current[i][0] = recordsRef.current[i][2];
@@ -121,15 +176,8 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 						if (i > recordsRef.current.length - 1) {
 							recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 						}
-						recordsRef.current[i][1] = getTimeInMils(finishTimes[i].time);
+						recordsRef.current[i][1] = GetTimeInMils(finishTimes[i].time);
 					}
-
-					/*// Replace undefined with Max Safe Integer -- should be separate from the for-loop above
-                    for (let i = 0; i < recordsRef.current.length; i++) {
-                        if (recordsRef.current[i][1] === undefined) {
-                            recordsRef.current[i][1] = Number.MAX_SAFE_INTEGER;
-                        }
-                    }*/
 
 					// Participants
 					if (participantList.participants !== undefined) {
@@ -139,7 +187,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 						}
 						setParticipants([...parsedTicipants]);
 					} else {
-						Alert.alert("No Participants", "No participant data found from Runsignup.");
+						Logger("No Participant Data Found", "No data from Runsignup", true);
 					}
 
 					updateRecords([...recordsRef.current]);
@@ -149,8 +197,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 						} else {
 							// Something else
-							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-            
+							Logger("Unknown Error (Get Records)", error, true);
 						}
 					}
 				}
@@ -179,11 +226,10 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 						if (i > recordsRef.current.length - 1) {
 							recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 						}
-
 						recordsRef.current[i][2] = eventList[eventIndex].checker_bibs[i];
 
 						// Get best bib data available into records[0]
-						if (recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === null) {
+						if (!recordsRef.current[i][0]) {
 							if (recordsRef.current[i][2] !== undefined && recordsRef.current[i][2] !== null && recordsRef.current[i][2] !== 0) {
 								recordsRef.current[i][0] = recordsRef.current[i][2];
 							} else {
@@ -205,7 +251,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		return () => {
 			isUnmountedRef.current = true;
 		};
-	}, [context.eventID, context.online, context.raceID, context.time, updateRecords]);
+	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, updateRecords]);
 
 	// Set conflicts
 	useEffect(() => {
@@ -267,7 +313,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 			[
 				{
 					text: `${recordsRef.current[index][0]}`,
-					onPress: () => {
+					onPress: (): void => {
 						recordsRef.current[index][2] = recordsRef.current[index][0];
 						updateRecords([...recordsRef.current]);
 						conflictResolved(index);
@@ -275,7 +321,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 				},
 				{
 					text: `${recordsRef.current[index][2]}`,
-					onPress: () => {
+					onPress: (): void => {
 						recordsRef.current[index][0] = recordsRef.current[index][2];
 						updateRecords([...recordsRef.current]);
 						conflictResolved(index);
@@ -322,18 +368,20 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 					}
 				});
 
-				Alert.alert("Success", "Results successfuly uploaded to Runsignup!");
+				AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+				AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");		
 
 				setEditMode(false);
 				setLoading(false);
+
+				Alert.alert("Success", "Results successfully uploaded to Runsignup!");
 			} catch (error) {
 				if (error instanceof Error) {
 					if (error.message === undefined || error.message === "Network Error") {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-        
+						Logger("Unknown Error (Save Records)", error, true);
 					}
 				}
 				if (!isUnmountedRef.current) {
@@ -348,8 +396,14 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 				eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
 				AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 			});
+
+			AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
+			AsyncStorage.setItem(`chuteDone:${context.time}`, "true");	
+
 			setEditMode(false);
 			setLoading(false);
+
+			Alert.alert("Success", "Edits have been saved to your local device!");
 		}
 	}, [context.eventID, context.online, context.raceID, context.time, updateRecords]);
 
@@ -390,7 +444,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 			// Alert if non number
 			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the Bib Entries list. Please correct that entry before submitting.");
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[0].toString().substring(0,1) === "0" && entry[0].toString().length > 1)).length > 0) {
+		} else if (recordsRef.current.filter((entry) => (entry[0].toString().substring(0, 1) === "0" && entry[0].toString().length > 1)).length > 0) {
 			// Alert if starts with 0
 			Alert.alert("Incorrect Bib Entry", "There is a Bib Entry that starts with 0 in the list. Please fill in the correct value.");
 			setLoading(false);
@@ -400,7 +454,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 			setLoading(false);
 		} else if (recordsRef.current.filter((entry) => (entry[1] === -1)).length > 0) {
 			// Alert if blank or incorrect finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish Times must be in this form:\nhh:mm:ss.ms\nPlease note the colons and the period.");
+			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms");
 			setLoading(false);
 		} else if (recordsRef.current.filter((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
 			// Alert if too large finish time
@@ -474,7 +528,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 
 		const flatListRefCurrent = flatListRef.current;
 		if (flatListRefCurrent !== null) {
-			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * recordsRef.current.length }); }, 100);
+			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: LONG_TABLE_ITEM_HEIGHT * recordsRef.current.length }); }, 100);
 		}
 	}, [updateRecords]);
 
@@ -482,7 +536,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 	const editTable = useCallback(() => {
 		setEditMode(true);
 		Alert.alert(
-			"Edit Mode", "Tap on a bib number or finish time to edit it. Tap on two places to swap the entries in the list.\nWARNING: Do not edit data until results have been saved in both the Finish Line and Chute Modes.");
+			"Edit Mode", "Tap on a bib number or finish time to edit it. Tap on two places to swap the entries in the list.\nWARNING: Do not edit data until results have been saved in both the Finish Line and Chute Modes. Once data has been edited, you will not be able to re-open either mode.");
 	}, []);
 
 	// Display edit / save button in header
@@ -500,16 +554,15 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 		} else {
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={() => { navigation.pop(); }} label="Modes" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { backTapped(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 				),
-				gestureEnabled: true
 			});
 		}
 
 		navigation.setOptions({
 			headerRight: () => (
-				<View style={{ flexDirection: "row", alignItems: "center" }}>
-					{editMode && !loading && <TouchableOpacity onPress={() => addRecord()} >
+				<View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
+					{editMode && !loading && <TouchableOpacity onPress={(): void => addRecord()} >
 						<Image
 							style={globalstyles.headerImage}
 							source={require("../assets/plus-icon.png")}
@@ -517,7 +570,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 					</TouchableOpacity>}
 
 					{!loading && conflicts === 0 && <TouchableOpacity
-						onPress={() => {
+						onPress={(): void => {
 							if (!editMode) {
 								editTable();
 							} else {
@@ -530,10 +583,17 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 				</View>
 			),
 		});
-	}, [addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
+
+	// Show Edit Alert
+	const showAlert = (index: number, record: [number, number, number]): void => {
+		setAlertRecord(record);
+		setAlertIndex(index);
+		setAlertVisible(true);
+	};
 
 	// Renders item on screen
-	const renderItem = ({ item, index } : {item: VRecord, index: number}) => (
+	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement => (
 		<MemoVerificationItem
 			// Passed down to trigger rerender when a bib is edited or a conflict is resolved
 			recordsRefSearchBib={recordsRef.current[index][0]}
@@ -547,6 +607,7 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 			editMode={editMode}
 			conflictResolution={conflictResolution}
 			swapEntries={swapEntries}
+			showAlert={showAlert}
 			findParticipant={findParticipant}
 			online={context.online}
 		/>
@@ -554,18 +615,20 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.container}
+			<KeyboardAvoidingView style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : "height"}
 				keyboardVerticalOffset={170}>
 
-				<TextInput
-					style={globalstyles.input}
-					onChangeText={setSearch}
-					value={search}
-					placeholder={context.online ? "Search by bib number or participant name" : "Search by bib number"}
-				/>
-
-				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> :
+				<View style={{backgroundColor: DARK_GREEN_COLOR, flexDirection: "row"}}>
+					<TextInput
+						style={globalstyles.input}
+						onChangeText={setSearch}
+						value={search}
+						placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
+					/>
+				</View>
+				
+				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> :
 					<FlatList
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
@@ -573,21 +636,67 @@ const VerificationModeScreen = ({ navigation }: Props) => {
 						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
 						extraData={selectedID}
 						renderItem={renderItem}
-						keyExtractor={(_item, index) => (index + 1).toString()}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
 						initialNumToRender={30}
 						windowSize={11}
-						getItemLayout={(_, index) => (
-							{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
+						getItemLayout={(_, index): ItemLayout => (
+							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
 						)}
 						ListHeaderComponent={<View style={globalstyles.tableHead}>
-							<Text style={globalstyles.tableTextThree}>Place</Text>
-							<Text style={globalstyles.tableTextOne}>Bib #</Text>
-							<Text style={globalstyles.tableTextOne}>Time</Text>
-							{context.online && <Text style={globalstyles.tableTextTwo}>Name</Text>}
-							{editMode && <Text style={globalstyles.tableHeadButtonText}>-</Text>}
+							<Text style={globalstyles.placeTableHeadText}>#</Text>
+							<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+							<Text style={globalstyles.timeTableHeadText}>Time</Text>
+							{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
+							{editMode &&
+								<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+									<Text style={globalstyles.deleteTableText}>-</Text>
+								</View>
+							}
 						</View>}
 						stickyHeaderIndices={[0]}
-					/>}
+					/>
+				}
+				{alertIndex !== undefined && alertRecord !== undefined && <TextInputAlert
+					title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number or finish time for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					placeholder="Enter Bib #"
+					secondPlaceholder="Enter Finish Time"
+					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
+					secondInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
+					keyboardType={"number-pad"}
+					secondKeyboardType={"numbers-and-punctuation"}
+					maxLength={6}
+					secondMaxLength={11}
+					visible={alertVisible}
+					actionOnPress={(valArray): void => {
+						if (alertIndex !== undefined && alertRecord) {
+							if (!isNaN(parseInt(valArray[0])) && GetTimeInMils(valArray[1]) !== -1) {
+								// Valid Bib
+								recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
+								// Valid Time
+								recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
+								updateRecords([...recordsRef.current]);
+								setAlertVisible(false);
+							} else {
+								if (isNaN(parseInt(valArray[0]))) {
+									Alert.alert(
+										"Incorrect Bib Entry", 
+										"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+									);
+								} else {
+									// Invalid Time
+									Alert.alert(
+										"Incorrect Finish Time Entry", 
+										"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms",
+									);
+								}
+							}
+						} else {
+							setAlertVisible(false);
+						}
+					}} cancelOnPress={(): void => {
+						setAlertVisible(false);
+					}} />}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);

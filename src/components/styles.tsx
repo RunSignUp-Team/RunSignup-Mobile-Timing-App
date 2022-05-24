@@ -1,231 +1,253 @@
 import { StyleSheet } from "react-native";
 
 export const GREEN_COLOR = "#00ac65";
+export const DARK_GREEN_COLOR = "#00663C";
+export const LIGHT_GREEN_COLOR = "#00cc77";
+
 export const RED_COLOR = "#ff3b30";
+
+export const APPLE_BLUE_COLOR = "#0a84ff";
+export const APPLE_RED_COLOR = "#ff443a";
+
+export const BLACK_COLOR = "#000";
+export const DARK_GRAY_COLOR = "#4f4f4f";
+export const GRAY_COLOR = "#a5a5a5";
+export const LIGHT_GRAY_COLOR = "#e6e6e6";
 export const BACKGROUND_COLOR = "#f2f2f2";
-export const TABLE_FONT_SIZE = 14;
-export const BUTTON_BORDER_RADIUS = 100;
-export const TABLE_ITEM_HEIGHT = 40;
+
+export const BIG_FONT_SIZE = 23;
+export const MEDIUM_FONT_SIZE = 20;
+export const SMALL_FONT_SIZE = 16;
+export const TABLE_FONT_SIZE = 15;
+
+export const BORDER_RADIUS = 12;
+
+export const TABLE_ITEM_HEIGHT = 50;
+export const LONG_TABLE_ITEM_HEIGHT = 50;
+
+export const UNIVERSAL_PADDING = 20;
+
+interface GenericTableText {
+	fontSize: number,
+	textAlign: "left" | "center" | "right",
+	color?: string,
+	fontFamily: string
+}
+
+interface GenericTableItem {
+	borderBottomWidth: number,
+	borderBottomColor: string,
+	height: number,
+	flexDirection: "row" | "column",
+	paddingHorizontal: number,
+	alignItems: "flex-start" | "center" | "flex-end"
+}
+
+interface GenericTableButton {
+	width: number,
+	height: number,
+	borderRadius: number,
+	alignItems: "flex-start" | "center" | "flex-end",
+	justifyContent: "flex-start" | "center" | "flex-end",
+}
+
+const genericTableHeadText: GenericTableText = {
+	fontSize: SMALL_FONT_SIZE,
+	textAlign: "left",
+	fontFamily: "RobotoBold",
+};
+
+const genericTableText: GenericTableText = {
+	fontSize: TABLE_FONT_SIZE,
+	textAlign: "left",
+	color: BLACK_COLOR, // Needed for Android
+	fontFamily: "RobotoMono",
+};
+
+const genericTableItem: GenericTableItem = {
+	borderBottomWidth: 1,
+	borderBottomColor: GRAY_COLOR,
+	height: TABLE_ITEM_HEIGHT,
+	flexDirection: "row",
+	paddingHorizontal: UNIVERSAL_PADDING,
+	alignItems: "center"
+};
+
+const genericTableButton: GenericTableButton = {
+	width: 30,
+	height: 30,
+	borderRadius: 20,
+	alignItems: "center",
+	justifyContent: "center",
+};
 
 export const globalstyles = StyleSheet.create({
 	// Containers
 	container: {
 		justifyContent: "flex-start",
 		flex: 1,
-		padding: 16,
+		padding: UNIVERSAL_PADDING,
 		backgroundColor: BACKGROUND_COLOR
 	},
-	safeArea: {
-		alignItems: "flex-start",
-		flex: 1,
-		padding: 16,
+	tableContainer: {
+		flex: 0.9,
+		backgroundColor: BACKGROUND_COLOR
+	},
+
+	// Headers
+	modalHeader: {
+		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "RobotoBold",
+		marginTop: 0,
+		marginBottom: 10,
+		textAlign: "center",
+	},
+	headerButtonText: {
+		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "Roboto",
+		color: "white",
+		marginRight: 10
 	},
 
 	// Text
-	title: {
-		fontSize: 20,
-	},
-	text: {
-		fontSize: 16,
-	},
-	header: {
-		fontSize: 23,
-		marginTop: 0,
-		marginBottom: 10,
-		textAlign: "center",
-	},
-	connectionText: {
-		fontSize: 23,
-		marginTop: 10,
-		textAlign: "center",
-	},
-	buttonText: {
-		fontSize: 18,
-		color: "white",
-		paddingHorizontal: 1
-	},
-	headerButtonText: {
-		fontSize: 18,
-		color: "white",
-	},
 	info: {
-		fontSize: 23,
+		fontSize: BIG_FONT_SIZE,
+		fontFamily: "Roboto",
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
-		borderWidth: 1, 
-		borderColor: "black", 
-		borderRadius: 20, 
-		padding: 20
-	},
-
-	// Buttons
-	button: {
-		alignItems: "center",
-		backgroundColor: GREEN_COLOR,
-		padding: 20,
-		width: "100%",
-		margin: 12,
 		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
-		alignSelf: "center",
-	},
-	disabledButton: {
-		alignItems: "center",
-		backgroundColor: "#808080",
-		padding: 20,
-		width: "100%",
-		margin: 12,
-		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
-		alignSelf: "center",
-	},
-	deleteButton: {
-		alignItems: "center",
-		backgroundColor: RED_COLOR,
-		padding: 20,
-		width: "100%",
-		margin: 12,
-		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
-		alignSelf: "center",
-	},
-	recordButton: {
-		alignItems: "center",
-		backgroundColor: RED_COLOR,
-		padding: 15,
-		width: "100%",
-		margin: 1,
-		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
-		alignSelf: "center",
+		borderColor: "black",
+		borderRadius: BORDER_RADIUS,
+		padding: UNIVERSAL_PADDING,
 	},
 
 	// Flat Lists
 	flatList: {
 		height: "50%",
 		flexGrow: 0,
-		borderWidth: 1,
 		marginBottom: 10,
-		overflow: "hidden"
+		borderBottomWidth: 1,
+		borderColor: DARK_GRAY_COLOR,
+		overflow: "hidden",
 	},
 	longFlatList: {
-		height: "80%",
-		flexGrow: 0,
-		borderWidth: 1,
-		overflow: "hidden"
+		overflow: "hidden",
+		borderBottomWidth: 1,
+		borderColor: DARK_GRAY_COLOR
 	},
 
-	// Tables
+	// Table Items
 	tableItem: {
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		paddingLeft: 10,
-		height: TABLE_ITEM_HEIGHT
+		...genericTableItem
 	},
 	longTableItem: {
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		padding: 5,
-		paddingLeft: 20,
+		...genericTableItem,
+		paddingVertical: 5,
+		minHeight: LONG_TABLE_ITEM_HEIGHT,
 	},
 	selectedLongTableItem: {
+		...genericTableItem,
 		backgroundColor: GREEN_COLOR,
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		padding: 5,
-		paddingLeft: 20,
+		paddingVertical: 5,
+		minHeight: LONG_TABLE_ITEM_HEIGHT,
 	},
 	conflictLongTableItem: {
+		...genericTableItem,
 		backgroundColor: RED_COLOR,
-		borderBottomWidth: 1,
-		borderBottomColor: "grey",
-		flexDirection: "row",
-		padding: 5,
-		paddingLeft: 20,
+		paddingVertical: 5,
+		minHeight: LONG_TABLE_ITEM_HEIGHT,
 	},
+
+	// Table Head
 	tableHead: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
-		paddingLeft: 15,
-		paddingVertical: 3,
-		backgroundColor: BACKGROUND_COLOR
+		borderColor: DARK_GRAY_COLOR,
+		paddingHorizontal: UNIVERSAL_PADDING,
+		height: TABLE_ITEM_HEIGHT,
+		backgroundColor: LIGHT_GRAY_COLOR,
+		alignItems: "center",
 	},
-	tableHeadButtonText: {
-		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
-		alignSelf: "center",
-		textAlign: "center",
-		padding: 5,
-		paddingRight: 10,
-		marginHorizontal: 5,
+
+	// Table Text
+	placeTableText: {
+		...genericTableText,
+		flex: 0.75, // Overriden on Chute mode
 	},
-	tableTextOne: {
-		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
-		flex: 2,
-		alignSelf: "center",
-		textAlign: "left",
-		paddingTop: 5,
-		paddingBottom: 5,
+	bibTableText: {
+		...genericTableText,
+		flex: 1.1,
 	},
-	tableTextTwo: {
+	timeTableText: {
+		...genericTableText,
+		flex: 1.75,
+	},
+	nameTableText: {
 		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
+		fontFamily: "Roboto",
+		paddingLeft: UNIVERSAL_PADDING,
 		flex: 1.5,
-		alignSelf: "center",
-		textAlign: "left",
-		paddingTop: 5,
-		paddingBottom: 5,
 	},
-	tableTextThree: {
-		fontSize: TABLE_FONT_SIZE,
-		fontWeight: "bold",
-		flex: 1,
-		alignSelf: "center",
-		textAlign: "left",
-		paddingTop: 5,
-		paddingBottom: 5,
+
+	placeTableHeadText: {
+		...genericTableHeadText,
+		flex: 0.75, // Overriden on Chute mode
 	},
+	bibTableHeadText: {
+		...genericTableHeadText,
+		flex: 1.1,
+	},
+	timeTableHeadText: {
+		...genericTableHeadText,
+		flex: 1.75,
+	},
+	nameTableHeadText: {
+		...genericTableHeadText,
+		paddingLeft: UNIVERSAL_PADDING,
+		flex: 1.5,
+	},
+
+	deleteTableText: {
+		...genericTableHeadText,
+		textAlign: "center",
+	},
+	addTableText: {
+		...genericTableHeadText,
+		marginRight: 5
+	},
+	
+	// Table Buttons (flex set in individual files)
 	tableDeleteButton: {
-		justifyContent: "center",
+		...genericTableButton,
 		backgroundColor: RED_COLOR,
-		paddingVertical: 5,
-		paddingHorizontal: 8,
-		margin: 5,
-		borderWidth: 1,
-		borderRadius: 20,
-		alignSelf: "center",
 	},
 	tableAddButton: {
-		justifyContent: "center",
+		...genericTableButton,
 		backgroundColor: GREEN_COLOR,
-		paddingVertical: 5,
-		paddingHorizontal: 8,
-		margin: 5,
-		borderWidth: 1,
-		borderRadius: 20,
-		alignSelf: "center",
+		marginRight: 5
 	},
 	tableButtonText: {
-		fontSize: TABLE_FONT_SIZE,
+		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "Roboto",
 		color: "white",
-		textAlign: "center"
+		textAlign: "center",
+		textAlignVertical: "center"
 	},
 
 	// Text Input
 	input: {
-		height: 40,
-		margin: 12,
-		marginTop: 1,
+		height: 45,
 		borderWidth: 1,
-		borderRadius: 20,
-		padding: 10,
-		width: "100%",
+		borderRadius: BORDER_RADIUS,
+		borderColor: DARK_GRAY_COLOR,
+		margin: 10,
+		paddingHorizontal: 10,
+		flex: 1,
 		alignSelf: "center",
+		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "Roboto",
+		backgroundColor: LIGHT_GRAY_COLOR,
 	},
 
 	// Images
@@ -243,39 +265,30 @@ export const globalstyles = StyleSheet.create({
 		marginRight: 15,
 	},
 
-	// Race List / Event List Items
-	listItem: {
-		borderWidth: 1,
-		borderRadius: BUTTON_BORDER_RADIUS,
-		margin: 5,
-		padding: 15,
-		backgroundColor: GREEN_COLOR,
-	},
-	listText: {
-		fontSize: 20,
-		color: "white",
-	},
-
 	// Timer
-	timer: {
-		paddingHorizontal: 10,
-		paddingVertical: 7,
+	timerView: {
+		paddingHorizontal: 8,
 		borderWidth: 1,
-		borderRadius: 20,
-		marginBottom: 10,
-		marginRight: 5,
+		borderRadius: BORDER_RADIUS,
+		borderColor: DARK_GRAY_COLOR,
+		margin: 10,
+		marginLeft: UNIVERSAL_PADDING,
 		flex: 2,
-		fontSize: 25,
-		overflow: "hidden"
+		height: 45,
+		overflow: "hidden",
+		justifyContent: "center"
 	},
 	timerBibInput: {
-		paddingHorizontal: 10,
-		paddingVertical: 7,
+		paddingHorizontal: 8,
 		borderWidth: 1,
-		borderRadius: 20,
-		marginBottom: 10,
-		marginLeft: 5,
+		borderRadius: BORDER_RADIUS,
+		borderColor: DARK_GRAY_COLOR,
+		margin: 10,
+		marginRight: UNIVERSAL_PADDING,
 		flex: 1,
-		fontSize: 20,
+		height: 45,
+		fontSize: BIG_FONT_SIZE,
+		fontFamily: "Roboto",
+		backgroundColor: LIGHT_GRAY_COLOR,
 	},
 });

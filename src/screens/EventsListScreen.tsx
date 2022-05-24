@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, ActivityIndicator, Text, Platform, TouchableOpacity } from "react-native";
-import { globalstyles, GREEN_COLOR } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getEvents } from "../helpers/AxiosCalls";
 import { MemoEventsListItem } from "../components/EventsListRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
-import { Race } from "./RaceListScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
+import Logger from "../helpers/Logger";
+import { Event } from "../models/Event";
+import { Race } from "../models/Race";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -17,18 +19,7 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-export interface Event {
-	id: number,
-	title: string,
-	start_time: string,
-	event_id: number,
-	real_start_time: number,
-	finish_times: Array<number>,
-	checker_bibs: Array<number>,
-	bib_nums: Array<number>,
-}
-
-const EventsListScreen = ({ navigation }: Props) => {
+const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [finalEventList, setFinalEventList] = useState<Array<Event>>([]);
@@ -39,34 +30,34 @@ const EventsListScreen = ({ navigation }: Props) => {
 	const handleLogOut = useCallback(async () => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
 			{
-				text: "Cancel",
-				style: "default",
-				onPress: () => {return;}
-			},
-			{
 				text: "Log Out",
 				style: "destructive",
-				onPress: async () => {
+				onPress: async (): Promise<void> => {
 					try {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						console.log(error);
+						Logger("Could Not Log Out (Events)", error, true);
 					}
 				}
+			},
+			{
+				text: "Cancel",
+				style: "default",
+				onPress: (): void => { return; }
 			}
 		]);
-	},[navigation]);
+	}, [navigation]);
 
 	// Set back button
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={() => { navigation.pop(); }} label="Race List" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 			headerRight: () => (
 				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={{color: "white", fontSize: 18}}>Log Out</Text>
+					<Text style={globalstyles.headerButtonText}>Log Out</Text>
 				</TouchableOpacity>
 			)
 		});
@@ -75,7 +66,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 	useEffect(() => {
 		setLoading(true);
 		// Get Race data from the API
-		const fetchEvents = async () => {
+		const fetchEvents = async (): Promise<void> => {
 			try {
 				let events = await getEvents(context.raceID);
 				const response = await AsyncStorage.getItem("onlineRaces");
@@ -113,7 +104,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 						checker_bibs: [],
 						bib_nums: [],
 					};
-					
+
 					// If there is local data don't overwrite it
 					if (event !== undefined) {
 						object = {
@@ -140,15 +131,14 @@ const EventsListScreen = ({ navigation }: Props) => {
 						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 					} else {
 						// Something else
-						Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+						Logger("Unknown Error (Events)", error, true);
 					}
 				}
 				setLoading(false);
 			}
 		};
 		fetchEvents();
-	}, [context.raceID, finalEventList]);
+	}, [context.eventID, context.eventTitle, context.raceID, finalEventList]);
 
 	// Update local race data
 	const firstRun = useRef(true);
@@ -157,7 +147,7 @@ const EventsListScreen = ({ navigation }: Props) => {
 			firstRun.current = false;
 			return;
 		}
-		const updateLocalRace = async () => {
+		const updateLocalRace = async (): Promise<void> => {
 			const response = await AsyncStorage.getItem("onlineRaces");
 			const raceList = response !== null ? JSON.parse(response) : [];
 			const race = raceList.find((race: Race) => race.race_id === context.raceID);
@@ -169,14 +159,14 @@ const EventsListScreen = ({ navigation }: Props) => {
 	}, [context.raceID, finalEventList]);
 
 	// Rendered item in the Flatlist
-	const renderItem = ({ item } : { item: Event }) => {
+	const renderItem = ({ item }: { item: Event }): React.ReactElement => {
 		const setEventID = context.setEventID;
 		const setEventTitle = context.setEventTitle;
 		navigationRef.current = navigation;
 
 		return (
-			<MemoEventsListItem 
-				item={item} 
+			<MemoEventsListItem
+				item={item}
 				setEventID={setEventID}
 				setEventTitle={setEventTitle}
 				navigationRef={navigationRef}
@@ -186,10 +176,10 @@ const EventsListScreen = ({ navigation }: Props) => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} /> : finalEventList.length === 0 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming events for this race yet!"}</Text> : <FlatList
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : finalEventList.length < 1 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming events for this race yet!"}</Text> : <FlatList
 				data={finalEventList}
 				renderItem={renderItem}
-				keyExtractor={(_item, index) => (index + 1).toString()}
+				keyExtractor={(_item, index): string => (index + 1).toString()}
 			/>}
 		</View>
 	);

@@ -1,9 +1,8 @@
 import React, { memo } from "react";
-import { Text, TouchableOpacity } from "react-native";
-import { Race } from "../screens/RaceListScreen";
-import { globalstyles } from "./styles";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import MainButton from "./MainButton";
+import { Race } from "../models/Race";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -15,19 +14,18 @@ interface Props {
 	setRaceID(race_id: number): void,
 }
 
-export default function RaceListRenderItem(props: Props) {
+export default function RaceListRenderItem(props: Props): React.ReactElement {
+
 
 	return (
-		<TouchableOpacity
-			onPress={() => {
+		<MainButton 
+			text={props.item.title} 
+			subtitle={`${props.item.next_date}`}
+			listButton={props.item.id}
+			onPress={(): void => {
 				props.setRaceID(props.item.race_id);
 				props.navigationRef.current.navigate("EventsList");
-			}}
-			style={globalstyles.listItem}>
-			<Text style={globalstyles.listText}>
-				{props.item.id + ". " + props.item.title + " (" + props.item.next_date + ")"}
-			</Text>
-		</TouchableOpacity>
+			}} />
 	);
 }
 

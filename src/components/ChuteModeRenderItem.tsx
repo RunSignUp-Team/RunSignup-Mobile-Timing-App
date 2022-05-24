@@ -1,10 +1,11 @@
 import React, { memo, useCallback } from "react";
-import { View, TextInput, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import removeOne from "../helpers/RemoveOne";
 import { globalstyles } from "./styles";
 
 interface Props {
 	updateBibNums(bibNums: Array<number>): void,
+	showAlert(index: number): void,
 	item: string | number
 	index: number
 	bibNumsRef: {
@@ -12,28 +13,25 @@ interface Props {
 	}
 }
 
-export default function ChuteModeRenderItem(props: Props) {
-
-	const updateBib = useCallback((newBib) => {
-		props.bibNumsRef.current[props.index] = parseInt(newBib);
-		props.updateBibNums([...props.bibNumsRef.current]);
-	}, [props]);
-
+export default function ChuteModeRenderItem(props: Props): React.ReactElement {
 	const removeSelf = useCallback(() => {
 		props.updateBibNums(removeOne(props.index, props.bibNumsRef.current));
 	}, [props]);
 
 	return (
 		<View style={globalstyles.tableItem}
-			onStartShouldSetResponder={() => true}>
-			<Text style={globalstyles.tableTextThree}>{props.index + 1}</Text>
-			<TextInput
-				style={globalstyles.tableTextThree}
-				keyboardType="number-pad"
-				maxLength={6}
-				onChangeText={updateBib}>
-				{props.item}
-			</TextInput>
+			onStartShouldSetResponder={(): boolean => true}>
+			<Text style={[globalstyles.placeTableText, { flex: 0.3 }]}>{props.index + 1}</Text>
+			<TouchableOpacity 
+				style={{flexDirection: "row", flex: globalstyles.bibTableText.flex, justifyContent: "center"}}
+				onPress={(): void => {
+					props.showAlert(props.index);
+				}}
+			>
+				<Text style={globalstyles.bibTableText}>
+					{props.item}
+				</Text>
+			</TouchableOpacity>
 
 			<TouchableOpacity
 				style={globalstyles.tableDeleteButton}

@@ -1,7 +1,7 @@
 import addLeadingZeros from "./AddLeadingZeros";
 
-export default function getClockTime(timeInMils: number) {
-	if (timeInMils !== undefined) {
+export default function GetClockTime(timeInMils: number, timer?: boolean): string {
+	if (timeInMils) {
 		// If empty or incorrect time
 		if (timeInMils === Number.MAX_SAFE_INTEGER) {
 			return "";
@@ -9,6 +9,29 @@ export default function getClockTime(timeInMils: number) {
 		if (timeInMils === -1) {
 			return "NaN";
 		}
-		return `${addLeadingZeros(Math.floor((timeInMils / 3600000) % 24))}:${addLeadingZeros(Math.floor((timeInMils / 60000) % 60))}:${addLeadingZeros(Math.floor((timeInMils / 1000) % 60))}.${isNaN(parseInt(addLeadingZeros(parseInt(timeInMils.toString().substring(timeInMils.toString().length-3, timeInMils.toString().length-1)) % 1000))) ? "00" : addLeadingZeros(parseInt(timeInMils.toString().substring(timeInMils.toString().length-3, timeInMils.toString().length-1)) % 1000)}`;
+
+		const timeString = timeInMils.toString();
+
+		const GetTwoChars = (str: string): string => {
+			if (str.length > 2) {
+				return str.substring(0, 2);
+			} else if (str.length === 2) {
+				return "0" + str.substring(0, 1);
+			} else {
+				return addLeadingZeros(parseInt(str));
+			}
+		};
+
+		const hoursString = addLeadingZeros(Math.floor((timeInMils / 3600000) % 24));
+		const minutesString = addLeadingZeros(Math.floor((timeInMils / 60000) % 60));
+		const secondsString = addLeadingZeros(Math.floor((timeInMils / 1000) % 60));
+		const millisecondsString = GetTwoChars(timeString.substring(timeString.length-3));
+
+		return `${hoursString}:${minutesString}:${secondsString}.${millisecondsString}`;
+	} else {
+		if (timer) {
+			return "00:00:00.00";
+		}
+		return "";
 	}
 }

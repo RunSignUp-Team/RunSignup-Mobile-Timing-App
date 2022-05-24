@@ -9,7 +9,7 @@ export default async function GetLocalOfflineEvent(time: number): Promise<[Array
 	if (response !== null) {
 		const eventList = JSON.parse(response);
 		let eventIndex = -1;
-    
+
 		for (let i = 0; i < eventList.length; i++) {
 			if (eventList[i].time === time) {
 				// Found correct event
@@ -17,7 +17,7 @@ export default async function GetLocalOfflineEvent(time: number): Promise<[Array
 				break;
 			}
 		}
-    
+
 		return [eventList, eventIndex];
 	}
 	return [[], -1];

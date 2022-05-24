@@ -41,11 +41,11 @@ module.exports = {
             "unix"
         ],
         "quotes": [
-            "error",
+            "warn",
             "double"
         ],
         "semi": [
-            "error",
+            "warn",
             "always"
         ],
         "react/prop-types": [
@@ -67,10 +67,14 @@ module.exports = {
 		"no-mixed-spaces-and-tabs": [
 			"warn"
 		],
+        "@typescript-eslint/explicit-function-return-type": [
+            "warn"
+        ],
     },
     "ignorePatterns": [
         ".eslintrc.js",
         "babel.config.js",
         "App.tsx"
-    ]
+    ],
+    "root": true
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, Text, Alert, FlatList, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getBibs, postBibs } from "../helpers/AxiosCalls";
@@ -11,6 +11,11 @@ import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import MainButton from "../components/MainButton";
+import { ItemLayout } from "../models/ItemLayout";
+import Logger from "../helpers/Logger";
+import TextInputAlert from "../components/TextInputAlert";
+import GetBibDisplay from "../helpers/GetBibDisplay";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -18,29 +23,39 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const ChuteModeScreen = ({ navigation }: Props) => {
+const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
+	// Bib Input
 	const [bibText, setBibText] = useState("");
-	const [loading, setLoading] = useState(true);
+	const [inputWasFocused, setInputWasFocused] = useState(true);
+	const bibInputRef = useRef<TextInput>(null);
 
+	// Bib Nums
 	const [bibNums, setBibNums] = useState<Array<number>>([]);
 	const bibNumsRef = useRef<Array<number>>(bibNums);
 
+	// Alert
+	const [alertVisible, setAlertVisible] = useState(false);
+	const [alertIndex, setAlertIndex] = useState<number>();	
+
+	// Other
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
+	const [loading, setLoading] = useState(true);
 
-	// Log out with alert
-	const BackTapped = useCallback(() => {
-		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
+
+	// Leave with alert
+	const backTapped = useCallback(() => {
+		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
 			{
 				text: "Leave",
-				onPress: () => {
+				onPress: (): void => {
 					navigation.navigate("ModeScreen");
 				},
 				style: "destructive",
 			},
-			{ text: "Cancel", onPress: () => {return;} },
+			{ text: "Cancel", onPress: (): void => { return; } },
 		]);
 	}, [navigation]);
 
@@ -58,8 +73,6 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 
 							if (bibs !== null && bibs.length > 0) {
 								// If there are already bibs saved from Finish Line Mode, navigate to Verification Mode
-								AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-								AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 								setLoading(false);
 								navigation.navigate("ModeScreen");
 								navigation.navigate("VerificationMode");
@@ -76,25 +89,27 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 
 								await postBibs(context.raceID, context.eventID, formData);
 								// Don't allow further changes
-								AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 								setLoading(false);
 								navigation.navigate("ModeScreen");
 							}
+
+							// No use case currently for a user to use Chute Mode followed by Finish Line Mode on one device
+							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 						} catch (error) {
 							if (error instanceof Error) {
 								if (error.message === undefined || error.message === "Network Error") {
 									Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 								} else {
 									// Something else
-									Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+									Logger("Unknown Error (Chute)", error, true);
 								}
 							}
 							setLoading(false);
 						}
 					}
 				} else {
-					Alert.alert("Local Storage Error", "Something went wrong with local storage. Please try again.");
+					Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex], true);
 					setLoading(false);
 				}
 			});
@@ -112,6 +127,8 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 						await AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
 							if (result === "true") {
 								navigation.navigate("VerificationMode");
+							} else {
+								AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
 							}
 						});
 
@@ -121,7 +138,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 						setLoading(false);
 					}
 				} else {
-					Alert.alert("Local Storage Error", "Something went wrong with local storage. Please try again.");
+					Logger("Local Storage Error (Chute)", [eventList, eventIndex], true);
 					setLoading(false);
 				}
 			});
@@ -137,8 +154,8 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 
 	useFocusEffect(
 		useCallback(() => {
-			const onBackPress = () => {
-				BackTapped();
+			const onBackPress = (): boolean => {
+				backTapped();
 				return true;
 			};
 
@@ -146,13 +163,13 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 
 			return () =>
 				BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-		}, [BackTapped]),
+		}, [backTapped]),
 	);
 
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={BackTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
 			)
 		});
 
@@ -163,7 +180,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 				updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
 				if (raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 					// Alert user of data recovery
-					Alert.alert("Data Recovered", "The app closed unexpectedly while you were recording Chute Mode data for this event. Your data has been restored. Tap \"Save\" when you are done recording data.");
+					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
 				} else {
 					Alert.alert("Warning", "If you enter Chute Mode data after another user has already entered it for this event, your data will not be saved. Please check with other users before recording data.");
 				}
@@ -174,7 +191,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 				updateBibNums(eventList[eventIndex].bib_nums);
 				if (eventList[eventIndex].bib_nums.length > 0) {
 					// Alert user of data recovery
-					Alert.alert("Data Recovered", "The app closed unexpectedly while you were recording Chute Mode data for this event. Your data has been restored. Tap \"Save\" when you are done recording data.");
+					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
 				}
 			});
 		}
@@ -184,12 +201,12 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 		return () => {
 			isUnmounted.current = true;
 		};
-	}, [BackTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateBibNums]);
+	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateBibNums]);
 
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {
 		// If no results posted
-		if (bibNumsRef.current.length === 0) {
+		if (bibNumsRef.current.length < 1) {
 			// Alert if no finishing times have been recorded
 			Alert.alert("No Results", "You have not recorded any results. Please try again.");
 		} else if (bibNumsRef.current.includes(NaN)) {
@@ -198,7 +215,7 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 		} else if (bibNumsRef.current.filter(entry => !(/^\d+$/gm.test(entry.toString()))).length > 0) {
 			// Filter Android keyboard non-numbers
 			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the bib entries list. Please correct that entry before submitting.");
-		} else if (bibNumsRef.current.filter((entry) => (entry.toString().substring(0,1) === "0" && entry.toString().length > 1)).length > 0) {
+		} else if (bibNumsRef.current.filter((entry) => (entry.toString().substring(0, 1) === "0" && entry.toString().length > 1)).length > 0) {
 			// Filter bib numbers that start with 0
 			Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
 		} else {
@@ -208,20 +225,20 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 				[
 					{
 						text: "Save & Quit",
-						onPress: () => {
+						onPress: (): void => {
 							setLoading(true);
 							addToStorage(true, bibNumsRef.current);
 						},
 						style: "destructive",
 					},
-					{ text: "Cancel", onPress: () => {return;} },
+					{ text: "Cancel", onPress: (): void => { return; } },
 				]
 			);
 		}
 	}, [addToStorage]);
 
 	// Record button
-	const recordBib = () => {
+	const recordBib = (): void => {
 		if (!isNaN(parseInt(bibText))) {
 			bibNumsRef.current.push(parseFloat(bibText));
 			updateBibNums([...bibNumsRef.current]);
@@ -236,13 +253,21 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 		}
 	};
 
+	// Show Edit Alert
+	const showAlert = (index: number): void => {
+		setAlertIndex(index);
+		setAlertVisible(true);
+		setInputWasFocused(!!bibInputRef.current?.isFocused());
+	};
+
 	// Renders item on screen
-	const renderItem = ({ item, index }: { item: number, index: number }) => (
+	const renderItem = ({ item, index }: { item: number, index: number }): React.ReactElement => (
 		<MemoChuteItem
 			item={isNaN(item) ? "" : item}
 			index={index}
 			bibNumsRef={bibNumsRef}
 			updateBibNums={updateBibNums}
+			showAlert={showAlert}
 		/>
 	);
 
@@ -260,48 +285,84 @@ const ChuteModeScreen = ({ navigation }: Props) => {
 	}, [checkEntries, navigation]);
 
 	return (
-	// Dismiss keyboard if user touches container
+		// Dismiss keyboard if user touches container
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.container}
+			<KeyboardAvoidingView style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : "height"}
 				keyboardVerticalOffset={30}>
 
-				{loading ? <ActivityIndicator size="large" color={Platform.OS !== "ios" ? GREEN_COLOR : "808080"} /> : <><FlatList
+				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
+					<TextInput
+						ref={bibInputRef}
+						style={globalstyles.input}
+						onChangeText={setBibText}
+						value={bibText}
+						maxLength={6}
+						placeholder="Record Bib #"
+						placeholderTextColor={GRAY_COLOR}
+						keyboardType="number-pad"
+						onSubmitEditing={bibText !== "" ? recordBib : (): void => { return; }}
+						autoFocus={true}
+					/>
+				</View>
+
+				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : <><FlatList
 					style={globalstyles.flatList}
 					ref={flatListRef}
 					data={bibNumsRef.current}
 					renderItem={renderItem}
-					keyExtractor={(_item, index) => (index + 1).toString()}
+					keyExtractor={(_item, index): string => (index + 1).toString()}
 					initialNumToRender={10}
 					windowSize={11}
-					getItemLayout={(_, index) => (
+					getItemLayout={(_, index): ItemLayout => (
 						{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
 					)}
 					keyboardShouldPersistTaps="handled"
 					ListHeaderComponent={<View style={globalstyles.tableHead}>
-						<Text style={globalstyles.tableTextThree}>Place</Text>
-						<Text style={globalstyles.tableTextThree}>Bib #</Text>
-						<Text style={globalstyles.tableHeadButtonText}>-</Text>
+						<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
+						<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+						<View style={[globalstyles.tableDeleteButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
+							<Text style={globalstyles.deleteTableText}>-</Text>
+						</View>
 					</View>}
 					stickyHeaderIndices={[0]}
 				/>
 
-				<TextInput
-					style={globalstyles.input}
-					onChangeText={setBibText}
-					value={bibText}
+				<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
+					<MainButton onPress={recordBib} text={"Record"} />
+				</View>
+				</>}
+				
+				{alertIndex !== undefined && <TextInputAlert
+					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					placeholder="Enter Bib #"
+					initialValue={GetBibDisplay(bibNumsRef.current[alertIndex] !== undefined ? bibNumsRef.current[alertIndex] : -1)}
+					keyboardType={"number-pad"}
 					maxLength={6}
-					placeholder="Enter a bib number"
-					keyboardType="number-pad"
-					onSubmitEditing={bibText !== "" ? recordBib : () => {return;}}
-				/>
-
-				<TouchableOpacity
-					style={globalstyles.recordButton}
-					onPress={() => recordBib()}
-				>
-					<Text style={{ fontSize: 35 }}>Record</Text>
-				</TouchableOpacity></>}
+					visible={alertVisible}
+					actionOnPress={(valArray): void => {
+						if (alertIndex !== undefined) {
+							if (!isNaN(parseInt(valArray[0]))) {
+								// Valid Bib
+								bibNumsRef.current[alertIndex] = parseInt(valArray[0]);
+								updateBibNums([...bibNumsRef.current]);
+								setAlertVisible(false);	
+								if (inputWasFocused) {
+									bibInputRef.current?.focus();
+								}
+							} else {
+								Alert.alert(
+									"Incorrect Bib Entry", 
+									"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+								);
+							}
+						} else {
+							setAlertVisible(false);
+						}
+					}} cancelOnPress={(): void => {
+						setAlertVisible(false);
+					}} />}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);

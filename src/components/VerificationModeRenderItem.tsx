@@ -1,10 +1,10 @@
-import React, { memo, useCallback } from "react";
-import { View, TextInput, Text, TouchableOpacity, Keyboard } from "react-native";
+import React, { memo } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
 import { globalstyles } from "./styles";
 import removeOne from "../helpers/RemoveOne";
-import getClockTime from "../helpers/GetClockTime";
-import getTimeInMils from "../helpers/GetTimeInMils";
+import GetClockTime from "../helpers/GetClockTime";
 import ConflictBoolean from "../helpers/ConflictBoolean";
+import GetBibDisplay from "../helpers/GetBibDisplay";
 
 interface Props {
 	record: [number, number, number],
@@ -19,77 +19,84 @@ interface Props {
 	conflictBoolean: boolean,
 	conflictResolution(index: number): void,
 	swapEntries(index: number): void,
+	showAlert(index: number, record: [number, number, number]): void,
 	findParticipant(bib: number): string,
 	updateRecords(records: Array<[number, number, number]>): void,
 }
 
-export default function VerificationModeRenderItem(props: Props) {
+
+export default function VerificationModeRenderItem(props: Props): React.ReactElement {
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
 
-	const updateBib = useCallback((newBib) => {
-		props.recordsRef.current[index][0] = Number(newBib);
-		props.recordsRef.current[index][2] = Number(newBib);
-		props.updateRecords([...props.recordsRef.current]);
-	}, [index, props]);
-
-	const updateTime = useCallback((newTime) => {
-		props.recordsRef.current[index][1] = getTimeInMils(newTime);
-		props.updateRecords([...props.recordsRef.current]);
-	}, [index, props]);
-
 	return (
-		<View onStartShouldSetResponder={() => true} style={{ padding: 0, margin: 0 }}>
+		<View onStartShouldSetResponder={(): boolean => true} style={{ padding: 0, margin: 0 }}>
 			<TouchableOpacity style={conflictItem ? globalstyles.conflictLongTableItem : (index === props.selectedID ? globalstyles.selectedLongTableItem : globalstyles.longTableItem)}
 				disabled={!conflictItem}
-				onPress={() => props.conflictResolution(index)}
+				onPress={(): void => props.conflictResolution(index)}
 			>
 
-				<Text style={globalstyles.tableTextThree}
-					onPress={() => {
-						if (props.editMode) {
-							props.swapEntries(index);
-						}
-					}}>{index + 1}
-				</Text>
+				{/* Place */}
+				<TouchableOpacity style={[globalstyles.placeTableText, { flexDirection: "row", alignItems: "center" }]}
+					hitSlop={{ top: 30, bottom: 30, left: 30 }}
+					disabled={!props.editMode}
+					onPress={(): void => {
+						props.swapEntries(index);
+					}}>
+					<Text style={globalstyles.placeTableText}>{index + 1}</Text>
+				</TouchableOpacity>
 
-				{!conflictItem && <TextInput
-					editable={props.editMode}
-					style={globalstyles.tableTextTwo}
-					keyboardType="numbers-and-punctuation"
-					maxLength={6}
-					onChangeText={updateBib}
-					onSubmitEditing={Keyboard.dismiss}>
-					{props.record[0]}
-				</TextInput>}
 
-				{conflictItem && <Text style={globalstyles.tableTextTwo}>
+				{!conflictItem &&
+					<TouchableOpacity
+						hitSlop={{ top: 30, bottom: 30 }}
+						style={{
+							flex: globalstyles.bibTableText.flex + globalstyles.timeTableText.flex,
+							flexDirection: "row",
+							alignItems: "center"
+						}}
+						disabled={!props.editMode}
+						onPress={(): void => {
+							props.showAlert(index, props.record);
+						}}
+					>
+						{/* No Conflict Bib */}
+						<Text style={globalstyles.bibTableText}>
+							{GetBibDisplay(props.record[0])}
+						</Text>
+
+						{/* No Conflict Time */}
+						<Text style={globalstyles.timeTableText}>
+							{GetClockTime(props.record[1])}
+						</Text>
+					</TouchableOpacity>
+				}
+
+				{/* Conflict Bib */}
+				{conflictItem && <Text style={globalstyles.bibTableText}>
 					{`${props.record[0]} /\n${props.record[2]}`}</Text>}
 
-				{!conflictItem && <TextInput
-					editable={props.editMode}
-					style={globalstyles.tableTextOne}
-					keyboardType="numbers-and-punctuation"
-					maxLength={11}
-					onChangeText={updateTime}
-					onSubmitEditing={Keyboard.dismiss}>
-					{getClockTime(props.record[1])}
-				</TextInput>}
 
-				{conflictItem && <Text style={globalstyles.tableTextOne}>
-					{getClockTime(props.record[1])}</Text>}
+				{/* Conflict Time */}
+				{conflictItem && <Text style={globalstyles.timeTableText}>
+					{GetClockTime(props.record[1])}</Text>}
 
+				{/* No Conflict Participant */}
 				{!conflictItem && props.online &&
-					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{props.findParticipant(props.record[0])}</Text>}
+					<Text style={[globalstyles.nameTableText, { flexWrap: "wrap" }]}>{props.findParticipant(props.record[0])}</Text>}
 
+				{/* Conflict Participant */}
 				{conflictItem && props.online &&
-					<Text style={[globalstyles.tableTextTwo, { fontWeight: "normal" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
+					<Text style={[globalstyles.nameTableText, { flexWrap: "wrap" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
-				{props.editMode && <TouchableOpacity
-					style={globalstyles.tableDeleteButton}
-					onPress={() => props.updateRecords(removeOne(index, props.recordsRef.current))}>
-					<Text style={globalstyles.tableButtonText}>-</Text>
-				</TouchableOpacity>}
+				{/* Delete Button */}
+				{props.editMode &&
+					<TouchableOpacity
+						style={globalstyles.tableDeleteButton}
+						onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
+						<Text style={globalstyles.tableButtonText}>-</Text>
+					</TouchableOpacity>
+				}
 			</TouchableOpacity>
 		</View>
 	);

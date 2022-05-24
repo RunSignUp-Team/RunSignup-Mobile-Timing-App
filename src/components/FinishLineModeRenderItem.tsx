@@ -1,8 +1,8 @@
 import React, { memo, useCallback } from "react";
-import { View, TextInput, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import removeOne from "../helpers/RemoveOne";
 import { globalstyles } from "./styles";
-import getClockTime from "../helpers/GetClockTime";
+import GetClockTime from "../helpers/GetClockTime";
 
 interface Props {
 	checkerBibsRef: {
@@ -12,6 +12,7 @@ interface Props {
 	updateCheckerBibs(checkerBibs: Array<number>): void,
 	updateFinishTimes(finishTimes: Array<number>): void,
 	addOne(time: number, index: number): void,
+	showAlert(index: number): void,
 	time: number,
 	bib: string | number
 	finishTimesRef: {
@@ -19,13 +20,7 @@ interface Props {
 	},
 }
 
-export default function FinishLineModeRenderItem(props: Props) {
-    
-	const updateCheckerBib = useCallback((newBib) => {
-		props.checkerBibsRef.current[props.index] = parseInt(newBib);
-		props.updateCheckerBibs([...props.checkerBibsRef.current]);
-	}, [props]);
-
+export default function FinishLineModeRenderItem(props: Props): React.ReactElement {
 	const addOne = useCallback(() => {
 		props.addOne(props.time, props.index);
 	}, [props]);
@@ -37,16 +32,17 @@ export default function FinishLineModeRenderItem(props: Props) {
 
 	return (
 		<View style={globalstyles.tableItem}
-			onStartShouldSetResponder={() => true}>
-			<Text style={globalstyles.tableTextThree}>{props.index + 1}</Text>
-			<Text style={globalstyles.tableTextOne}>{getClockTime(props.time)}</Text>
-			<TextInput
-				style={globalstyles.tableTextTwo}
-				keyboardType="number-pad"
-				maxLength={6}
-				onChangeText={updateCheckerBib}>
-				{props.bib}
-			</TextInput>
+			onStartShouldSetResponder={(): boolean => true}>
+			<Text style={globalstyles.placeTableText}>{props.index + 1}</Text>
+			<TouchableOpacity
+				style={{ flex: globalstyles.bibTableText.flex, flexDirection: "row", justifyContent: "center" }}
+				onPress={(): void => {
+					props.showAlert(props.index);
+				}}
+			>
+				<Text style={globalstyles.bibTableText}>{props.bib}</Text>
+			</TouchableOpacity>
+			<Text style={globalstyles.timeTableText}>{GetClockTime(props.time)}</Text>
 			<TouchableOpacity
 				style={globalstyles.tableAddButton}
 				onPress={addOne}>

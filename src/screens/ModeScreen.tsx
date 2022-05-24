@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect } from "react";
-import { View, TouchableOpacity, Text, Alert, Platform } from "react-native";
+import { View, TouchableOpacity, Text, Alert } from "react-native";
 import { globalstyles } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -9,6 +9,8 @@ import { OfflineEvent } from "./OfflineEventsScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
+import MainButton from "../components/MainButton";
+import Logger from "../helpers/Logger";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -16,72 +18,89 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const ModeScreen = ({ navigation }: Props) => {
+const FinishLineModeMsg = "You may not re-enter Finish Line Mode on the same device, or enter Finish Line Mode data after recording Chute Mode data.\nIf you have completed all data entry, see Results to view or edit results.";
+const ChuteModeMsg = "You may not re-enter Chute Mode data on the same device.\nIf you have completed all data entry, see Results to view or edit results.";
+
+const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(async () => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
 			{
-				text: "Cancel",
-				style: "default",
-				onPress: () => {return;}
-			},
-			{
 				text: "Log Out",
 				style: "destructive",
-				onPress: async () => {
+				onPress: async (): Promise<void> => {
 					try {
 						await deleteTokenInfo();
 						navigation.navigate("Login");
 					} catch (error) {
-						console.log(error);
+						Logger("Could Not Log Out (Modes)", error, true);
 					}
 				}
+			},
+			{
+				text: "Cancel",
+				style: "default",
+				onPress: (): void => { return; }
 			}
 		]);
-	},[navigation]);
+	}, [navigation]);
 
 	// Set back button
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={() => { navigation.pop(); }} label="Events List" labelVisible={Platform.OS === "ios"} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
 			),
 			headerRight: () => (
 				context.online ?
 					<TouchableOpacity onPress={handleLogOut}>
-						<Text style={{color: "white", fontSize: 18}}>Log Out</Text>
-					</TouchableOpacity> : 
+						<Text style={globalstyles.headerButtonText}>Log Out</Text>
+					</TouchableOpacity> :
 					null
 			)
 		});
-	}, [context.online, handleLogOut, navigation]);
+	}, [context.eventID, context.eventTitle, context.online, context.raceID, handleLogOut, navigation]);
 
 	// Finish Line Mode tapped
-	const finishLineTapped = () => {
+	const finishLineTapped = (): void => {
 		AsyncStorage.getItem(
 			`finishLineDone:${context.raceID}:${context.eventID}`,
-			(_err, result) => {
+			async (_err, result) => {
 				if (result === "true") {
 					Alert.alert(
-						"Already Entered",
-						"You have already entered the Finish Line Mode data. Please see Verification Mode for more details or to edit results."
+						"Cannot Re-Enter Data",
+						FinishLineModeMsg
 					);
 				} else {
-					navigation.navigate("FinishLineMode");
+					// Check if Finish Times have already been recorded for this event
+					try {
+						const finishTimes = await getFinishTimes(context.raceID, context.eventID);
+						if (finishTimes && finishTimes.length > 0) {
+							Alert.alert(
+								"Already Entered",
+								"Runsignup already has a record of finish times for this event.\nSee Results for more details."
+							);
+						} else {
+							navigation.navigate("FinishLineMode");
+						}
+					} catch (err) {
+						Logger("Finish Times Check", err, false);
+						navigation.navigate("FinishLineMode");
+					}
 				}
 			}
 		);
 	};
 
 	// Finish Line Mode tapped (offline)
-	const finishLineTappedOffline = () => {
+	const finishLineTappedOffline = (): void => {
 		AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
 			if (result === "true") {
 				Alert.alert(
-					"Already Entered",
-					"You have already entered the Finish Line Mode data. Please see Verification Mode for more details or to edit results."
+					"Cannot Re-Enter Data",
+					FinishLineModeMsg
 				);
 			} else {
 				navigation.navigate("FinishLineMode");
@@ -90,14 +109,14 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Chute Mode tapped
-	const chuteTapped = () => {
+	const chuteTapped = (): void => {
 		AsyncStorage.getItem(
 			`chuteDone:${context.raceID}:${context.eventID}`,
 			(_err, result) => {
 				if (result === "true") {
 					Alert.alert(
-						"Already Entered",
-						"You have already entered the Chute Mode data. Please see Verification Mode for more details or to edit results."
+						"Cannot Re-Enter Data",
+						ChuteModeMsg
 					);
 				} else {
 					navigation.navigate("ChuteMode");
@@ -107,10 +126,13 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Chute Mode tapped (offline)
-	const chuteTappedOffline = () => {
+	const chuteTappedOffline = (): void => {
 		AsyncStorage.getItem(`chuteDone:${context.time}`, (_err, result) => {
 			if (result === "true") {
-				Alert.alert("Already Entered", "You have already entered the Chute Mode data. Please see Verification Mode for more details or to edit results.");
+				Alert.alert(
+					"Cannot Re-Enter Data", 
+					ChuteModeMsg
+				);
 			} else {
 				navigation.navigate("ChuteMode");
 			}
@@ -118,7 +140,7 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Verification Mode tapped
-	const verificationTapped = async () => {
+	const verificationTapped = async (): Promise<void> => {
 		let bibsExist = false;
 
 		try {
@@ -128,10 +150,13 @@ const ModeScreen = ({ navigation }: Props) => {
 				bibsExist = true;
 			}
 			const finishTimes = await getFinishTimes(context.raceID, context.eventID);
-			if (finishTimes !== null && finishTimes.length > 0 && bibsExist) {
+			if ((finishTimes !== null && finishTimes.length > 0) || bibsExist) {
 				navigation.navigate("VerificationMode");
 			} else {
-				Alert.alert("No Data Entered", "You have not entered Chute and Finish Line data yet. Please enter that data first and try again.");
+				Alert.alert(
+					"No Data Found", 
+					"No Finish Line / Chute data found on RunSignup. Please enter that data first and try again."
+				);
 			}
 		} catch (error) {
 			if (error instanceof Error) {
@@ -139,36 +164,38 @@ const ModeScreen = ({ navigation }: Props) => {
 					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 				} else {
 					// Something else
-					Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-    
+					Logger("Unknown Error (Modes)", error, true);
 				}
 			}
 		}
 	};
 
 	// Verification Mode tapped (offline)
-	const verificationTappedOffline = () => {
+	const verificationTappedOffline = (): void => {
 		// Only open if Chute and Finish Line data are saved
 		AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, resultFinish) => {
 			if (resultFinish === "true") {
 				navigation.navigate("VerificationMode");
 			} else {
-				Alert.alert("No Data Entered", "You have not entered Chute and Finish Line data yet. Please enter that data first and try again.");
+				Alert.alert(
+					"No Data Entered", 
+					"You have not saved any finish times or bibs yet. Please enter that data first and try again."
+				);
 			}
 		}
 		);
 	};
 
 	// Delete offline event
-	const deleteEvent = () => {
+	const deleteEvent = (): void => {
 		Alert.alert(
 			"Delete Event",
 			"Are you sure you want to delete this event? This action cannot be reversed!",
 			[
-				{ text: "Cancel", onPress: () => {return;} },
+				{ text: "Cancel", onPress: (): void => { return; } },
 				{
 					text: "Delete",
-					onPress: async () => {
+					onPress: async (): Promise<void> => {
 						const response = await AsyncStorage.getItem("offlineEvents");
 						let eventsList = response !== null ? JSON.parse(response) : [];
 						eventsList = eventsList.filter((event: OfflineEvent) => event.time !== context.time);
@@ -183,11 +210,15 @@ const ModeScreen = ({ navigation }: Props) => {
 	};
 
 	// Assign offline event to online event
-	const assignEvent = async () => {
+	const assignEvent = async (): Promise<void> => {
 		const request = await AsyncStorage.getItem("offlineEvents");
-		const requestParse = JSON.parse((request && request !== null) ? request : "");
-		if (requestParse.length > 0) {
-			navigation.navigate("OfflineEventsList");
+		if (request) {
+			const requestParse = JSON.parse(request);
+			if (requestParse.length > 0) {
+				navigation.navigate("OfflineEventsList");
+			} else {
+				Alert.alert("No Offline Events", "You have not created any Offline Events.");
+			}
 		} else {
 			Alert.alert("No Offline Events", "You have not created any Offline Events.");
 		}
@@ -196,40 +227,10 @@ const ModeScreen = ({ navigation }: Props) => {
 	return (
 		<View style={globalstyles.container}>
 			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
-				<TouchableOpacity
-					style={globalstyles.button}
-					onPress={context.online === false ? finishLineTappedOffline : finishLineTapped}
-				>
-					<Text style={globalstyles.buttonText}>Finish Line Mode</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={globalstyles.button}
-					onPress={context.online === false ? chuteTappedOffline : chuteTapped}
-				>
-					<Text style={globalstyles.buttonText}>Chute Mode</Text>
-				</TouchableOpacity>
-				<TouchableOpacity
-					style={globalstyles.button}
-					onPress={context.online === false ? verificationTappedOffline : verificationTapped}
-				>
-					<Text style={globalstyles.buttonText}>Verification Mode</Text>
-				</TouchableOpacity>
-				{!context.online && (
-					<TouchableOpacity
-						style={globalstyles.deleteButton}
-						onPress={deleteEvent}
-					>
-						<Text style={globalstyles.buttonText}>Delete Offline Event</Text>
-					</TouchableOpacity>
-				)}
-				{context.online && (
-					<TouchableOpacity
-						style={globalstyles.deleteButton}
-						onPress={assignEvent}
-					>
-						<Text style={globalstyles.buttonText}>Assign Offline Event</Text>
-					</TouchableOpacity>
-				)}
+				<MainButton onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"} />
+				<MainButton onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"} />
+				<MainButton onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
+				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
 			</View>
 		</View>
 	);

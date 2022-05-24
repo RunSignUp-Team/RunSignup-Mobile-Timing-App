@@ -1,18 +1,23 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, BACKGROUND_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
 import { postFinishTimes, postStartTime, postBibs, getBibs } from "../helpers/AxiosCalls";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
-import getClockTime from "../helpers/GetClockTime";
+import GetClockTime from "../helpers/GetClockTime";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
+import MainButton from "../components/MainButton";
+import { ItemLayout } from "../models/ItemLayout";
+import Logger from "../helpers/Logger";
+import TextInputAlert from "../components/TextInputAlert";
+import GetBibDisplay from "../helpers/GetBibDisplay";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -20,34 +25,47 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-export default function FinishLineModeScreen({ navigation }: Props) {
+export default function FinishLineModeScreen({ navigation }: Props): React.ReactElement {
 	const context = useContext(AppContext);
 
+	// Bib Input
 	const [bibText, setBibText] = useState("");
-	const [timerOn, setTimerOn] = useState(false);
-	const [loading, setLoading] = useState(true);
-	const [displayTime, setDisplayTime] = useState(0);
+	const [inputWasFocused, setInputWasFocused] = useState(true);
+	const bibInputRef = useRef<TextInput>(null);
 
+	// Timer
+	const [timerOn, setTimerOn] = useState(false);
+	const [displayTime, setDisplayTime] = useState(0);
+	const startTime = useRef<number>(-1);
+
+	// Finish Times
 	const [finishTimes, setFinishTimes] = useState<Array<number>>([]);
-	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const finishTimesRef = useRef(finishTimes);
+
+	// Checker Bibs
+	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const checkerBibsRef = useRef(checkerBibs);
 
-	const startTime = useRef<number>(-1);
+	// Alert
+	const [alertVisible, setAlertVisible] = useState(false);
+	const [alertIndex, setAlertIndex] = useState<number>();
+
+	// Other
+	const [loading, setLoading] = useState(true);
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
 
-	// Log out with alert
-	const BackTapped = useCallback(() => {
-		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit results in Verification Mode until you complete recording data here.", [
+	// Leave with alert
+	const backTapped = useCallback(() => {
+		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
 			{
 				text: "Leave",
-				onPress: () => {
+				onPress: (): void => {
 					navigation.navigate("ModeScreen");
 				},
 				style: "destructive",
 			},
-			{ text: "Cancel", onPress: () => {return;} },
+			{ text: "Cancel", onPress: (): void => { return; } },
 		]);
 	}, [navigation]);
 
@@ -60,6 +78,8 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
 					raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
 					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				} else {
+					Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex], true);
 				}
 			});
 
@@ -67,10 +87,9 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 				try {
 					const bibs = await getBibs(context.raceID, context.eventID);
 
-					if (bibs !== null && bibs.length > 0) {
+					if (bibs && bibs.length > 0) {
 						// If there are already bibs saved from Chute Mode, navigate to Verification Mode
 						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 						setLoading(false);
 						navigation.navigate("ModeScreen");
 						navigation.navigate("VerificationMode");
@@ -87,31 +106,36 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 						);
 
 						await postBibs(context.raceID, context.eventID, formData);
-						// Don't allow further changes
-						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 						setLoading(false);
 						navigation.navigate("ModeScreen");
 					}
+
+					// Don't allow further changes to Finish Line Mode
+					// However, there is a use case where someone could complete Finish Line Mode without adding bibs,
+					// And then want to add the bibs at the end of the race in Chute Mode,
+					// So we leave that option open to them
+					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+
 				} catch (error) {
 					if (error instanceof Error) {
 						if (error.message === undefined || error.message === "Network Error") {
 							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
 						} else {
 							// Something else
-							Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+							Logger("Unknown Error (Post Bibs)", error, true);
 						}
 					}
 					setLoading(false);
 				}
 			}
 		} else {
-
 			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 				if (eventIndex !== -1) {
 					eventList[eventIndex].finish_times = finishTimesParam;
 					eventList[eventIndex].checker_bibs = checkerBibsParam;
 					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+				} else {
+					Logger("Local Storage Error (Finish Line)", [eventList, eventIndex], true);
 				}
 			});
 
@@ -146,8 +170,8 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 
 	useFocusEffect(
 		useCallback(() => {
-			const onBackPress = () => {
-				BackTapped();
+			const onBackPress = (): boolean => {
+				backTapped();
 				return true;
 			};
 
@@ -155,14 +179,14 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 
 			return () =>
 				BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-		}, [BackTapped]),
+		}, [backTapped]),
 	);
 
 	/** Get old data in case screen closed before saving */
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={BackTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
 			)
 		});
 
@@ -180,11 +204,11 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 						}
 
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
 					} else {
 						Alert.alert("Warning", "If you enter Finish Line Mode data after another user has already entered it for this event, your data will not be saved. Please check with other users before recording data.");
 					}
-				}               
+				}
 			});
 		}
 		else {
@@ -200,7 +224,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					}
 					if (eventList[eventIndex].finish_times.length > 0) {
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
 					}
 				}
 			});
@@ -212,7 +236,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 		return () => {
 			isUnmounted.current = true;
 		};
-	}, [BackTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]);
+	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]);
 
 	// Start the timer interval when user asks to record times
 	useEffect(() => {
@@ -283,7 +307,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 			await postStartTime(context.raceID, context.eventID, formDataStartTime);
 
 			// Post Finish Times data
-			if (finishTimesRef.current.length === 0) {
+			if (finishTimesRef.current.length < 1) {
 				// Alert if no finishing times have been recorded
 				Alert.alert("No Results", "You have not recorded any results. Please try again.");
 			} else {
@@ -294,21 +318,22 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 			if (error instanceof Error) {
 				if (error.message === undefined || error.message === "Network Error") {
 					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+				} else if (error.message.toLowerCase().includes("out of order")) {
+					Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
 				} else {
 					// Something else
-					Alert.alert("Unknown Error", `${JSON.stringify(error.message)}`);
-
+					Logger("Unknown Error (Start Time)", error, true);
 				}
 			}
 			setLoading(false);
 		}
 	}, [addToStorage, context.eventID, context.raceID]);
 
-    
+
 	// Check entries for errors
 	const checkEntries = useCallback(() => {
 		// If no results posted
-		if (checkerBibsRef.current.length === 0) {
+		if (checkerBibsRef.current.length < 1) {
 			// Alert if no finishing times have been recorded
 			Alert.alert("No Results", "You have not recorded any results. Please try again.");
 		} else if (checkerBibsRef.current.filter(entry => entry === null).length > 0) {
@@ -317,7 +342,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 		} else if (checkerBibsRef.current.includes(NaN)) {
 			// Alert if non-numeric entry
 			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the bib entries list. Please correct that entry before submitting.");
-		} else if (checkerBibsRef.current.filter(entry => (entry.toString().substring(0,1) === "0" && entry.toString().length > 1)).length > 0) {
+		} else if (checkerBibsRef.current.filter(entry => (entry.toString().substring(0, 1) === "0" && entry.toString().length > 1)).length > 0) {
 			// Filter bib numbers that start with 0
 			Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
 		} else {
@@ -328,12 +353,12 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					[
 						{
 							text: "Save & Quit",
-							onPress: () => {
+							onPress: (): void => {
 								saveResults();
 							},
 							style: "destructive",
 						},
-						{ text: "Cancel", onPress: () => {return;} },
+						{ text: "Cancel", onPress: (): void => { return; } },
 					]
 				);
 			} else {
@@ -343,8 +368,8 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 					[
 						{
 							text: "Save & Quit",
-							onPress: () => {
-								if (finishTimesRef.current.length === 0) {
+							onPress: (): void => {
+								if (finishTimesRef.current.length < 1) {
 									Alert.alert("No Results", "You have not recorded any results. Please try again.");
 								} else {
 									setLoading(true);
@@ -367,23 +392,23 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 		} else {
 			finishTimesRef.current.push(Date.now() - startTime.current);
-			if (bibText === undefined || bibText === "") {
+			if (!bibText) {
 				checkerBibsRef.current.push(0);
 				updateCheckerBibs([...checkerBibsRef.current]);
 			} else {
-				checkerBibsRef.current.push(parseFloat(bibText));
+				checkerBibsRef.current.push(parseInt(bibText));
 				updateCheckerBibs([...checkerBibsRef.current]);
 				setBibText("");
 			}
 
 			const flatListRefCurrent = flatListRef.current;
 			if (flatListRefCurrent !== null) {
-				setTimeout(() => { flatListRefCurrent.scrollToOffset({animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length}); }, 100);
+				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
 			}
 		}
 	}, [bibText, updateCheckerBibs]);
 
-    
+
 	// Display save button in header
 	useEffect(() => {
 		navigation.setOptions({
@@ -394,7 +419,7 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 			),
 		});
 	}, [navigation, checkEntries, timerOn]);
-    
+
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {
 		finishTimesRef.current.splice(index + 1, 0, item);
@@ -402,6 +427,13 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 		checkerBibsRef.current.splice(index + 1, 0, 0);
 		updateCheckerBibs([...checkerBibsRef.current]);
 	}, [updateCheckerBibs, updateFinishTimes]);
+
+	// Show Edit Alert
+	const showAlert = (index: number): void => {
+		setAlertIndex(index);
+		setAlertVisible(true);
+		setInputWasFocused(!!bibInputRef.current?.isFocused());
+	};
 
 	// Renders item on screen
 	const renderItem = useCallback(({ item, index }) => (
@@ -414,26 +446,33 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 			checkerBibsRef={checkerBibsRef}
 			updateCheckerBibs={updateCheckerBibs}
 			addOne={addOne}
+			showAlert={showAlert}
 		/>
 	), [addOne, updateCheckerBibs, updateFinishTimes]);
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.container} behavior={Platform.OS == "ios" ? "padding" : "height"}>
+			<KeyboardAvoidingView style={globalstyles.tableContainer} behavior={Platform.OS == "ios" ? "padding" : "height"}>
 				{
 					loading ?
-						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : "808080"} />
+						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} />
 						:
 						<>
-							<View style={{ flexDirection: "row", width: "100%" }}>
-								<Text style={[globalstyles.timer, timerOn ? { backgroundColor: GREEN_COLOR } : { backgroundColor: BACKGROUND_COLOR }]}>{getClockTime(displayTime)}</Text>
+							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
+								<View style={[globalstyles.timerView, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR}]}>
+									<Text style={{fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
+										{GetClockTime(displayTime, true)}
+									</Text>
+								</View>
 								<TextInput
+									ref={bibInputRef}
 									onChangeText={setBibText}
 									editable={timerOn}
 									style={globalstyles.timerBibInput}
 									value={bibText}
 									maxLength={6}
 									placeholder="Bib Entry"
+									placeholderTextColor={GRAY_COLOR}
 									keyboardType="number-pad"
 								/>
 							</View>
@@ -445,34 +484,65 @@ export default function FinishLineModeScreen({ navigation }: Props) {
 								renderItem={renderItem}
 								initialNumToRender={10}
 								windowSize={11}
-								getItemLayout={(_, index) => (
-									{length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index}
+								getItemLayout={(_, index): ItemLayout => (
+									{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
 								)}
-								keyExtractor={(_item, index) => (index + 1).toString()}
+								keyExtractor={(_item, index): string => (index + 1).toString()}
 								keyboardShouldPersistTaps="handled"
 								ListHeaderComponent={<View style={globalstyles.tableHead}>
-									<Text style={globalstyles.tableTextThree}>Place</Text>
-									<Text style={globalstyles.tableTextOne}>Time</Text>
-									<Text style={globalstyles.tableTextTwo}>Bib #</Text>
-									<Text style={globalstyles.tableHeadButtonText}>+</Text>
-									<Text style={globalstyles.tableHeadButtonText}>-</Text>
+									<Text style={globalstyles.placeTableHeadText}>#</Text>
+									<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+									<Text style={globalstyles.timeTableHeadText}>Time</Text>
+									<View style={[globalstyles.tableAddButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
+										<Text style={{textAlign: "center", fontFamily: "RobotoBold", fontSize: SMALL_FONT_SIZE}}>+</Text>
+									</View>
+									<View style={[globalstyles.tableDeleteButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
+										<Text style={globalstyles.deleteTableText}>-</Text>
+									</View>
 								</View>}
 								stickyHeaderIndices={[0]} />
 
-
-							{!timerOn && <TouchableOpacity
-								style={globalstyles.button}
-								onPress={startTimer}>
-								<Text style={globalstyles.buttonText}>Start Timer</Text>
-							</TouchableOpacity>}
-
-							{timerOn && <TouchableOpacity style={globalstyles.recordButton} onPress={recordTime}>
-								<Text style={{ fontSize: 35 }}>Record</Text>
-							</TouchableOpacity>}
+							
+							<View style={{paddingHorizontal: UNIVERSAL_PADDING}}>
+								<MainButton 
+									onPress={timerOn ? recordTime : startTimer} 
+									text={timerOn ? "Record" : "Start Timer"} 
+									color={timerOn ? "Green" : "Gray"} 
+								/>
+							</View>
 						</>
-
-
 				}
+				
+				{alertIndex !== undefined && <TextInputAlert
+					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					placeholder="Enter Bib #"
+					initialValue={GetBibDisplay(checkerBibsRef.current[alertIndex] !== undefined ? checkerBibsRef.current[alertIndex] : -1)}
+					keyboardType={"number-pad"}
+					maxLength={6}
+					visible={alertVisible}
+					actionOnPress={(valArray): void => {
+						if (alertIndex !== undefined) {
+							if (!isNaN(parseInt(valArray[0]))) {
+								// Valid Bib
+								checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
+								updateCheckerBibs([...checkerBibsRef.current]);
+								setAlertVisible(false);
+								if (inputWasFocused) {
+									bibInputRef.current?.focus();
+								}
+							} else {
+								Alert.alert(
+									"Incorrect Bib Entry", 
+									"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+								);
+							}
+						} else {
+							setAlertVisible(false);
+						}
+					}} cancelOnPress={(): void => {
+						setAlertVisible(false);
+					}} />}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);
