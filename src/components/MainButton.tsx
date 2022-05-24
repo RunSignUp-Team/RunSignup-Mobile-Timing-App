@@ -50,7 +50,7 @@ export default function MainButton(props: Props): React.ReactElement {
 				<Text
 					style={{
 						fontSize: props.listButton !== undefined ? MEDIUM_FONT_SIZE : BIG_FONT_SIZE,
-						fontFamily: "Roboto_700Bold",
+						fontFamily: "RobotoBold",
 						color: "white",
 						paddingHorizontal: 1,
 					}}>
@@ -61,7 +61,7 @@ export default function MainButton(props: Props): React.ReactElement {
 				<Text 
 					style={{
 						fontSize: props.listButton !== undefined ? MEDIUM_FONT_SIZE : BIG_FONT_SIZE,
-						fontFamily: "Roboto_700Bold",
+						fontFamily: "RobotoBold",
 						color: "white",
 						paddingHorizontal: 1,
 					}}>
@@ -71,7 +71,7 @@ export default function MainButton(props: Props): React.ReactElement {
 					<Text
 						style={{
 							fontSize: SMALL_FONT_SIZE,
-							fontFamily: "Roboto_400Regular",
+							fontFamily: "Roboto",
 							color: "white",
 							paddingHorizontal: 1,
 						}}>

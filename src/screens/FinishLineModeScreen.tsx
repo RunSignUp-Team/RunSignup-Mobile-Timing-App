@@ -460,7 +460,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						<>
 							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 								<View style={[globalstyles.timerView, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR}]}>
-									<Text style={{fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono_400Regular", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
+									<Text style={{fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
 										{GetClockTime(displayTime, true)}
 									</Text>
 								</View>
@@ -494,7 +494,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 									<Text style={globalstyles.timeTableHeadText}>Time</Text>
 									<View style={[globalstyles.tableAddButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
-										<Text style={{textAlign: "center", fontFamily: "Roboto_700Bold", fontSize: SMALL_FONT_SIZE}}>+</Text>
+										<Text style={{textAlign: "center", fontFamily: "RobotoBold", fontSize: SMALL_FONT_SIZE}}>+</Text>
 									</View>
 									<View style={[globalstyles.tableDeleteButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
 										<Text style={globalstyles.deleteTableText}>-</Text>

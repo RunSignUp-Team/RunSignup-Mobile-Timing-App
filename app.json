@@ -9,7 +9,7 @@
       "image": "./src/assets/splashlogo.png",
       "backgroundColor": "#f2f2f2"
     },
-    "scheme": "rdtiming",
+    "scheme": "com.rsu.mobile-timing-app",
     "updates": {
       "fallbackToCacheTimeout": 0
     },
@@ -21,10 +21,7 @@
       "bundleIdentifier": "com.runsignup.rdtiming"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./src/assets/icon.png",
-        "backgroundColor": "#00ac65"
-      },
+      "icon": "./src/assets/icon.png",
       "package": "com.runsignup.rdtiming"
     },
     "extra": {

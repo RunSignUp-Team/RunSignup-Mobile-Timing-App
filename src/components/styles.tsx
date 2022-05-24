@@ -54,14 +54,14 @@ interface GenericTableButton {
 const genericTableHeadText: GenericTableText = {
 	fontSize: SMALL_FONT_SIZE,
 	textAlign: "left",
-	fontFamily: "Roboto_700Bold",
+	fontFamily: "RobotoBold",
 };
 
 const genericTableText: GenericTableText = {
 	fontSize: TABLE_FONT_SIZE,
 	textAlign: "left",
 	color: BLACK_COLOR, // Needed for Android
-	fontFamily: "RobotoMono_400Regular",
+	fontFamily: "RobotoMono",
 };
 
 const genericTableItem: GenericTableItem = {
@@ -97,14 +97,14 @@ export const globalstyles = StyleSheet.create({
 	// Headers
 	modalHeader: {
 		fontSize: MEDIUM_FONT_SIZE,
-		fontFamily: "Roboto_700Bold",
+		fontFamily: "RobotoBold",
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
 	},
 	headerButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
-		fontFamily: "Roboto_400Regular",
+		fontFamily: "Roboto",
 		color: "white",
 		marginRight: 10
 	},
@@ -112,7 +112,7 @@ export const globalstyles = StyleSheet.create({
 	// Text
 	info: {
 		fontSize: BIG_FONT_SIZE,
-		fontFamily: "Roboto_400Regular",
+		fontFamily: "Roboto",
 		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
@@ -185,7 +185,7 @@ export const globalstyles = StyleSheet.create({
 	},
 	nameTableText: {
 		fontSize: TABLE_FONT_SIZE,
-		fontFamily: "Roboto_400Regular",
+		fontFamily: "Roboto",
 		paddingLeft: UNIVERSAL_PADDING,
 		flex: 1.5,
 	},
@@ -229,7 +229,7 @@ export const globalstyles = StyleSheet.create({
 	},
 	tableButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
-		fontFamily: "Roboto_400Regular",
+		fontFamily: "Roboto",
 		color: "white",
 		textAlign: "center",
 		textAlignVertical: "center"
@@ -246,7 +246,7 @@ export const globalstyles = StyleSheet.create({
 		flex: 1,
 		alignSelf: "center",
 		fontSize: MEDIUM_FONT_SIZE,
-		fontFamily: "Roboto_400Regular",
+		fontFamily: "Roboto",
 		backgroundColor: LIGHT_GRAY_COLOR,
 	},
 
@@ -288,7 +288,7 @@ export const globalstyles = StyleSheet.create({
 		flex: 1,
 		height: 45,
 		fontSize: BIG_FONT_SIZE,
-		fontFamily: "Roboto_400Regular",
+		fontFamily: "Roboto",
 		backgroundColor: LIGHT_GRAY_COLOR,
 	},
 });
