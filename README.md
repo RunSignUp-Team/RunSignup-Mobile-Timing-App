@@ -21,11 +21,14 @@ This app allows users to record race results on their mobile devices, either rec
 _Note: The_ `REDIRECT_URI` _only needs to change for production._ 
 
 ## Finish Line Mode
-![Finish Line Mode](https://user-images.githubusercontent.com/97470828/153605774-18be7b19-5539-42d6-8672-5bf124d4aa34.png)
+![Finish Line Mode](https://user-images.githubusercontent.com/97470828/170090440-91458325-28be-4651-a8ff-7da023213192.png)
+
 ## Chute Mode
-![Chute Mode](https://user-images.githubusercontent.com/97470828/153606082-6d08b483-c076-4784-b41f-ac8c43977f80.png)
+![Chute Mode](https://user-images.githubusercontent.com/97470828/170090461-401f7803-c3b7-49a1-8f2a-e55447092e83.png)
+
 ## Verification Mode
-![Verification Mode](https://user-images.githubusercontent.com/97470828/153606003-bd327184-5070-43d0-a642-464b370fb93d.png)
+![Verification Mode](https://user-images.githubusercontent.com/97470828/170090494-fad7d726-4b97-4ebe-810d-eecb3c829da9.png)
+
 
 ## MIT Licenses
 - Axios (https://github.com/axios/axios)
