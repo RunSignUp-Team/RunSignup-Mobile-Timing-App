@@ -625,6 +625,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						onChangeText={setSearch}
 						value={search}
 						placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
+						placeholderTextColor={GRAY_COLOR}
 					/>
 				</View>
 				
