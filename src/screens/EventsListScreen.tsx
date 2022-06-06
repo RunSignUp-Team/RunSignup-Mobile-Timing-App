@@ -63,72 +63,77 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 		});
 	}, [handleLogOut, navigation]);
 
+	const firstRun = useRef(true);
 	useEffect(() => {
-		setLoading(true);
-		// Get Race data from the API
-		const fetchEvents = async (): Promise<void> => {
-			try {
-				let events = await getEvents(context.raceID);
-				const response = await AsyncStorage.getItem("onlineRaces");
-				const raceList = response !== null ? JSON.parse(response) : [];
-				const race: Race = raceList.find((race: Race) => race.race_id === context.raceID);
-
-				// Filter events to only show those in the present/future (48-hour grace period)
-				events = events.filter(fEvent => new Date(fEvent.start_time) >= new Date(new Date().getTime() - 172800000));
-
-				if (race && "events" in race) {
-					for (let i = 0; i < events.length; i++) {
-						// Create local storage object	
-						const event = race.events.find((event: Event) => event.event_id === events[i].event_id);
+		if (firstRun.current) {
+			firstRun.current = false;
+			
+			setLoading(true);
+			// Get Race data from the API
+			const fetchEvents = async (): Promise<void> => {
+				try {
+					let events = await getEvents(context.raceID);
+					const response = await AsyncStorage.getItem("onlineRaces");
+					const raceList = response !== null ? JSON.parse(response) : [];
+					const race: Race = raceList.find((race: Race) => race.race_id === context.raceID);
 	
-						let object: Event = {
-							title: events[i].name,
-							start_time: events[i].start_time,
-							event_id: events[i].event_id,
-							real_start_time: -1,
-							finish_times: [],
-							checker_bibs: [],
-							bib_nums: [],
-						};
+					// Filter events to only show those in the present/future (48-hour grace period)
+					events = events.filter(fEvent => new Date(fEvent.start_time) >= new Date(new Date().getTime() - 172800000));
 	
-						// If there is local data don't overwrite it
-						if (event !== undefined) {
-							object = {
+					if (race && "events" in race) {
+						for (let i = 0; i < events.length; i++) {
+							// Create local storage object	
+							const event = race.events.find((event: Event) => event.event_id === events[i].event_id);
+		
+							let object: Event = {
 								title: events[i].name,
 								start_time: events[i].start_time,
-								real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
 								event_id: events[i].event_id,
-								finish_times: (event.finish_times !== null) ? event.finish_times : [],
-								checker_bibs: (event.checker_bibs !== null) ? event.checker_bibs : [],
-								bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
+								real_start_time: -1,
+								finish_times: [],
+								checker_bibs: [],
+								bib_nums: [],
 							};
-						}
-	
-						// Don't push an object that already exists in the list
-						setFinalEventList(finalEventList => {
-							if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
-								finalEventList.push(object);
-								race.events = finalEventList;
-								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+		
+							// If there is local data don't overwrite it
+							if (event !== undefined) {
+								object = {
+									title: events[i].name,
+									start_time: events[i].start_time,
+									real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
+									event_id: events[i].event_id,
+									finish_times: (event.finish_times !== null) ? event.finish_times : [],
+									checker_bibs: (event.checker_bibs !== null) ? event.checker_bibs : [],
+									bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
+								};
 							}
-							return finalEventList;
-						});
+		
+							// Don't push an object that already exists in the list
+							setFinalEventList(finalEventList => {
+								if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
+									finalEventList.push(object);
+									race.events = finalEventList;
+									AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+								}
+								return finalEventList;
+							});
+						}
 					}
-				}
-				setLoading(false);
-			} catch (error) {
-				if (error instanceof Error) {
-					if (error.message === undefined || error.message === "Network Error") {
-						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-					} else {
-						// Something else
-						Logger("Unknown Error (Events)", error, true);
+					setLoading(false);
+				} catch (error) {
+					if (error instanceof Error) {
+						if (error.message === undefined || error.message === "Network Error") {
+							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+						} else {
+							// Something else
+							Logger("Unknown Error (Events)", error, true);
+						}
 					}
+					setLoading(false);
 				}
-				setLoading(false);
-			}
-		};
-		fetchEvents();
+			};
+			fetchEvents();
+		}
 	}, [context.eventID, context.eventTitle, context.raceID]);
 
 	// Rendered item in the Flatlist

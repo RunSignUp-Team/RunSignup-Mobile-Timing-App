@@ -81,72 +81,77 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 		});
 	}, [goToHomeScreen, handleLogOut, navigation]);
 
+	const firstRun = useRef(true);
 	useEffect(() => {
-		setLoading(true);
-		// Get Race List data from API
-		const fetchRaces = async (): Promise<void> => {
-			try {
-				let races = await getRaces();
-				const response = await AsyncStorage.getItem("onlineRaces");
-				const raceList = response !== null ? JSON.parse(response) : [];
+		if (firstRun.current) {
+			firstRun.current = false;
 
-				// Filter races to only show those in the present/future (48-hour grace period)
-				races = races.filter(fRace => new Date(fRace.race.next_date) >= new Date(new Date().getTime() - 172800000));
-
-				for (let i = 0; i < races.length; i++) {
-					// Create local storage object
-					let raceListRace: Race = {
-						title: "",
-						next_date: "",
-						race_id: 0,
-						events: []
-					};
-
-					if (raceList !== null && raceList.length > 0) {
-						raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
-					}
-
-					let object: Race = {
-						title: races[i].race.name,
-						next_date: races[i].race.next_date,
-						race_id: races[i].race.race_id,
-						events: []
-					};
-
-					// If there is local data don't overwrite it
-					if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
-						object = {
+			setLoading(true);
+			// Get Race List data from API
+			const fetchRaces = async (): Promise<void> => {
+				try {
+					let races = await getRaces();
+					const response = await AsyncStorage.getItem("onlineRaces");
+					const raceList = response !== null ? JSON.parse(response) : [];
+	
+					// Filter races to only show those in the present/future (48-hour grace period)
+					races = races.filter(fRace => new Date(fRace.race.next_date) >= new Date(new Date().getTime() - 172800000));
+	
+					for (let i = 0; i < races.length; i++) {
+						// Create local storage object
+						let raceListRace: Race = {
+							title: "",
+							next_date: "",
+							race_id: 0,
+							events: []
+						};
+	
+						if (raceList !== null && raceList.length > 0) {
+							raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
+						}
+	
+						let object: Race = {
 							title: races[i].race.name,
 							next_date: races[i].race.next_date,
 							race_id: races[i].race.race_id,
-							events: raceListRace.events
+							events: []
 						};
-					}
-
-					// Don't push an object that already exists in the list
-					setFinalRaceList(finalRaceList => {
-						if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
-							finalRaceList.push(object);
-							AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
+	
+						// If there is local data don't overwrite it
+						if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
+							object = {
+								title: races[i].race.name,
+								next_date: races[i].race.next_date,
+								race_id: races[i].race.race_id,
+								events: raceListRace.events
+							};
 						}
-						return finalRaceList;
-					});
-				}
-				setLoading(false);
-			} catch (error) {
-				if (error instanceof Error) {
-					if (error.message === undefined || error.message === "Network Error") {
-						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-					} else {
-						// Something else
-						Logger("Unknown Error (Races)", error, true);
+	
+						// Don't push an object that already exists in the list
+						setFinalRaceList(finalRaceList => {
+							if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
+								finalRaceList.push(object);
+								AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
+							}
+							return finalRaceList;
+						});
 					}
+					setLoading(false);
+				} catch (error) {
+					if (error instanceof Error) {
+						if (error.message === undefined || error.message === "Network Error") {
+							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+						} else {
+							// Something else
+							Logger("Unknown Error (Races)", error, true);
+						}
+					}
+					setLoading(false);
 				}
-				setLoading(false);
-			}
-		};
-
-		fetchRaces();
+			};
+	
+			fetchRaces();
+		}
 	}, [context.eventID, context.eventTitle, context.raceID]);
 
 	// Rendered item in the Flatlist
