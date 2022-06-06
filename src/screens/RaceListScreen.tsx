@@ -24,6 +24,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const [finalRaceList, setFinalRaceList] = useState<Array<Race>>([]);
 	const [loading, setLoading] = useState(false);
+	const [refreshing, setRefreshing] = useState(false);
 	const navigationRef = useRef(navigation);
 
 	// Log out with alert
@@ -81,76 +82,90 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 		});
 	}, [goToHomeScreen, handleLogOut, navigation]);
 
+	// Get Race List data from API
+	const fetchRaces = async (reload: boolean): Promise<void> => {
+		try {
+			if (reload) {
+				setRefreshing(true);
+			} else {
+				setLoading(true);
+			}
+			
+			let races = await getRaces();
+			const response = await AsyncStorage.getItem("onlineRaces");
+			const raceList = response !== null ? JSON.parse(response) : [];
+
+			// Filter races to only show those in the present/future (48-hour grace period)
+			races = races.filter(fRace => new Date(fRace.race.next_date) >= new Date(new Date().getTime() - 172800000));
+
+			for (let i = 0; i < races.length; i++) {
+				// Create local storage object
+				let raceListRace: Race = {
+					title: "",
+					next_date: "",
+					race_id: 0,
+					events: []
+				};
+
+				if (raceList !== null && raceList.length > 0) {
+					raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
+				}
+
+				let object: Race = {
+					title: races[i].race.name,
+					next_date: races[i].race.next_date,
+					race_id: races[i].race.race_id,
+					events: []
+				};
+
+				// If there is local data don't overwrite it
+				if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
+					object = {
+						title: races[i].race.name,
+						next_date: races[i].race.next_date,
+						race_id: races[i].race.race_id,
+						events: raceListRace.events
+					};
+				}
+
+				// Don't push an object that already exists in the list
+				setFinalRaceList(finalRaceList => {
+					if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
+						finalRaceList.push(object);
+						AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
+					}
+					return finalRaceList;
+				});
+			}
+			
+			if (reload) {
+				setRefreshing(false);
+			} else {
+				setLoading(false);
+			}
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.message === undefined || error.message === "Network Error") {
+					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+				} else {
+					// Something else
+					Logger("Unknown Error (Races)", error, true);
+				}
+			}
+			
+			if (reload) {
+				setRefreshing(false);
+			} else {
+				setLoading(false);
+			}
+		}
+	};
+
 	const firstRun = useRef(true);
 	useEffect(() => {
 		if (firstRun.current) {
 			firstRun.current = false;
-
-			setLoading(true);
-			// Get Race List data from API
-			const fetchRaces = async (): Promise<void> => {
-				try {
-					let races = await getRaces();
-					const response = await AsyncStorage.getItem("onlineRaces");
-					const raceList = response !== null ? JSON.parse(response) : [];
-	
-					// Filter races to only show those in the present/future (48-hour grace period)
-					races = races.filter(fRace => new Date(fRace.race.next_date) >= new Date(new Date().getTime() - 172800000));
-	
-					for (let i = 0; i < races.length; i++) {
-						// Create local storage object
-						let raceListRace: Race = {
-							title: "",
-							next_date: "",
-							race_id: 0,
-							events: []
-						};
-	
-						if (raceList !== null && raceList.length > 0) {
-							raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
-						}
-	
-						let object: Race = {
-							title: races[i].race.name,
-							next_date: races[i].race.next_date,
-							race_id: races[i].race.race_id,
-							events: []
-						};
-	
-						// If there is local data don't overwrite it
-						if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
-							object = {
-								title: races[i].race.name,
-								next_date: races[i].race.next_date,
-								race_id: races[i].race.race_id,
-								events: raceListRace.events
-							};
-						}
-	
-						// Don't push an object that already exists in the list
-						setFinalRaceList(finalRaceList => {
-							if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
-								finalRaceList.push(object);
-								AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
-							}
-							return finalRaceList;
-						});
-					}
-					setLoading(false);
-				} catch (error) {
-					if (error instanceof Error) {
-						if (error.message === undefined || error.message === "Network Error") {
-							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-						} else {
-							// Something else
-							Logger("Unknown Error (Races)", error, true);
-						}
-					}
-					setLoading(false);
-				}
-			};
-	
-			fetchRaces();
+			fetchRaces(false);
 		}
 	}, [context.eventID, context.eventTitle, context.raceID]);
 
@@ -171,8 +186,10 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : finalRaceList.length < 1 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> : finalRaceList.length < 1 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
 				data={finalRaceList}
+				onRefresh={(): void => { fetchRaces(true); }}
+				refreshing={refreshing}
 				renderItem={renderItem}
 				keyExtractor={(_item, index): string => (index + 1).toString()} />}
 		</View>

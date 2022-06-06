@@ -455,7 +455,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			<KeyboardAvoidingView style={globalstyles.tableContainer} behavior={Platform.OS == "ios" ? "padding" : "height"}>
 				{
 					loading ?
-						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} />
+						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />
 						:
 						<>
 							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>

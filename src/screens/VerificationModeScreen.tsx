@@ -549,12 +549,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		if (loading) {
 			// Keep user from leaving screen without saving
 			navigation.setOptions({
-				gestureEnabled: false
-			});
-
-			// Hide back button
-			navigation.setOptions({
-				headerLeft: undefined,
+				headerLeft: () => (<></>),
 			});
 		} else {
 			navigation.setOptions({
@@ -634,7 +629,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					/>
 				</View>
 				
-				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> :
+				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> :
 					<FlatList
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}

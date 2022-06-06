@@ -306,7 +306,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					/>
 				</View>
 
-				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} /> : <><FlatList
+				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> : <><FlatList
 					style={globalstyles.flatList}
 					ref={flatListRef}
 					data={bibNumsRef.current}
