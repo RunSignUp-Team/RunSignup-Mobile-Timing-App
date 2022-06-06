@@ -7,6 +7,7 @@ import { Event } from "../models/Event";
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface Props {
+	index: number,
 	item: Event,
 	setEventID(id: number): void,
 	setEventTitle(title: string): void;
@@ -41,7 +42,7 @@ export default function EventsListRenderItem(props: Props): React.ReactElement {
 		<MainButton 
 			text={props.item.title} 
 			subtitle={`${startDate} - ${startTime}`}
-			listButton={props.item.id}
+			listButton={props.index + 1}
 			onPress={(): void => {
 				props.setEventID(props.item.event_id);
 				props.setEventTitle(props.item.title);

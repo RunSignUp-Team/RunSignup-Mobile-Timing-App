@@ -7,6 +7,7 @@ import { Race } from "../models/Race";
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface Props {
+	index: number,
 	item: Race,
 	navigationRef: {
 		current: ScreenNavigationProp,
@@ -21,7 +22,7 @@ export default function RaceListRenderItem(props: Props): React.ReactElement {
 		<MainButton 
 			text={props.item.title} 
 			subtitle={`${props.item.next_date}`}
-			listButton={props.item.id}
+			listButton={props.index + 1}
 			onPress={(): void => {
 				props.setRaceID(props.item.race_id);
 				props.navigationRef.current.navigate("EventsList");

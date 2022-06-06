@@ -96,7 +96,6 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				for (let i = 0; i < races.length; i++) {
 					// Create local storage object
 					let raceListRace: Race = {
-						id: 0,
 						title: "",
 						next_date: "",
 						race_id: 0,
@@ -106,10 +105,8 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 					if (raceList !== null && raceList.length > 0) {
 						raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
 					}
-					const realIndex = i + 1;
 
 					let object: Race = {
-						id: realIndex,
 						title: races[i].race.name,
 						next_date: races[i].race.next_date,
 						race_id: races[i].race.race_id,
@@ -119,7 +116,6 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 					// If there is local data don't overwrite it
 					if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
 						object = {
-							id: realIndex,
 							title: races[i].race.name,
 							next_date: races[i].race.next_date,
 							race_id: races[i].race.race_id,
@@ -127,10 +123,13 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 						};
 					}
 
-					if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
-						finalRaceList.push(object);
-						setFinalRaceList([...finalRaceList]);
-					}
+					// Don't push an object that already exists in the list
+					setFinalRaceList(finalRaceList => {
+						if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
+							finalRaceList.push(object);
+						}
+						return finalRaceList;
+					});
 				}
 				setLoading(false);
 			} catch (error) {
@@ -147,7 +146,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 		};
 
 		fetchRaces();
-	}, [context.eventID, context.eventTitle, context.raceID, finalRaceList, setFinalRaceList]);
+	}, [context.eventID, context.eventTitle, context.raceID]);
 
 	// Update local race data
 	const firstRun = useRef(true);
@@ -164,12 +163,13 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 
 	// Rendered item in the Flatlist
-	const renderItem = ({ item }: { item: Race }): React.ReactElement => {
+	const renderItem = ({ item, index }: { item: Race, index: number }): React.ReactElement => {
 		const setRaceID = context.setRaceID;
 		navigationRef.current = navigation;
 
 		return (
 			<MemoRaceListItem
+				index={index}
 				item={item}
 				setRaceID={setRaceID}
 				navigationRef={navigationRef}

@@ -79,7 +79,6 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				for (let i = 0; i < events.length; i++) {
 					// Create local storage object
 					let event: Event = {
-						id: 0,
 						title: "",
 						start_time: "",
 						event_id: 0,
@@ -92,10 +91,8 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					if (race !== undefined && race.events !== undefined) {
 						event = race.events.find((event: Event) => event.event_id === events[i].event_id);
 					}
-					const realIndex = i + 1;
 
 					let object: Event = {
-						id: realIndex,
 						title: events[i].name,
 						start_time: events[i].start_time,
 						event_id: events[i].event_id,
@@ -108,7 +105,6 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					// If there is local data don't overwrite it
 					if (event !== undefined) {
 						object = {
-							id: realIndex,
 							title: events[i].name,
 							start_time: events[i].start_time,
 							real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
@@ -118,11 +114,14 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 							bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
 						};
 					}
+
 					// Don't push an object that already exists in the list
-					if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
-						finalEventList.push(object);
-						setFinalEventList([...finalEventList]);
-					}
+					setFinalEventList(finalEventList => {
+						if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
+							finalEventList.push(object);
+						}
+						return finalEventList;
+					});
 				}
 				setLoading(false);
 			} catch (error) {
@@ -138,7 +137,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 		};
 		fetchEvents();
-	}, [context.eventID, context.eventTitle, context.raceID, finalEventList]);
+	}, [context.eventID, context.eventTitle, context.raceID]);
 
 	// Update local race data
 	const firstRun = useRef(true);
@@ -159,13 +158,14 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [context.raceID, finalEventList]);
 
 	// Rendered item in the Flatlist
-	const renderItem = ({ item }: { item: Event }): React.ReactElement => {
+	const renderItem = ({ item, index }: { item: Event, index: number }): React.ReactElement => {
 		const setEventID = context.setEventID;
 		const setEventTitle = context.setEventTitle;
 		navigationRef.current = navigation;
 
 		return (
 			<MemoEventsListItem
+				index={index}
 				item={item}
 				setEventID={setEventID}
 				setEventTitle={setEventTitle}
