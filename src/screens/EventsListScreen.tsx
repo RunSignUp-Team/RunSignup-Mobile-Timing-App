@@ -71,57 +71,49 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				let events = await getEvents(context.raceID);
 				const response = await AsyncStorage.getItem("onlineRaces");
 				const raceList = response !== null ? JSON.parse(response) : [];
-				const race = raceList.find((race: Race) => race.race_id === context.raceID);
+				const race: Race = raceList.find((race: Race) => race.race_id === context.raceID);
 
 				// Filter events to only show those in the present/future (48-hour grace period)
 				events = events.filter(fEvent => new Date(fEvent.start_time) >= new Date(new Date().getTime() - 172800000));
 
-				for (let i = 0; i < events.length; i++) {
-					// Create local storage object
-					let event: Event = {
-						title: "",
-						start_time: "",
-						event_id: 0,
-						real_start_time: -1,
-						finish_times: [],
-						checker_bibs: [],
-						bib_nums: []
-					};
-
-					if (race !== undefined && race.events !== undefined) {
-						event = race.events.find((event: Event) => event.event_id === events[i].event_id);
-					}
-
-					let object: Event = {
-						title: events[i].name,
-						start_time: events[i].start_time,
-						event_id: events[i].event_id,
-						real_start_time: -1,
-						finish_times: [],
-						checker_bibs: [],
-						bib_nums: [],
-					};
-
-					// If there is local data don't overwrite it
-					if (event !== undefined) {
-						object = {
+				if (race && "events" in race) {
+					for (let i = 0; i < events.length; i++) {
+						// Create local storage object	
+						const event = race.events.find((event: Event) => event.event_id === events[i].event_id);
+	
+						let object: Event = {
 							title: events[i].name,
 							start_time: events[i].start_time,
-							real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
 							event_id: events[i].event_id,
-							finish_times: (event.finish_times !== null) ? event.finish_times : [],
-							checker_bibs: (event.checker_bibs !== null) ? event.checker_bibs : [],
-							bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
+							real_start_time: -1,
+							finish_times: [],
+							checker_bibs: [],
+							bib_nums: [],
 						};
-					}
-
-					// Don't push an object that already exists in the list
-					setFinalEventList(finalEventList => {
-						if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
-							finalEventList.push(object);
+	
+						// If there is local data don't overwrite it
+						if (event !== undefined) {
+							object = {
+								title: events[i].name,
+								start_time: events[i].start_time,
+								real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
+								event_id: events[i].event_id,
+								finish_times: (event.finish_times !== null) ? event.finish_times : [],
+								checker_bibs: (event.checker_bibs !== null) ? event.checker_bibs : [],
+								bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
+							};
 						}
-						return finalEventList;
-					});
+	
+						// Don't push an object that already exists in the list
+						setFinalEventList(finalEventList => {
+							if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
+								finalEventList.push(object);
+								race.events = finalEventList;
+								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+							}
+							return finalEventList;
+						});
+					}
 				}
 				setLoading(false);
 			} catch (error) {
@@ -138,24 +130,6 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 		};
 		fetchEvents();
 	}, [context.eventID, context.eventTitle, context.raceID]);
-
-	// Update local race data
-	const firstRun = useRef(true);
-	useEffect(() => {
-		if (firstRun.current) {
-			firstRun.current = false;
-			return;
-		}
-		const updateLocalRace = async (): Promise<void> => {
-			const response = await AsyncStorage.getItem("onlineRaces");
-			const raceList = response !== null ? JSON.parse(response) : [];
-			const race = raceList.find((race: Race) => race.race_id === context.raceID);
-			race.events = finalEventList;
-
-			await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-		};
-		updateLocalRace();
-	}, [context.raceID, finalEventList]);
 
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: Event, index: number }): React.ReactElement => {

@@ -127,6 +127,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 					setFinalRaceList(finalRaceList => {
 						if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
 							finalRaceList.push(object);
+							AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
 						}
 						return finalRaceList;
 					});
@@ -147,20 +148,6 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 		fetchRaces();
 	}, [context.eventID, context.eventTitle, context.raceID]);
-
-	// Update local race data
-	const firstRun = useRef(true);
-	useEffect(() => {
-		if (firstRun.current) {
-			firstRun.current = false;
-			return;
-		}
-		const updateLocalRace = async (): Promise<void> => {
-			await AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
-		};
-		updateLocalRace();
-	}, [finalRaceList]);
-
 
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: Race, index: number }): React.ReactElement => {
