@@ -73,13 +73,10 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				setLoading(true);
 			}
 
-			let events = await getEvents(context.raceID);
+			const events = await getEvents(context.raceID);
 			const response = await AsyncStorage.getItem("onlineRaces");
 			const raceList = response !== null ? JSON.parse(response) : [];
 			const race: Race = raceList.find((race: Race) => race.race_id === context.raceID);
-
-			// Filter events to only show those in the present/future (48-hour grace period)
-			events = events.filter(fEvent => new Date(fEvent.start_time) >= new Date(new Date().getTime() - 172800000));
 
 			if (race && "events" in race) {
 				for (let i = 0; i < events.length; i++) {

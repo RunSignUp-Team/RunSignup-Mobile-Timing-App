@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from "axios";
 import { oAuthLogin } from "./oAuth2Helper";
 import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
 import GetClockTime from "./GetClockTime";
+import AddLeadingZeros from "./AddLeadingZeros";
 
 interface RaceResponse {
 	races: Array<{
@@ -183,7 +184,11 @@ export const getUser = async (userId: string): Promise<UserResponse> => {
 
 /** Get Races for a specific User from RSU API */
 export const getRaces = async (): Promise<RaceResponse["races"]> => {
-	const response = await handleAxiosGetCall<RaceResponse>(RUNSIGNUP_URL + "Rest/races?format=json");
+	const weekGraceDate = new Date(new Date().getTime() - (86400000*7));
+	const year = weekGraceDate.getFullYear();
+	const month = AddLeadingZeros(weekGraceDate.getMonth()+1);
+	const day = AddLeadingZeros(weekGraceDate.getDate());
+	const response = await handleAxiosGetCall<RaceResponse>(RUNSIGNUP_URL + `Rest/races?format=json&results_per_page=250&start_date=${year}-${month}-${day}`);
 	return response.data.races;
 };
 

@@ -10,6 +10,7 @@ import MainButton from "../components/MainButton";
 import Logger from "../helpers/Logger";
 import { Buffer } from "buffer";
 import { getUser } from "../helpers/AxiosCalls";
+import * as Linking from "expo-linking";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -77,6 +78,16 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 		navigation.navigate("OfflineEventsList");
 	};
 
+	/** Handle start guide link */
+	const handleStartGuideClick = async (): Promise<void> => {
+		const url = "https://help.runsignup.com/support/solutions/articles/17000125950-mobile-timing-app";
+		if (await Linking.canOpenURL(url)) {
+			Linking.openURL(url);
+		} else {
+			Logger("Cannot Open Link", "Device Not Set Up Correctly", true);
+		}
+	};
+
 	return (
 		<View style={globalstyles.container}>
 
@@ -87,6 +98,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				/>
 				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
 				<MainButton text={"Offline Races"} onPress={handleRecordOfflineClick} />
+				<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 			</View>
 
 		</View>
