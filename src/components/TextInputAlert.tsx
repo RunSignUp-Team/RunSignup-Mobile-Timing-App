@@ -203,7 +203,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 										style={{
 											fontSize: SMALL_FONT_SIZE,
 											fontWeight: "bold",
-											color: droid ? GREEN_COLOR : "#ff443a",
+											color: droid ? GREEN_COLOR : APPLE_BLUE_COLOR,
 											textAlign: "center",
 										}}
 									>
