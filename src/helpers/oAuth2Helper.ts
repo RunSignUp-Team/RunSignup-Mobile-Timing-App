@@ -9,7 +9,7 @@ import Logger from "./Logger";
 
 // URLS AND INFO
 const requestGrantUrl = RUNSIGNUP_URL + "Profile/OAuth2/RequestGrant";
-const accessTokenUrl = RUNSIGNUP_URL + "Rest/v2/auth/auth-code-redemption.json";
+const accessTokenUrl = RUNSIGNUP_URL + "Rest/v2/auth/auth-code-redemption.json?";
 const refreshTokenUrl = RUNSIGNUP_URL + "Rest/v2/auth/refresh-token.json";
 
 const clientID = CLIENT_ID;
@@ -95,16 +95,20 @@ export async function exchangeTokens(auth_code: string, code_verifier: string, c
 
 	// We can now send another request to RSU to retrieve the tokens given the auth code we received earlier
 	try {
-		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(accessTokenUrl, formData);
-		const resData = res.data;
-		if ("error" in resData) {
-			Logger("Failed to Retrieve Tokens", createRSUApiErrorString(resData));
+		const response = await fetch(accessTokenUrl, {
+			body: formData,
+			method: "POST"
+		});
+
+		const json = await response.json();
+
+		if ("error" in json) {
+			Logger("Failed to Retrieve Tokens", createRSUApiErrorString(json));
 			return null;
 		}
 
 		// We have the successful token data
-		return resData;
-
+		return (await json);
 	} catch (error) {
 		Logger("Unknown Token Error", error);
 		return null;
