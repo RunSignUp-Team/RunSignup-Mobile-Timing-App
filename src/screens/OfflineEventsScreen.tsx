@@ -271,7 +271,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> 
 				: 
 				<>
-					<MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }}/>
+					{!context.online && <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }}/>}
 					<FlatList
 						data={eventList}
 						renderItem={renderItem}

@@ -58,6 +58,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	// Leave with alert
 	const backTapped = useCallback(() => {
 		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
+			{ text: "Cancel", onPress: (): void => { return; } },
 			{
 				text: "Leave",
 				onPress: (): void => {
@@ -65,7 +66,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				},
 				style: "destructive",
 			},
-			{ text: "Cancel", onPress: (): void => { return; } },
 		]);
 	}, [navigation]);
 
@@ -351,6 +351,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					"Save Results",
 					"Are you sure you want to save to the cloud and quit?",
 					[
+						{ text: "Cancel", onPress: (): void => { return; } },
 						{
 							text: "Save & Quit",
 							onPress: (): void => {
@@ -358,7 +359,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							},
 							style: "destructive",
 						},
-						{ text: "Cancel", onPress: (): void => { return; } },
 					]
 				);
 			} else {
@@ -366,6 +366,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					"Save Results",
 					"Are you sure you want to save the results and quit?",
 					[
+						{ text: "Cancel", onPress: () => null },
 						{
 							text: "Save & Quit",
 							onPress: (): void => {
@@ -378,7 +379,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							},
 							style: "destructive",
 						},
-						{ text: "Cancel", onPress: () => null },
 					]
 				);
 			}

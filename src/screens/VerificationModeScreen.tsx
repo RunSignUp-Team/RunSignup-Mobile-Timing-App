@@ -78,16 +78,16 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				"Are you sure you want to leave? Any unsaved changes will be lost!",
 				[
 					{
+						text: "Cancel",
+						style: "default",
+						onPress: (): void => { return; }
+					},
+					{
 						text: "Leave",
 						style: "destructive",
 						onPress: (): void => {
 							navigation.pop(); 
 						}
-					},
-					{
-						text: "Cancel",
-						style: "default",
-						onPress: (): void => { return; }
 					},
 				]);
 		} else {

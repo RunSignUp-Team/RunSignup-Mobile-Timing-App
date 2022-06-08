@@ -48,6 +48,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	// Leave with alert
 	const backTapped = useCallback(() => {
 		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
+			{ text: "Cancel", onPress: (): void => { return; } },
 			{
 				text: "Leave",
 				onPress: (): void => {
@@ -55,7 +56,6 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				},
 				style: "destructive",
 			},
-			{ text: "Cancel", onPress: (): void => { return; } },
 		]);
 	}, [navigation]);
 
@@ -223,6 +223,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				"Save Results",
 				"Are you sure you want to save to the cloud and quit?",
 				[
+					{ text: "Cancel", onPress: (): void => { return; } },
 					{
 						text: "Save & Quit",
 						onPress: (): void => {
@@ -231,7 +232,6 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						},
 						style: "destructive",
 					},
-					{ text: "Cancel", onPress: (): void => { return; } },
 				]
 			);
 		}

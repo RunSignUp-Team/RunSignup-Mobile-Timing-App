@@ -28,6 +28,11 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const handleLogOut = useCallback(async () => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
 			{
+				text: "Cancel",
+				style: "default",
+				onPress: (): void => { return; }
+			},
+			{
 				text: "Log Out",
 				style: "destructive",
 				onPress: async (): Promise<void> => {
@@ -39,11 +44,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					}
 				}
 			},
-			{
-				text: "Cancel",
-				style: "default",
-				onPress: (): void => { return; }
-			}
+
 		]);
 	}, [navigation]);
 
