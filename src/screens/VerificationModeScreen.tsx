@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, Image, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
+import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
 import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -546,27 +546,14 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Display edit / save button in header
 	useEffect(() => {
-		if (loading) {
-			// Keep user from leaving screen without saving
-			navigation.setOptions({
-				headerLeft: () => (<></>),
-			});
-		} else {
-			navigation.setOptions({
-				headerLeft: () => (
-					<HeaderBackButton onPress={(): void => { backTapped(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
-				),
-			});
-		}
-
 		navigation.setOptions({
+			headerLeft: () => (
+				<HeaderBackButton onPress={(): void => { loading ? undefined : backTapped(); }} labelVisible={false} disabled={loading} tintColor="white"></HeaderBackButton>
+			),
 			headerRight: () => (
-				<View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
-					{editMode && !loading && <TouchableOpacity onPress={(): void => addRecord()} >
-						<Image
-							style={globalstyles.headerImage}
-							source={require("../assets/plus-icon.png")}
-						/>
+				<View style={{ flexDirection: "row", alignItems: "center" }}>
+					{editMode && !loading && <TouchableOpacity style={{ marginRight: 5 }} onPress={(): void => addRecord()} >
+						<Text style={globalstyles.headerButtonText}>Add</Text>
 					</TouchableOpacity>}
 
 					{!loading && conflicts === 0 && <TouchableOpacity

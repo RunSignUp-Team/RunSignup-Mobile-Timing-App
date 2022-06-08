@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { View, TouchableOpacity, FlatList, Alert, ActivityIndicator, Platform, Image, TextInput, Text } from "react-native";
+import { View, FlatList, Alert, ActivityIndicator, Platform } from "react-native";
 import { globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
@@ -15,6 +15,7 @@ import addLeadingZeros from "../helpers/AddLeadingZeros";
 import { ItemLayout } from "../models/ItemLayout";
 import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
+import MainButton from "../components/MainButton";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -43,7 +44,6 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const flatListRef = useRef<FlatList>(null);
 	const navigationRef = useRef(navigation);
-	const addEventRef = useRef<TextInput>(null);
 
 	const [loading, setLoading] = useState(false);
 
@@ -228,30 +228,6 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID]);
 
-	// Display save button in header
-	useEffect(() => {
-		if (!context.online) {
-			navigation.setOptions({
-				headerRight: () => (
-					<TouchableOpacity
-						style={{ paddingLeft: 20, paddingVertical: 10 }}
-						onPress={(): void => {
-							// Add event
-							setAlertVisible(true);
-							setTimeout(() => { addEventRef.current?.focus(); }, 100);
-						}}
-					>
-						<Image
-							style={globalstyles.headerImage}
-							source={require("../assets/plus-icon.png")}
-						/>
-					</TouchableOpacity>
-				),
-			});
-		}
-	}, [context.online, navigation]);
-
-
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: OfflineEvent, index: number }): React.ReactElement => {
 		const setEventTitle = context.setEventTitle;
@@ -290,16 +266,22 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 					setAlertVisible(false);
 				}}
 			/>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> : eventList.length < 1 ? <Text style={globalstyles.info}>{"No Offline Events:\nClick the + button to create a new Offline Event."}</Text> :
-				<FlatList
-					data={eventList}
-					renderItem={renderItem}
-					ref={flatListRef}
-					getItemLayout={(_, index): ItemLayout => (
-						{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
-					)}
-					keyExtractor={(_item, index): string => (index + 1).toString()}
-				/>}
+			{loading 
+				? 
+				<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> 
+				: 
+				<>
+					<MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }}/>
+					<FlatList
+						data={eventList}
+						renderItem={renderItem}
+						ref={flatListRef}
+						getItemLayout={(_, index): ItemLayout => (
+							{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
+						)}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
+					/>
+				</>}
 		</View >
 	);
 };

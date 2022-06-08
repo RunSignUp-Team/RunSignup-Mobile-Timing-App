@@ -104,7 +104,7 @@ export const globalstyles = StyleSheet.create({
 	},
 	headerButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
-		fontFamily: "Roboto",
+		fontFamily: "RobotoBold",
 		color: "white",
 		marginRight: 10
 	},

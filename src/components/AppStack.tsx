@@ -57,6 +57,7 @@ export default function StartNavigator(): React.ReactElement {
 			{appIsReady && <AppStack.Navigator screenOptions={{
 				headerStyle: { backgroundColor: GREEN_COLOR },
 				headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "RobotoBold", color: "white" },
+				headerTitleAlign: "left"
 			}}>
 				<AppStack.Screen name="Login" component={LoginScreen} options={{
 					title: "Home",
