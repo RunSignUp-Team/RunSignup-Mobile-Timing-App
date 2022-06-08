@@ -97,7 +97,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 					source={require("../assets/logo.png")}
 				/>
 				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
-				<MainButton text={"Offline Races"} onPress={handleRecordOfflineClick} />
+				<MainButton text={"Offline Events"} onPress={handleRecordOfflineClick} />
 				<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 			</View>
 
