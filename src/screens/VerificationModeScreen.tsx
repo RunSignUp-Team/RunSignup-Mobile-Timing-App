@@ -615,9 +615,13 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						placeholderTextColor={GRAY_COLOR}
 					/>
 				</View>
-				
-				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> :
+
+				{loading
+					?
+					<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />
+					:
 					<FlatList
+						showsVerticalScrollIndicator={false}
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
 						ref={flatListRef}

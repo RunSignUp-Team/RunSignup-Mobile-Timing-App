@@ -478,6 +478,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							</View>
 
 							<FlatList
+								showsVerticalScrollIndicator={false}
 								style={globalstyles.flatList}
 								ref={flatListRef}
 								data={finishTimesRef.current}

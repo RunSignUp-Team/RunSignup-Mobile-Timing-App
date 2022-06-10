@@ -186,12 +186,17 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> : finalRaceList.length < 1 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text> : <FlatList
-				data={finalRaceList}
-				onRefresh={(): void => { fetchRaces(true); }}
-				refreshing={refreshing}
-				renderItem={renderItem}
-				keyExtractor={(_item, index): string => (index + 1).toString()} />}
+			{loading
+				?
+				<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> : finalRaceList.length < 1 ? <Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming races yet!"}</Text>
+					:
+					<FlatList
+						showsVerticalScrollIndicator={false}
+						data={finalRaceList}
+						onRefresh={(): void => { fetchRaces(true); }}
+						refreshing={refreshing}
+						renderItem={renderItem}
+						keyExtractor={(_item, index): string => (index + 1).toString()} />}
 		</View>
 	);
 };

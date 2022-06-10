@@ -273,6 +273,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				<>
 					{!context.online && <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }}/>}
 					<FlatList
+						showsVerticalScrollIndicator={false}
 						data={eventList}
 						renderItem={renderItem}
 						ref={flatListRef}

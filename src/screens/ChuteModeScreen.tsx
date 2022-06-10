@@ -306,33 +306,39 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					/>
 				</View>
 
-				{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> : <><FlatList
-					style={globalstyles.flatList}
-					ref={flatListRef}
-					data={bibNumsRef.current}
-					renderItem={renderItem}
-					keyExtractor={(_item, index): string => (index + 1).toString()}
-					initialNumToRender={10}
-					windowSize={11}
-					getItemLayout={(_, index): ItemLayout => (
-						{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
-					)}
-					keyboardShouldPersistTaps="handled"
-					ListHeaderComponent={<View style={globalstyles.tableHead}>
-						<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
-						<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-						<View style={[globalstyles.tableDeleteButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
-							<Text style={globalstyles.deleteTableText}>-</Text>
-						</View>
-					</View>}
-					stickyHeaderIndices={[0]}
-				/>
+				{loading
+					?
+					<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />
+					:
+					<>
+						<FlatList
+							showsVerticalScrollIndicator={false}
+							style={globalstyles.flatList}
+							ref={flatListRef}
+							data={bibNumsRef.current}
+							renderItem={renderItem}
+							keyExtractor={(_item, index): string => (index + 1).toString()}
+							initialNumToRender={10}
+							windowSize={11}
+							getItemLayout={(_, index): ItemLayout => (
+								{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
+							)}
+							keyboardShouldPersistTaps="handled"
+							ListHeaderComponent={<View style={globalstyles.tableHead}>
+								<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
+								<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+								<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+									<Text style={globalstyles.deleteTableText}>-</Text>
+								</View>
+							</View>}
+							stickyHeaderIndices={[0]}
+						/>
 
-				<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
-					<MainButton onPress={recordBib} text={"Record"} />
-				</View>
-				</>}
-				
+						<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
+							<MainButton onPress={recordBib} text={"Record"} />
+						</View>
+					</>}
+
 				{alertIndex !== undefined && <TextInputAlert
 					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
 					message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
