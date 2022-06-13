@@ -94,54 +94,54 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			
 			const races = await getRaces();
 			const response = await AsyncStorage.getItem("onlineRaces");
-			const raceList = response !== null ? JSON.parse(response) : [];
+			const raceList: Array<Race> = response !== null ? JSON.parse(response) : [];
 
 			for (let i = 0; i < races.length; i++) {
-				// Create local storage object
-				let raceListRace: Race = {
-					name: "",
-					next_date: "",
-					race_id: 0,
-					events: []
-				};
+				const race = races[i];
+				const eventList: Array<Event> = [];
+				// Create local storage raceObject
+				let raceListRace: Race | undefined;
 
 				if (raceList !== null && raceList.length > 0) {
-					raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
+					raceListRace = raceList.find((foundRace) => foundRace.race_id === race.race.race_id);
 				}
 
-				// Create race and convert RSUEvent to Event
-				let object: Race = {
-					name: races[i].race.name,
-					next_date: races[i].race.next_date,
-					race_id: races[i].race.race_id,
-					events: races[i].race.events.map(event => {
-						const localEvent: Event = {
-							name: event.name,
-							start_time: event.start_time,
-							event_id: event.event_id,
-							real_start_time: -1,
-							finish_times: [],
-							checker_bibs: [],
-							bib_nums: [],
-						};
-						return localEvent;
-					})
+				// Convert RSUEvents to Events
+				for (let i = 0; i < race.race.events.length; i++) {
+					const event = race.race.events[i];
+					eventList.push({
+						name: event.name,
+						start_time: event.start_time,
+						event_id: event.event_id,
+						real_start_time: -1,
+						finish_times: [],
+						checker_bibs: [],
+						bib_nums: [],
+					});
+				}
+
+				// Create race raceObject
+				let raceObject: Race = {
+					name: race.race.name,
+					next_date: race.race.next_date,
+					race_id: race.race.race_id,
+					events: eventList
 				};
 
 				// If there is local data don't overwrite it
-				if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
-					object = {
-						name: races[i].race.name,
-						next_date: races[i].race.next_date,
-						race_id: races[i].race.race_id,
+				if (raceListRace && raceListRace.events) {
+					raceObject = {
+						name: race.race.name,
+						next_date: race.race.next_date,
+						race_id: race.race.race_id,
 						events: raceListRace.events
 					};
 				}
 
-				// Don't push an object that already exists in the list
+				// Don't push an raceObject that already exists in the list
 				setFinalRaceList(finalRaceList => {
-					if (!finalRaceList.find(foundObject => foundObject.race_id === object.race_id)) {
-						finalRaceList.push(object);
+					if (!finalRaceList.find(foundObject => foundObject.race_id === raceObject.race_id)) {
+						finalRaceList.push(raceObject);
 						AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
 					}
 					return [...finalRaceList];

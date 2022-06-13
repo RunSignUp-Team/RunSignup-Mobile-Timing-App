@@ -81,10 +81,10 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				const events = race.events;
 
 				for (let i = 0; i < events.length; i++) {
-					// Create local storage object	
-					const event = race.events.find((event: Event) => event.event_id === events[i].event_id);
+					// Create local storage eventObject	
+					const event = race.events.find((event) => event.event_id === events[i].event_id);
 
-					let object: Event = {
+					let eventObject: Event = {
 						name: events[i].name,
 						start_time: events[i].start_time,
 						event_id: events[i].event_id,
@@ -96,7 +96,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 					// If there is local data don't overwrite it
 					if (event !== undefined) {
-						object = {
+						eventObject = {
 							name: events[i].name,
 							start_time: events[i].start_time,
 							real_start_time: (event.real_start_time) ? event.real_start_time : -1,
@@ -107,10 +107,10 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 						};
 					}
 
-					// Don't push an object that already exists in the list
+					// Don't push an eventObject that already exists in the list
 					setFinalEventList(finalEventList => {
-						if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
-							finalEventList.push(object);
+						if (!finalEventList.find(foundObject => foundObject.event_id === eventObject.event_id)) {
+							finalEventList.push(eventObject);
 							race.events = finalEventList;
 							raceList[raceListId] = race;
 							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));

@@ -14,6 +14,7 @@ import Logger from "../helpers/Logger";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
+import { Race } from "../models/Race";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -22,13 +23,17 @@ type Props = {
 };
 
 const FinishLineModeMsg = "You may not re-enter Finish Line Mode on the same device, or enter Finish Line Mode data after recording Chute Mode data.\nIf you have completed all data entry, see Results to view or edit results.";
-const ChuteModeMsg = "You may not re-enter Chute Mode data on the same device.\nIf you have completed all data entry, see Results to view or edit results.";
+const ChuteModeMsg = "You may not re-enter Chute Mode data on the same device, or enter Chute Mode data with unsaved Finish Line data stored on your device.\nIf you have completed all data entry, see Results to view or edit results.";
 
 const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [finishLineDone, setFinishLineDone] = useState(false);
+	const [finishLineProgress, setFinishLineProgress] = useState(false);
 	const [chuteDone, setChuteDone] = useState(false);
+
+	const noFinishLine = finishLineDone || chuteDone;
+	const noChute = chuteDone || (finishLineProgress && !finishLineDone);
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(async () => {
@@ -58,14 +63,41 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const getButtonColors = useCallback(async (): Promise<void> => {
 		let flDone = null;
 		let cDone = null;
+		let flProgress = false;
 		if (context.online) {
 			flDone = await AsyncStorage.getItem(`finishLineDone:${context.raceID}:${context.eventID}`);
 			cDone = await AsyncStorage.getItem(`chuteDone:${context.raceID}:${context.eventID}`);
+			const raceList = await AsyncStorage.getItem("onlineRaces");
+
+			if (raceList) {
+				const races = JSON.parse(raceList) as Array<Race>;
+				const race = races.find(race => race.race_id === context.raceID);
+				const event = race?.events.find(event => event.event_id === context.eventID);
+				if (event && event.finish_times && event.finish_times.length > 0) {
+					flProgress = true;
+				}
+			}
+
+			// const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			// if (raceList &&
+			// 	raceList.length > 0 &&
+			// 	raceList[raceIndex]?.events[eventIndex].finish_times &&
+			// 	raceList[raceIndex]?.events[eventIndex].finish_times.length > 0) {
+			// 	flProgress = true;
+			// }
 		} else {
 			flDone = await AsyncStorage.getItem(`finishLineDone:${context.time}`);
 			cDone = await AsyncStorage.getItem(`chuteDone:${context.time}`);
+			const [eventList, eventIndex] = await GetLocalOfflineEvent(context.time);
+			if (eventList &&
+				eventList.length > 0 &&
+				eventList[eventIndex]?.finish_times &&
+				eventList[eventIndex]?.finish_times.length > 0) {
+				flProgress = true;
+			}
 		}
 		setFinishLineDone(flDone === "true" ? true : false);
+		setFinishLineProgress(flProgress);
 		setChuteDone(cDone === "true" ? true : false);
 	}, [context.eventID, context.online, context.raceID, context.time]);
 
@@ -94,7 +126,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Finish Line Mode tapped
 	const finishLineTapped = async (): Promise<void> => {
-		if (finishLineDone) {
+		if (noFinishLine) {
 			Alert.alert(
 				"Cannot Re-Enter Data",
 				FinishLineModeMsg
@@ -120,7 +152,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Finish Line Mode tapped (offline)
 	const finishLineTappedOffline = (): void => {
-		if (finishLineDone) {
+		if (noFinishLine) {
 			Alert.alert(
 				"Cannot Re-Enter Data",
 				FinishLineModeMsg
@@ -132,7 +164,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Chute Mode tapped
 	const chuteTapped = (): void => {
-		if (chuteDone) {
+		if (noChute) {
 			Alert.alert(
 				"Cannot Re-Enter Data",
 				ChuteModeMsg
@@ -144,7 +176,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Chute Mode tapped (offline)
 	const chuteTappedOffline = (): void => {
-		if (chuteDone) {
+		if (noChute) {
 			Alert.alert(
 				"Cannot Re-Enter Data", 
 				ChuteModeMsg
@@ -161,7 +193,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 
 			// Check for local edits
-			if (raceList[raceIndex].events[eventIndex].finish_times.length > 0 || raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
+			if (!finishLineDone && raceList[raceIndex].events[eventIndex].finish_times.length > 0) {
 				Alert.alert(
 					"Local Data Not Uploaded", 
 					"There is local data on your device that has not been saved & uploaded to RunSignup. Please save that data and try again."
@@ -194,7 +226,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		try {
 			const [eventList, eventIndex] = await GetLocalOfflineEvent(context.time);
 
-			if (eventList[eventIndex].finish_times.length > 0 || eventList[eventIndex].bib_nums.length > 0) {
+			if (!finishLineDone && eventList[eventIndex].finish_times.length > 0) {
 				Alert.alert(
 					"Local Data Not Saved", 
 					"There is local data on your device that has not been saved. Please save that data and try again."
@@ -256,8 +288,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	return (
 		<View style={globalstyles.container}>
 			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
-				<MainButton color={finishLineDone ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"} />
-				<MainButton color={chuteDone ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"} />
+				<MainButton color={noFinishLine ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"} />
+				<MainButton color={noChute ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"} />
 				<MainButton color={!finishLineDone ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
 				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
 			</View>
