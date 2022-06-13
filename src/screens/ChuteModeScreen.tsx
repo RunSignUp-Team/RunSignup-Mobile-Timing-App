@@ -47,16 +47,20 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
-		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
-			{ text: "Cancel", onPress: (): void => { return; } },
-			{
-				text: "Leave",
-				onPress: (): void => {
-					navigation.navigate("ModeScreen");
+		if (bibNumsRef.current.length > 0) {
+			Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
+				{ text: "Cancel", onPress: (): void => { return; } },
+				{
+					text: "Leave",
+					onPress: (): void => {
+						navigation.navigate("ModeScreen");
+					},
+					style: "destructive",
 				},
-				style: "destructive",
-			},
-		]);
+			]);
+		} else {
+			navigation.navigate("ModeScreen");
+		}
 	}, [navigation]);
 
 	const addToStorage = useCallback(async (final, bibNumsParam) => {

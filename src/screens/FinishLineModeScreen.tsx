@@ -57,16 +57,20 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
-		Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
-			{ text: "Cancel", onPress: (): void => { return; } },
-			{
-				text: "Leave",
-				onPress: (): void => {
-					navigation.navigate("ModeScreen");
+		if (finishTimesRef.current.length > 0) {
+			Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
+				{ text: "Cancel", onPress: (): void => { return; } },
+				{
+					text: "Leave",
+					onPress: (): void => {
+						navigation.navigate("ModeScreen");
+					},
+					style: "destructive",
 				},
-				style: "destructive",
-			},
-		]);
+			]);
+		} else {
+			navigation.navigate("ModeScreen");
+		}
 	}, [navigation]);
 
 	/** Save the finish times and checker bibs to local storage and/or RSU API */
@@ -355,6 +359,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						{
 							text: "Save & Quit",
 							onPress: (): void => {
+								setLoading(true);
 								saveResults();
 							},
 							style: "destructive",

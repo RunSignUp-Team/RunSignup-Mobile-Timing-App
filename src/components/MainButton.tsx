@@ -1,8 +1,8 @@
 import React from "react";
 import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
-import { BIG_FONT_SIZE, BORDER_RADIUS, DARK_GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, SMALL_FONT_SIZE } from "./styles";
+import { BIG_FONT_SIZE, BORDER_RADIUS, DARK_GRAY_COLOR, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, SMALL_FONT_SIZE } from "./styles";
 
-type ButtonColor = "Red" | "Gray" | "Green";
+type ButtonColor = "Red" | "Gray" | "Disabled" | "Green";
 
 interface Props {
 	onPress: () => void | Promise<void>,
@@ -22,6 +22,8 @@ export default function MainButton(props: Props): React.ReactElement {
 				return RED_COLOR;
 			case "Gray":
 				return DARK_GRAY_COLOR;
+			case "Disabled":
+				return GRAY_COLOR;
 			default:
 				return GREEN_COLOR;
 		}

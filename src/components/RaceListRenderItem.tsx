@@ -20,7 +20,7 @@ export default function RaceListRenderItem(props: Props): React.ReactElement {
 
 	return (
 		<MainButton 
-			text={props.item.title} 
+			text={props.item.name} 
 			subtitle={`${props.item.next_date}`}
 			listButton={props.index + 1}
 			onPress={(): void => {

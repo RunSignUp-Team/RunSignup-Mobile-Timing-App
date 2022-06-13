@@ -3,7 +3,6 @@ import { View, FlatList, Alert, ActivityIndicator, Text, Platform, TouchableOpac
 import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
-import { getEvents } from "../helpers/AxiosCalls";
 import { MemoEventsListItem } from "../components/EventsListRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -73,18 +72,20 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				setLoading(true);
 			}
 
-			const events = await getEvents(context.raceID);
 			const response = await AsyncStorage.getItem("onlineRaces");
-			const raceList = response !== null ? JSON.parse(response) : [];
-			const race: Race = raceList.find((race: Race) => race.race_id === context.raceID);
+			const raceList: Array<Race> = response !== null ? JSON.parse(response) : [];
+			const race = raceList.find((race) => race.race_id === context.raceID);
 
 			if (race && "events" in race) {
+				const raceListId = raceList.indexOf(race);
+				const events = race.events;
+
 				for (let i = 0; i < events.length; i++) {
 					// Create local storage object	
 					const event = race.events.find((event: Event) => event.event_id === events[i].event_id);
 
 					let object: Event = {
-						title: events[i].name,
+						name: events[i].name,
 						start_time: events[i].start_time,
 						event_id: events[i].event_id,
 						real_start_time: -1,
@@ -96,13 +97,13 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					// If there is local data don't overwrite it
 					if (event !== undefined) {
 						object = {
-							title: events[i].name,
+							name: events[i].name,
 							start_time: events[i].start_time,
-							real_start_time: (event.real_start_time !== null) ? event.real_start_time : -1,
+							real_start_time: (event.real_start_time) ? event.real_start_time : -1,
 							event_id: events[i].event_id,
-							finish_times: (event.finish_times !== null) ? event.finish_times : [],
-							checker_bibs: (event.checker_bibs !== null) ? event.checker_bibs : [],
-							bib_nums: (event.bib_nums !== null) ? event.bib_nums : [],
+							finish_times: (event.finish_times) ? event.finish_times : [],
+							checker_bibs: (event.checker_bibs) ? event.checker_bibs : [],
+							bib_nums: (event.bib_nums) ? event.bib_nums : [],
 						};
 					}
 
@@ -111,6 +112,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 						if (!finalEventList.find(foundObject => foundObject.event_id === object.event_id)) {
 							finalEventList.push(object);
 							race.events = finalEventList;
+							raceList[raceListId] = race;
 							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 						}
 						return finalEventList;

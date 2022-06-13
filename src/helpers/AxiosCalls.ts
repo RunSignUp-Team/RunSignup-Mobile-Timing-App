@@ -4,24 +4,39 @@ import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
 import GetClockTime from "./GetClockTime";
 import AddLeadingZeros from "./AddLeadingZeros";
 
-interface RaceResponse {
+type RaceResponse = {
 	races: Array<{
-		race: {
-			next_date: string,
-			name: string,
-			race_id: number
-		}
+		race: RSURace
 	}>
 }
 
-interface EventResponse {
-	race: {
-		events: Array<{
-			start_time: string,
-			name: string,
-			event_id: number,
-		}>
-	}
+export interface RSURace {
+	next_date: string,
+	name: string,
+	race_id: number,
+	events: Array<RSUEvent>
+}
+
+export interface RSUEvent {
+	age_calc_base_date: string | null,
+	details: object,
+	distance: string,
+	end_time: string,
+	event_id: number,
+	event_type: string,
+	name: string,
+	race_event_days_id: number,
+	registration_opens: string,
+	registration_periods: Array<{
+		processing_fee: string,
+		race_fee: string,
+		registration_closes: string,
+		registration_opens: string,
+	}>,
+	require_dob: string,
+	require_phone: string,
+	start_time: string,
+	volunteer: string,
 }
 
 interface BibsResponse {
@@ -188,14 +203,8 @@ export const getRaces = async (): Promise<RaceResponse["races"]> => {
 	const year = weekGraceDate.getFullYear();
 	const month = AddLeadingZeros(weekGraceDate.getMonth()+1);
 	const day = AddLeadingZeros(weekGraceDate.getDate());
-	const response = await handleAxiosGetCall<RaceResponse>(RUNSIGNUP_URL + `Rest/races?format=json&results_per_page=250&start_date=${year}-${month}-${day}`);
+	const response = await handleAxiosGetCall<RaceResponse>(RUNSIGNUP_URL + `Rest/races?format=json&results_per_page=250&start_date=${year}-${month}-${day}&events=T`);
 	return response.data.races;
-};
-
-/** Get Events for a specific Race from RSU API */
-export const getEvents = async (raceID: number): Promise<EventResponse["race"]["events"]> => {
-	const response = await handleAxiosGetCall<EventResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}?format=json`);
-	return response.data.race.events;
 };
 
 /** Get Bib Numbers from RSU API */

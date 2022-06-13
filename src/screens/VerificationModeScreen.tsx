@@ -63,6 +63,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const flatListRef = useRef<FlatList>(null);
 	const isUnmountedRef = useRef(false);
 	const [loading, setLoading] = useState(false);
+	const [refreshing, setRefreshing] = useState(false);
 
 	/** Updates records without re-rendering entire list */
 	const updateRecords = useCallback((newRecords: Array<[number, number, number]>) => {
@@ -109,104 +110,116 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}, [backTapped]),
 	);
 
+	// Online Functionality
+	const getRecords = useCallback(async (reload: boolean): Promise<void> => {
+		if (reload) {
+			setRefreshing(true);
+		} else {
+			setLoading(true);
+		}
+		try {
+			// Get bibs from API
+			const bibs = await getBibs(context.raceID, context.eventID);
+			// Get finish times from API
+			const finishTimes = await getFinishTimes(context.raceID, context.eventID);
+			// Get participants from API
+			const participantList = await getParticipants(context.raceID, context.eventID);
+
+			// Bibs
+			for (let i = 0; i < bibs.length; i++) {
+				if (i > recordsRef.current.length - 1) {
+					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+				}
+				recordsRef.current[i][0] = parseInt(bibs[i].bib_num);
+			}
+
+			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+
+			if (raceIndex !== null && eventIndex !== null) {
+				// Store conflict data in record (whether from Chute or Finish line mode)
+				const biggerArray = Math.max(raceList[raceIndex].events[eventIndex].checker_bibs.length, raceList[raceIndex].events[eventIndex].bib_nums.length);
+				for (let i = 0; i < biggerArray; i++) {
+					if (i > recordsRef.current.length - 1) {
+						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+					}
+
+					const bibNum = raceList[raceIndex].events[eventIndex].bib_nums[i];
+					const checkerBib = raceList[raceIndex].events[eventIndex].checker_bibs[i];
+
+					// Set checker bib record to conflicting bib
+					recordsRef.current[i][2] = (recordsRef.current[i][0] === checkerBib || (isNaN(recordsRef.current[i][0]) && isNaN(checkerBib))) ? (isNaN(bibNum) ? 0 : bibNum) : (isNaN(checkerBib) ? 0 : checkerBib);
+
+					// Good debugging logs
+					// console.log("Stored in API: ", parseInt(recordsRef.current[i][0]));
+					// console.log("CheckerBib: ", checkerBib);
+					// console.log("BibNum: ", bibNum);
+					// console.log("Conflict Bib: ", parseInt(recordsRef.current[i][2]));
+					// console.log("\n");
+
+					// Prefer real bibs to zeros
+					if (!recordsRef.current[i][0]) {
+						if (!(recordsRef.current[i][2])) {
+							recordsRef.current[i][0] = 0;
+						} else {
+							recordsRef.current[i][0] = recordsRef.current[i][2];
+						}
+					}
+
+					// Without this, conflicts are shown as API Bib / Conflict Bib
+					// If there are several conflicts, we want to display to the user the conflicts that they have resolved locally even before the resolutions have been pushed
+					// So if checker_bibs[i] === bib_nums[i], we will show that there is no conflict even if the API hasn't been updated yet
+					if (checkerBib === bibNum) {
+						recordsRef.current[i][0] = bibNum;
+					}
+				}
+			}
+
+			// Finish Times
+			for (let i = 0; i < finishTimes.length; i++) {
+				if (i > recordsRef.current.length - 1) {
+					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+				}
+				recordsRef.current[i][1] = GetTimeInMils(finishTimes[i].time);
+			}
+
+			// Participants
+			if (participantList.participants !== undefined) {
+				const parsedTicipants = [];
+				for (let i = 0; i < participantList.participants.length; i++) {
+					parsedTicipants.push(participantList.participants[i]);
+				}
+				setParticipants([...parsedTicipants]);
+			} else {
+				Logger("No Participant Data Found", "No data from Runsignup", true);
+			}
+
+			updateRecords([...recordsRef.current]);
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.message === undefined || error.message === "Network Error") {
+					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+				} else {
+					// Something else
+					Logger("Unknown Error (Get Records)", error, true);
+				}
+			}
+		} finally {
+			if (reload) {
+				setRefreshing(false);
+			} else {
+				setLoading(false);
+			}
+		}
+	}, [context.eventID, context.raceID, updateRecords]);
+
 	const firstRun = useRef(true);
 	useEffect(() => {
 		if (firstRun.current) {
 			firstRun.current = false;
-			setLoading(true);
 			if (context.online) {
-				// Online Functionality
-				const getRecords = async (): Promise<void> => {
-					try {
-						// Get bibs from API
-						const bibs = await getBibs(context.raceID, context.eventID);
-						// Get finish times from API
-						const finishTimes = await getFinishTimes(context.raceID, context.eventID);
-						// Get participants from API
-						const participantList = await getParticipants(context.raceID, context.eventID);
-	
-						// Bibs
-						for (let i = 0; i < bibs.length; i++) {
-							if (i > recordsRef.current.length - 1) {
-								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-							}
-							recordsRef.current[i][0] = parseInt(bibs[i].bib_num);
-						}
-	
-						const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-	
-						if (raceIndex !== null && eventIndex !== null) {
-							// Store conflict data in record (whether from Chute or Finish line mode)
-							const biggerArray = Math.max(raceList[raceIndex].events[eventIndex].checker_bibs.length, raceList[raceIndex].events[eventIndex].bib_nums.length);
-							for (let i = 0; i < biggerArray; i++) {
-								if (i > recordsRef.current.length - 1) {
-									recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-								}
-	
-								const bibNum = raceList[raceIndex].events[eventIndex].bib_nums[i];
-								const checkerBib = raceList[raceIndex].events[eventIndex].checker_bibs[i];
-	
-								// Set checker bib record to conflicting bib
-								recordsRef.current[i][2] = (recordsRef.current[i][0] === checkerBib || (isNaN(recordsRef.current[i][0]) && isNaN(checkerBib))) ? (isNaN(bibNum) ? 0 : bibNum) : (isNaN(checkerBib) ? 0 : checkerBib);
-	
-								// Good debugging logs
-								// console.log("Stored in API: ", parseInt(recordsRef.current[i][0]));
-								// console.log("CheckerBib: ", checkerBib);
-								// console.log("BibNum: ", bibNum);
-								// console.log("Conflict Bib: ", parseInt(recordsRef.current[i][2]));
-								// console.log("\n");
-	
-								// Prefer real bibs to zeros
-								if (!recordsRef.current[i][0]) {
-									if (!(recordsRef.current[i][2])) {
-										recordsRef.current[i][0] = 0;
-									} else {
-										recordsRef.current[i][0] = recordsRef.current[i][2];
-									}
-								}
-	
-								// Without this, conflicts are shown as API Bib / Conflict Bib
-								// If there are several conflicts, we want to display to the user the conflicts that they have resolved locally even before the resolutions have been pushed
-								// So if checker_bibs[i] === bib_nums[i], we will show that there is no conflict even if the API hasn't been updated yet
-								if (checkerBib === bibNum) {
-									recordsRef.current[i][0] = bibNum;
-								}
-							}
-						}
-	
-						// Finish Times
-						for (let i = 0; i < finishTimes.length; i++) {
-							if (i > recordsRef.current.length - 1) {
-								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-							}
-							recordsRef.current[i][1] = GetTimeInMils(finishTimes[i].time);
-						}
-	
-						// Participants
-						if (participantList.participants !== undefined) {
-							const parsedTicipants = [];
-							for (let i = 0; i < participantList.participants.length; i++) {
-								parsedTicipants.push(participantList.participants[i]);
-							}
-							setParticipants([...parsedTicipants]);
-						} else {
-							Logger("No Participant Data Found", "No data from Runsignup", true);
-						}
-	
-						updateRecords([...recordsRef.current]);
-					} catch (error) {
-						if (error instanceof Error) {
-							if (error.message === undefined || error.message === "Network Error") {
-								Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-							} else {
-								// Something else
-								Logger("Unknown Error (Get Records)", error, true);
-							}
-						}
-					}
-				};
-				getRecords();
+				getRecords(false);
 			} else {
+				setLoading(true);
 				// Offline Functionality
 				GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 					if (eventIndex !== -1) {
@@ -246,17 +259,16 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						setSearch("");
 					}
 				});
-			}
-	
-			if (!isUnmountedRef.current) {
-				setLoading(false);
+				if (!isUnmountedRef.current) {
+					setLoading(false);
+				}
 			}
 		}
 		
 		return () => {
 			isUnmountedRef.current = true;
 		};
-	}, [context.eventID, context.eventTitle, context.online, context.raceID, context.time, updateRecords]);
+	}, [context.online, context.time, getRecords, updateRecords]);
 
 	// Set conflicts
 	useEffect(() => {
@@ -552,8 +564,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			),
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
-					{editMode && !loading && <TouchableOpacity style={{ marginRight: 5 }} onPress={(): void => addRecord()} >
-						<Text style={globalstyles.headerButtonText}>Add</Text>
+					{editMode && !loading && <TouchableOpacity style={{ marginRight: 10 }} onPress={(): void => addRecord()} >
+						<Text style={globalstyles.headerButtonText}>Add Row</Text>
 					</TouchableOpacity>}
 
 					{!loading && conflicts === 0 && <TouchableOpacity
@@ -625,6 +637,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
 						ref={flatListRef}
+						onRefresh={context.online ? (): void => { getRecords(true); } : undefined}
+						refreshing={refreshing}
 						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
 						extraData={selectedID}
 						renderItem={renderItem}

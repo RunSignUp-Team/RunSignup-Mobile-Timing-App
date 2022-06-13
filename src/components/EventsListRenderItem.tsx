@@ -40,12 +40,12 @@ export default function EventsListRenderItem(props: Props): React.ReactElement {
 
 	return (
 		<MainButton 
-			text={props.item.title} 
+			text={props.item.name} 
 			subtitle={`${startDate} - ${startTime}`}
 			listButton={props.index + 1}
 			onPress={(): void => {
 				props.setEventID(props.item.event_id);
-				props.setEventTitle(props.item.title);
+				props.setEventTitle(props.item.name);
 				props.navigationRef.current.navigate("ModeScreen");
 			}} />
 	);

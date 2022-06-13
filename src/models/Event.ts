@@ -1,5 +1,5 @@
 export interface Event {
-	title: string,
+	name: string,
 	start_time: string,
 	event_id: number,
 	real_start_time: number,

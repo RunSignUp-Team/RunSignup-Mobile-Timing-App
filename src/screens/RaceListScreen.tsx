@@ -12,6 +12,7 @@ import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
 import Logger from "../helpers/Logger";
 import { Race } from "../models/Race";
+import { Event } from "../models/Event";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -91,17 +92,14 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				setLoading(true);
 			}
 			
-			let races = await getRaces();
+			const races = await getRaces();
 			const response = await AsyncStorage.getItem("onlineRaces");
 			const raceList = response !== null ? JSON.parse(response) : [];
-
-			// Filter races to only show those in the present/future (48-hour grace period)
-			races = races.filter(fRace => new Date(fRace.race.next_date) >= new Date(new Date().getTime() - 172800000));
 
 			for (let i = 0; i < races.length; i++) {
 				// Create local storage object
 				let raceListRace: Race = {
-					title: "",
+					name: "",
 					next_date: "",
 					race_id: 0,
 					events: []
@@ -111,17 +109,29 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 					raceListRace = raceList.find((race: Race) => race.race_id === races[i].race.race_id);
 				}
 
+				// Create race and convert RSUEvent to Event
 				let object: Race = {
-					title: races[i].race.name,
+					name: races[i].race.name,
 					next_date: races[i].race.next_date,
 					race_id: races[i].race.race_id,
-					events: []
+					events: races[i].race.events.map(event => {
+						const localEvent: Event = {
+							name: event.name,
+							start_time: event.start_time,
+							event_id: event.event_id,
+							real_start_time: -1,
+							finish_times: [],
+							checker_bibs: [],
+							bib_nums: [],
+						};
+						return localEvent;
+					})
 				};
 
 				// If there is local data don't overwrite it
 				if (raceListRace !== undefined && raceListRace.events !== undefined && raceListRace.events !== null) {
 					object = {
-						title: races[i].race.name,
+						name: races[i].race.name,
 						next_date: races[i].race.next_date,
 						race_id: races[i].race.race_id,
 						events: raceListRace.events
@@ -134,7 +144,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 						finalRaceList.push(object);
 						AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
 					}
-					return finalRaceList;
+					return [...finalRaceList];
 				});
 			}
 			

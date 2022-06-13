@@ -156,7 +156,9 @@ export const globalstyles = StyleSheet.create({
 		...genericTableItem,
 		backgroundColor: RED_COLOR,
 		paddingVertical: 5,
+		height: undefined,
 		minHeight: LONG_TABLE_ITEM_HEIGHT,
+		maxHeight: LONG_TABLE_ITEM_HEIGHT * 2
 	},
 
 	// Table Head
@@ -178,6 +180,7 @@ export const globalstyles = StyleSheet.create({
 	bibTableText: {
 		...genericTableText,
 		flex: 1.1,
+		flexWrap: "wrap"
 	},
 	timeTableText: {
 		...genericTableText,
