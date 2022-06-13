@@ -203,7 +203,7 @@ export const getRaces = async (): Promise<RaceResponse["races"]> => {
 	const year = weekGraceDate.getFullYear();
 	const month = AddLeadingZeros(weekGraceDate.getMonth()+1);
 	const day = AddLeadingZeros(weekGraceDate.getDate());
-	const response = await handleAxiosGetCall<RaceResponse>(RUNSIGNUP_URL + `Rest/races?format=json&results_per_page=250&start_date=${year}-${month}-${day}&events=T`);
+	const response = await handleAxiosGetCall<RaceResponse>(RUNSIGNUP_URL + `Rest/races?format=json&results_per_page=250&start_date=${year}-${month}-${day}&events=T&sort=date+ASC`);
 	return response.data.races;
 };
 

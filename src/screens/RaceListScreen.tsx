@@ -91,7 +91,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			} else {
 				setLoading(true);
 			}
-			
+
 			const races = await getRaces();
 			const response = await AsyncStorage.getItem("onlineRaces");
 			const localRaceList: Array<Race> = response !== null ? JSON.parse(response) : [];
@@ -121,7 +121,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 								checker_bibs: mapEvent.checker_bibs,
 								bib_nums: mapEvent.bib_nums
 							};
-							
+
 							if (updatedEvent) {
 								eventObject.name = updatedEvent.name;
 								eventObject.start_time = updatedEvent.start_time;
@@ -130,7 +130,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 							return eventObject;
 						})
 					};
-				// Race that does not exist locally yet
+					// Race that does not exist locally yet
 				} else {
 					raceObject = {
 						name: race.name,
@@ -146,7 +146,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 								checker_bibs: [],
 								bib_nums: []
 							};
-						
+
 							return eventObject;
 						})
 					};
@@ -172,7 +172,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 					Logger("Unknown Error (Races)", error, true);
 				}
 			}
-			
+
 			if (reload) {
 				setRefreshing(false);
 			} else {
@@ -188,10 +188,6 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			fetchRaces(false);
 		}
 	}, [context.eventID, context.eventTitle, context.raceID]);
-
-	// useEffect(() => {
-	// 	console.log(finalRaceList);
-	// }, [finalRaceList]);
 
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: Race, index: number }): React.ReactElement => {
@@ -220,7 +216,9 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 						onRefresh={(): void => { fetchRaces(true); }}
 						refreshing={refreshing}
 						renderItem={renderItem}
-						keyExtractor={(_item, index): string => (index + 1).toString()} />}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
+					/>
+			}
 		</View>
 	);
 };

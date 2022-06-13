@@ -44,6 +44,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	// Editing
 	const [editMode, setEditMode] = useState(false);
 	const [conflicts, setConflicts] = useState(0);
+	const [hasAPIData, setHasAPIData] = useState(false);
 
 	// Records
 	const [records, setRecords] = useState<VRecords>([]);
@@ -140,16 +141,25 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					const localCheckerBib = raceList[raceIndex].events[eventIndex].checker_bibs[i];
 					const apiBib = parseInt(bibs[i]?.bib_num);
 
+					// Batch Conflict Resolution assumes that API Bibs will be in the [i][0]
 					if (localBib !== undefined && localCheckerBib !== undefined) {
 						// Case 1: Bibs & Checker Bibs on same device
 						recordsRef.current[i][0] = localBib;
 						recordsRef.current[i][2] = localCheckerBib;
 					} else if (localCheckerBib !== undefined && !isNaN(apiBib)) {
 						// Case 2: Bibs in API & Checker Bibs on device
+						if (!hasAPIData) {
+							setHasAPIData(true);
+						}
+						
 						recordsRef.current[i][0] = apiBib;
 						recordsRef.current[i][2] = localCheckerBib;
 					} else if (localBib !== undefined && !isNaN(apiBib)) {
 						// Case 3: Checker Bibs in API & Bibs on device
+						if (!hasAPIData) {
+							setHasAPIData(true);
+						}
+
 						recordsRef.current[i][0] = apiBib;
 						recordsRef.current[i][2] = localBib;
 					} else if (!isNaN(apiBib)) {
@@ -222,7 +232,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				setLoading(false);
 			}
 		}
-	}, [context.eventID, context.raceID, updateRecords]);
+	}, [context.eventID, context.raceID, hasAPIData, updateRecords]);
 
 	const firstRun = useRef(true);
 	useEffect(() => {
@@ -295,25 +305,6 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setConflicts(count);
 	}, [records]);
 
-	// Check conflicts on first load
-	const secondRun = useRef(2);
-	useEffect(() => {
-		if (secondRun.current === 2) {
-			secondRun.current--;
-			return;
-		}
-		if (secondRun.current === 1) {
-			if (conflicts > 0) {
-				Alert.alert("Warning", "There is conflicting data for one or more bib numbers. Please select the conflicting rows and resolve the conflicts.");
-			}
-			secondRun.current--;
-			return;
-		}
-		if (secondRun.current === 0) {
-			return;
-		}
-	}, [conflicts]);
-
 	// Update local storage to reflect conflict resolved
 	const conflictResolved = useCallback((index) => {
 		if (context.online) {
@@ -337,6 +328,59 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [context.eventID, context.online, context.raceID, context.time]);
 
+	// Check conflicts on first load
+	const firstRun3 = useRef(1);
+	useEffect(() => {
+		if (firstRun3.current === 0) {
+			if (conflicts > 0 && hasAPIData) {
+				Alert.alert(
+					"Warning", 
+					"There is conflicting data for one or more bib numbers. You can resolve the conflicts individually by selecting the conflicting rows, or you can choose to clear your local conflicting data and get the latest data from RunSignup.",
+					[
+						{
+							text: "Resolve",
+							onPress: (): void => { return; }
+						},
+						// Batch Conflict Resolution
+						{
+							text: "Clear Local",
+							style: "destructive",
+							onPress: (): void => {
+								Alert.alert(
+									"Are You Sure?",
+									"Are you sure you want to clear your local conflicting data? This cannot be undone.",
+									[
+										{
+											text: "Cancel",
+											onPress: (): void => { return; }
+										},
+										{
+											text: "Clear Local",
+											onPress: (): void => {
+												for (let i = 0; i < recordsRef.current.length; i++) {
+													if (ConflictBoolean(recordsRef.current[i][0], recordsRef.current[i][2])) {
+														recordsRef.current[i][2] = recordsRef.current[i][0];
+														updateRecords([...recordsRef.current]);
+														conflictResolved(i);
+													}
+												}
+											}
+										}
+									]
+								);
+							}
+						}
+					]
+				);
+			} else if (conflicts > 0) {
+				Alert.alert("Warning", "There is conflicting data for one or more bib numbers. You can resolve the conflicts by selecting the conflicting rows.");
+			}
+		}
+		if (firstRun3.current > 0) {
+			firstRun3.current = firstRun3.current - 1;
+		}
+	}, [conflictResolved, conflicts, hasAPIData, updateRecords]);
+
 	const conflictResolution = useCallback(async (index) => {
 		Alert.alert(
 			"Conflict Found",
@@ -358,6 +402,10 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						conflictResolved(index);
 					}
 				},
+				{
+					text: "Cancel",
+					onPress: (): void => { return; }
+				}
 			]
 		);
 	}, [conflictResolved, updateRecords]);
