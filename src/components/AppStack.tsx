@@ -67,7 +67,7 @@ export default function StartNavigator(): React.ReactElement {
 					title: "Offline Events",
 				}} />
 				<AppStack.Screen name="RaceList" component={RaceListScreen} options={{
-					title: "Races",
+					title: "Your Races",
 				}} />
 				<AppStack.Screen name="EventsList" component={EventsListScreen}/>
 				<AppStack.Screen name="ModeScreen" component={ModeScreen}/>

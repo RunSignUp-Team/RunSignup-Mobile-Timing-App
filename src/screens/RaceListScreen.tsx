@@ -94,60 +94,70 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			
 			const races = await getRaces();
 			const response = await AsyncStorage.getItem("onlineRaces");
-			const raceList: Array<Race> = response !== null ? JSON.parse(response) : [];
+			const localRaceList: Array<Race> = response !== null ? JSON.parse(response) : [];
+			const combinedRaceList: Array<Race> = [];
 
 			for (let i = 0; i < races.length; i++) {
-				const race = races[i];
-				const eventList: Array<Event> = [];
-				// Create local storage raceObject
-				let raceListRace: Race | undefined;
-
-				if (raceList !== null && raceList.length > 0) {
-					raceListRace = raceList.find((foundRace) => foundRace.race_id === race.race.race_id);
-				}
-
-				// Convert RSUEvents to Events
-				for (let i = 0; i < race.race.events.length; i++) {
-					const event = race.race.events[i];
-					eventList.push({
-						name: event.name,
-						start_time: event.start_time,
-						event_id: event.event_id,
-						real_start_time: -1,
-						finish_times: [],
-						checker_bibs: [],
-						bib_nums: [],
-					});
-				}
-
-				// Create race raceObject
-				let raceObject: Race = {
-					name: race.race.name,
-					next_date: race.race.next_date,
-					race_id: race.race.race_id,
-					events: eventList
-				};
-
-				// If there is local data don't overwrite it
-				if (raceListRace && raceListRace.events) {
+				const race = races[i].race;
+				const localRace = localRaceList.find(foundRace => foundRace.race_id === race.race_id);
+				let raceObject: Race;
+				// We use the event object to store the Finish Times, Checker Bibs, and Bib Numbers for the event,
+				// So we can't just refresh the race and overrride all our local data;
+				// Instead, we check to see if we already have the race stored locally,
+				// And only update unimportant data like name and start time
+				if (localRace) {
 					raceObject = {
-						name: race.race.name,
-						next_date: race.race.next_date,
-						race_id: race.race.race_id,
-						events: raceListRace.events
+						name: race.name,
+						next_date: race.next_date,
+						race_id: race.race_id,
+						events: localRace.events.map(mapEvent => {
+							const updatedEvent = race.events.find(foundEvent => foundEvent.event_id === mapEvent.event_id);
+							const eventObject: Event = {
+								name: mapEvent.name,
+								start_time: mapEvent.start_time,
+								event_id: mapEvent.event_id,
+								real_start_time: mapEvent.real_start_time,
+								finish_times: mapEvent.finish_times,
+								checker_bibs: mapEvent.checker_bibs,
+								bib_nums: mapEvent.bib_nums
+							};
+							
+							if (updatedEvent) {
+								eventObject.name = updatedEvent.name;
+								eventObject.start_time = updatedEvent.start_time;
+							}
+
+							return eventObject;
+						})
+					};
+				// Race that does not exist locally yet
+				} else {
+					raceObject = {
+						name: race.name,
+						next_date: race.next_date,
+						race_id: race.race_id,
+						events: race.events.map(mapEvent => {
+							const eventObject: Event = {
+								name: mapEvent.name,
+								start_time: mapEvent.start_time,
+								event_id: mapEvent.event_id,
+								real_start_time: -1,
+								finish_times: [],
+								checker_bibs: [],
+								bib_nums: []
+							};
+						
+							return eventObject;
+						})
 					};
 				}
-
-				// Don't push an raceObject that already exists in the list
-				setFinalRaceList(finalRaceList => {
-					if (!finalRaceList.find(foundObject => foundObject.race_id === raceObject.race_id)) {
-						finalRaceList.push(raceObject);
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(finalRaceList));
-					}
-					return [...finalRaceList];
-				});
+				combinedRaceList.push(raceObject);
 			}
-			
+
+			// Update race list and local storage
+			setFinalRaceList([...combinedRaceList]);
+			AsyncStorage.setItem("onlineRaces", JSON.stringify(combinedRaceList));
+
 			if (reload) {
 				setRefreshing(false);
 			} else {
@@ -178,6 +188,10 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			fetchRaces(false);
 		}
 	}, [context.eventID, context.eventTitle, context.raceID]);
+
+	// useEffect(() => {
+	// 	console.log(finalRaceList);
+	// }, [finalRaceList]);
 
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: Race, index: number }): React.ReactElement => {

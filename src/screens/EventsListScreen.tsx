@@ -23,7 +23,6 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const [finalEventList, setFinalEventList] = useState<Array<Event>>([]);
 	const [loading, setLoading] = useState(false);
-	const [refreshing, setRefreshing] = useState(false);
 	const navigationRef = useRef<ScreenNavigationProp>(navigation);
 
 	// Handle log out. Delete local tokens
@@ -78,67 +77,21 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [context.eventID, context.raceID, handleLogOut, navigation]);
 
 	// Get Race data from the API
-	const fetchEvents = useCallback(async (reload: boolean): Promise<void> => {
+	const fetchEvents = useCallback(async (): Promise<void> => {
 		try {
-			if (reload) {
-				setRefreshing(true);
-			} else {
-				setLoading(true);
-			}
+			setLoading(true);
 
+			// Get events
 			const response = await AsyncStorage.getItem("onlineRaces");
-			const raceList: Array<Race> = response !== null ? JSON.parse(response) : [];
-			const race = raceList.find((race) => race.race_id === context.raceID);
+			const localRaceList: Array<Race> = response !== null ? JSON.parse(response) : [];
+			const race = localRaceList.find((race) => race.race_id === context.raceID);
 
-			if (race && "events" in race) {
-				const raceListId = raceList.indexOf(race);
+			if (race && race.events) {
 				const events = race.events;
-
-				for (let i = 0; i < events.length; i++) {
-					// Create local storage eventObject	
-					const event = race.events.find((event) => event.event_id === events[i].event_id);
-
-					let eventObject: Event = {
-						name: events[i].name,
-						start_time: events[i].start_time,
-						event_id: events[i].event_id,
-						real_start_time: -1,
-						finish_times: [],
-						checker_bibs: [],
-						bib_nums: [],
-					};
-
-					// If there is local data don't overwrite it
-					if (event !== undefined) {
-						eventObject = {
-							name: events[i].name,
-							start_time: events[i].start_time,
-							real_start_time: (event.real_start_time) ? event.real_start_time : -1,
-							event_id: events[i].event_id,
-							finish_times: (event.finish_times) ? event.finish_times : [],
-							checker_bibs: (event.checker_bibs) ? event.checker_bibs : [],
-							bib_nums: (event.bib_nums) ? event.bib_nums : [],
-						};
-					}
-
-					// Don't push an eventObject that already exists in the list
-					setFinalEventList(finalEventList => {
-						if (!finalEventList.find(foundObject => foundObject.event_id === eventObject.event_id)) {
-							finalEventList.push(eventObject);
-							race.events = finalEventList;
-							raceList[raceListId] = race;
-							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-						}
-						return finalEventList;
-					});
-				}
+				setFinalEventList(events);
 			}
 
-			if (reload) {
-				setRefreshing(false);
-			} else {
-				setLoading(false);
-			}
+			setLoading(false);
 		} catch (error) {
 			if (error instanceof Error) {
 				if (error.message === undefined || error.message === "Network Error") {
@@ -149,11 +102,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			}
 			
-			if (reload) {
-				setRefreshing(false);
-			} else {
-				setLoading(false);
-			}
+			setLoading(false);
 		}
 	}, [context.raceID]);
 
@@ -161,7 +110,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		if (firstRun.current) {
 			firstRun.current = false;
-			fetchEvents(false);
+			fetchEvents();
 		}
 	}, [fetchEvents]);
 
@@ -193,8 +142,6 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					: <FlatList
 						showsVerticalScrollIndicator={false}
 						data={finalEventList}
-						onRefresh={(): void => { fetchEvents(true); }}
-						refreshing={refreshing}
 						renderItem={renderItem}
 						keyExtractor={(_item, index): string => (index + 1).toString()}
 					/>}
