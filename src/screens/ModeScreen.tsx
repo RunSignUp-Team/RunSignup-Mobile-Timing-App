@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { View, TouchableOpacity, Text, Alert } from "react-native";
-import { globalstyles } from "../components/styles";
+import { View, TouchableOpacity, Text, Alert, ActivityIndicator, Platform } from "react-native";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getFinishTimes } from "../helpers/AxiosCalls";
@@ -35,6 +35,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [chuteProgress, setChuteProgress] = useState(false);
 	const [localEdits, setLocalEdits] = useState(true);
 	const [insuffData, setInsuffData] = useState(false);
+
+	const [hasButtonColors, setHasButtonColors] = useState(false);
 
 	const noFinishLine = finishLineDone || chuteDone || chuteProgress;
 	const noChute = chuteDone || finishLineProgress;
@@ -145,6 +147,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setChuteDone(cDone === "true" ? true : false);
 		setLocalEdits(lEdits);
 		setInsuffData(iData);
+
+		setHasButtonColors(true);
 	}, [context.eventID, context.online, context.raceID, context.time, finishLineDone]);
 
 	// Get button colors on focus
@@ -346,11 +350,14 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
+			{!hasButtonColors && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
-				<MainButton color={noFinishLine ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={"Finish Line Mode"} />
-				<MainButton color={noChute ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={"Chute Mode"} />
-				<MainButton color={noResults ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
-				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
+				{hasButtonColors && <>
+					<MainButton color={noFinishLine ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} />
+					<MainButton color={noChute ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
+					<MainButton color={noResults ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
+					<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
+				</>}
 			</View>
 		</View>
 	);

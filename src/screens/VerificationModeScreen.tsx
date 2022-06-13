@@ -125,59 +125,64 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			// Get participants from API
 			const participantList = await getParticipants(context.raceID, context.eventID);
 
-			// Bibs
-			for (let i = 0; i < bibs.length; i++) {
-				if (i > recordsRef.current.length - 1) {
-					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-				}
-				recordsRef.current[i][0] = parseInt(bibs[i].bib_num);
-			}
-
 			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 
+			// Bibs & Checker Bibs
 			if (raceIndex !== null && eventIndex !== null) {
 				// Store conflict data in record (whether from Chute or Finish line mode)
-				const biggerArray = Math.max(raceList[raceIndex].events[eventIndex].checker_bibs.length, raceList[raceIndex].events[eventIndex].bib_nums.length);
+				const biggerArray = Math.max(raceList[raceIndex].events[eventIndex].checker_bibs.length, raceList[raceIndex].events[eventIndex].bib_nums.length, bibs.length);
 				for (let i = 0; i < biggerArray; i++) {
 					if (i > recordsRef.current.length - 1) {
 						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 					}
 
-					const bibNum = raceList[raceIndex].events[eventIndex].bib_nums[i];
-					const checkerBib = raceList[raceIndex].events[eventIndex].checker_bibs[i];
+					const localBib = raceList[raceIndex].events[eventIndex].bib_nums[i];
+					const localCheckerBib = raceList[raceIndex].events[eventIndex].checker_bibs[i];
+					const apiBib = parseInt(bibs[i]?.bib_num);
 
-					// Set checker bib record to conflicting bib
-					recordsRef.current[i][2] = 
-						(recordsRef.current[i][0] === checkerBib || (isNaN(recordsRef.current[i][0]) && isNaN(checkerBib))) ? 
-							(isNaN(bibNum) ? 0 : bibNum) : 
-							(isNaN(checkerBib) ? 0 : checkerBib);
+					if (localBib !== undefined && localCheckerBib !== undefined) {
+						// Case 1: Bibs & Checker Bibs on same device
+						recordsRef.current[i][0] = localBib;
+						recordsRef.current[i][2] = localCheckerBib;
+					} else if (localCheckerBib !== undefined && !isNaN(apiBib)) {
+						// Case 2: Bibs in API & Checker Bibs on device
+						recordsRef.current[i][0] = apiBib;
+						recordsRef.current[i][2] = localCheckerBib;
+					} else if (localBib !== undefined && !isNaN(apiBib)) {
+						// Case 3: Checker Bibs in API & Bibs on device
+						recordsRef.current[i][0] = apiBib;
+						recordsRef.current[i][2] = localBib;
+					} else if (!isNaN(apiBib)) {
+						// Case 4: Only API Bib
+						recordsRef.current[i][0] = apiBib;
+						recordsRef.current[i][2] = apiBib;
+					} else if (localBib !== undefined) {
+						// Case 5: Only Local Bib
+						recordsRef.current[i][0] = localBib;
+						recordsRef.current[i][2] = localBib;
+					}  else if (localCheckerBib !== undefined) {
+						// Case 5: Only Local Checker Bib
+						recordsRef.current[i][0] = localCheckerBib;
+						recordsRef.current[i][2] = localCheckerBib;
+					} else {
+						Logger("Unknown Error (Get Bibs)", [localBib, localCheckerBib, apiBib], true);
+					}
+
+					// Deal with simple conflicts right away
+					if (!recordsRef.current[i][0] && recordsRef.current[i][2]) {
+						recordsRef.current[i][0] = recordsRef.current[i][2];
+					}
+					if (!recordsRef.current[i][2] && recordsRef.current[i][0]) {
+						recordsRef.current[i][2] = recordsRef.current[i][0];
+					}
 
 					// Good debugging logs
-					console.log("Stored in API: ", recordsRef.current[i][0]);
-					console.log("CheckerBib: ", checkerBib);
-					console.log("BibNum: ", bibNum);
-					console.log("Conflict Bib: ", recordsRef.current[i][2]);
-					console.log("\n");
-
-					// Prefer real bibs to zeros
-					if (!recordsRef.current[i][0]) {
-						if (!(recordsRef.current[i][2])) {
-							if (bibNum) {
-								recordsRef.current[i][0] = bibNum;
-							} else {
-								recordsRef.current[i][0] = 0;
-							}
-						} else {
-							recordsRef.current[i][0] = recordsRef.current[i][2];
-						}
-					}
-
-					// Without this, conflicts are shown as API Bib / Conflict Bib
-					// If there are several conflicts, we want to display to the user the conflicts that they have resolved locally even before the resolutions have been pushed
-					// So if checker_bibs[i] === bib_nums[i], we will show that there is no conflict even if the API hasn't been updated yet
-					if (checkerBib === bibNum) {
-						recordsRef.current[i][0] = bibNum;
-					}
+					// console.log("Stored in API: ", apiBib);
+					// console.log("CheckerBib: ", localCheckerBib);
+					// console.log("BibNum: ", localBib);
+					// console.log("Record[0]: ", recordsRef.current[i][0]);
+					// console.log("Record[2]: ", recordsRef.current[i][2]);
+					// console.log("\n");
 				}
 			}
 
