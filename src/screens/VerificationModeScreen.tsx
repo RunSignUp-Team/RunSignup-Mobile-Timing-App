@@ -147,19 +147,26 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					const checkerBib = raceList[raceIndex].events[eventIndex].checker_bibs[i];
 
 					// Set checker bib record to conflicting bib
-					recordsRef.current[i][2] = (recordsRef.current[i][0] === checkerBib || (isNaN(recordsRef.current[i][0]) && isNaN(checkerBib))) ? (isNaN(bibNum) ? 0 : bibNum) : (isNaN(checkerBib) ? 0 : checkerBib);
+					recordsRef.current[i][2] = 
+						(recordsRef.current[i][0] === checkerBib || (isNaN(recordsRef.current[i][0]) && isNaN(checkerBib))) ? 
+							(isNaN(bibNum) ? 0 : bibNum) : 
+							(isNaN(checkerBib) ? 0 : checkerBib);
 
 					// Good debugging logs
-					// console.log("Stored in API: ", parseInt(recordsRef.current[i][0]));
-					// console.log("CheckerBib: ", checkerBib);
-					// console.log("BibNum: ", bibNum);
-					// console.log("Conflict Bib: ", parseInt(recordsRef.current[i][2]));
-					// console.log("\n");
+					console.log("Stored in API: ", recordsRef.current[i][0]);
+					console.log("CheckerBib: ", checkerBib);
+					console.log("BibNum: ", bibNum);
+					console.log("Conflict Bib: ", recordsRef.current[i][2]);
+					console.log("\n");
 
 					// Prefer real bibs to zeros
 					if (!recordsRef.current[i][0]) {
 						if (!(recordsRef.current[i][2])) {
-							recordsRef.current[i][0] = 0;
+							if (bibNum) {
+								recordsRef.current[i][0] = bibNum;
+							} else {
+								recordsRef.current[i][0] = 0;
+							}
 						} else {
 							recordsRef.current[i][0] = recordsRef.current[i][2];
 						}
@@ -223,7 +230,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				// Offline Functionality
 				GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 					if (eventIndex !== -1) {
-						// Get bibs, finish times, and checker bibs
+						// Get Bibs
 						for (let i = 0; i < eventList[eventIndex].bib_nums.length; i++) {
 							if (i > recordsRef.current.length - 1) {
 								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
@@ -231,6 +238,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							recordsRef.current[i][0] = eventList[eventIndex].bib_nums[i];
 						}
 	
+						// Get Finish Times
 						for (let i = 0; i < eventList[eventIndex].finish_times.length; i++) {
 							if (i > recordsRef.current.length - 1) {
 								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
@@ -238,6 +246,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							recordsRef.current[i][1] = eventList[eventIndex].finish_times[i];
 						}
 	
+						// Get Checker Bibs
 						for (let i = 0; i < eventList[eventIndex].checker_bibs.length; i++) {
 							if (i > recordsRef.current.length - 1) {
 								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);

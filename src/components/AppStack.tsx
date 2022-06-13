@@ -69,12 +69,8 @@ export default function StartNavigator(): React.ReactElement {
 				<AppStack.Screen name="RaceList" component={RaceListScreen} options={{
 					title: "Races",
 				}} />
-				<AppStack.Screen name="EventsList" component={EventsListScreen} options={{
-					title: "Events",
-				}} />
-				<AppStack.Screen name="ModeScreen" component={ModeScreen} options={{
-					title: "Modes",
-				}} />
+				<AppStack.Screen name="EventsList" component={EventsListScreen}/>
+				<AppStack.Screen name="ModeScreen" component={ModeScreen}/>
 				<AppStack.Screen name="FinishLineMode" component={FinishLineModeScreen} options={{
 					title: "Finish Line Mode",
 					gestureEnabled: false

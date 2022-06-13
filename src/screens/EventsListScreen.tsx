@@ -51,17 +51,31 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Set back button
 	useEffect(() => {
-		navigation.setOptions({
-			headerLeft: () => (
-				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
-			),
-			headerRight: () => (
-				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={globalstyles.headerButtonText}>Log Out</Text>
-				</TouchableOpacity>
-			)
-		});
-	}, [handleLogOut, navigation]);
+		const setNavigation = async (): Promise<void> => {
+			let raceName = "";
+			const response = await AsyncStorage.getItem("onlineRaces");
+			if (response) {
+				const races = JSON.parse(response) as Array<Race>;
+				const race = races.find(foundRace => foundRace.race_id === context.raceID);
+				if (race) {
+					raceName = race.name;
+				}
+			}
+
+			navigation.setOptions({
+				headerLeft: () => (
+					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+				),
+				headerRight: () => (
+					<TouchableOpacity onPress={handleLogOut}>
+						<Text style={globalstyles.headerButtonText}>Log Out</Text>
+					</TouchableOpacity>
+				),
+				headerTitle: raceName ? raceName : "Events"
+			});
+		};
+		setNavigation();
+	}, [context.eventID, context.raceID, handleLogOut, navigation]);
 
 	// Get Race data from the API
 	const fetchEvents = useCallback(async (reload: boolean): Promise<void> => {
