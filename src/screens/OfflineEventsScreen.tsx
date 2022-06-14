@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, ActivityIndicator, Platform } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { AppContext } from "../components/AppContext";
@@ -37,78 +37,41 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [eventList, setEventList] = useState<Array<OfflineEvent>>([]);
-	const [eventName, setEventName] = useState("");
 
 	const [alertVisible, setAlertVisible] = useState(false);
-	const isVisible = useIsFocused();
+	const isFocused = useIsFocused();
 
 	const flatListRef = useRef<FlatList>(null);
 	const navigationRef = useRef(navigation);
 
 	const [loading, setLoading] = useState(false);
+	const [doneInitialLoad, setDoneInitialLoad] = useState(false);
 
 	// Set back button
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 		});
 	}, [context.eventID, context.online, context.raceID, navigation]);
 
 	// Get offline events from local storage, and run again when deleting an offline event
 	useEffect(() => {
-		setLoading(true);
 		const getOfflineEvents = async (): Promise<void> => {
-			if (isVisible) {
-				const response = await AsyncStorage.getItem("offlineEvents");
+			setLoading(true);
+			const response = await AsyncStorage.getItem("offlineEvents");
 
-				// Check if list is empty or not
-				if (response !== null) {
-					setEventList(JSON.parse(response));
-					setLoading(false);
-				} else {
-					setLoading(false);
-				}
+			// Check if list is empty or not
+			if (response !== null) {
+				setEventList(JSON.parse(response));
 			}
+
+			setDoneInitialLoad(true);
+			setLoading(false);
 		};
 		getOfflineEvents();
-	}, [isVisible]);
-
-	// Create event
-	useEffect(() => {
-		if (eventName) {
-			const createTime = new Date().getTime();
-			const offlineEvent: OfflineEvent = {
-				time: createTime,
-				name: eventName,
-				start_time: "",
-				real_start_time: -1,
-				finish_times: [],
-				bib_nums: [],
-				checker_bibs: [],
-			};
-			eventList.push(offlineEvent);
-			setEventList([...eventList]);
-			const flatListRefCurrent = flatListRef.current;
-			if (flatListRefCurrent !== null) {
-				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * eventList.length }); }, 200);
-			}
-
-			setAlertVisible(false);
-			setEventName("");
-		}
-	}, [eventList, eventName]);
-
-	useEffect(() => {
-		if (eventName) {
-			const createEvent = async (): Promise<void> => {
-				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-			};
-			createEvent();
-		}
-	}, [eventList, eventName]);
-	
+	}, [isFocused]);
 
 	// Delete old Bib Numbers and upload new Bib Numbers
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
@@ -227,6 +190,46 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID, context.time]);
 
+	// Save offline events to storage
+	useEffect(() => {
+		if (doneInitialLoad && isFocused && !context.online) {
+			const saveOfflineEvents = async (): Promise<void> => {
+				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+			};
+			saveOfflineEvents();
+		}
+	}, [context.online, doneInitialLoad, eventList, isFocused]);
+
+	// Create Offline Event
+	const createEvent = async (eventName: string): Promise<void> => {
+		if (eventName) {
+			const createTime = new Date().getTime();
+			const offlineEvent: OfflineEvent = {
+				time: createTime,
+				name: eventName,
+				start_time: "",
+				real_start_time: -1,
+				finish_times: [],
+				bib_nums: [],
+				checker_bibs: [],
+			};
+
+			setEventList(eventList => {
+				eventList.push(offlineEvent);
+				return [...eventList];
+			});
+
+			const flatListRefCurrent = flatListRef.current;
+			if (flatListRefCurrent !== null) {
+				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * eventList.length }); }, 200);
+			}
+
+			setAlertVisible(false);
+		} else {
+			Alert.alert("Name Required", "A name is required to create an offline event.");
+		}
+	};
+
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: OfflineEvent, index: number }): React.ReactElement => {
 		const setEventTitle = context.setEventTitle;
@@ -254,34 +257,31 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			<TextInputAlert 
 				visible={alertVisible} 
 				title={"Set Event Name"}
-				message={"Enter the name for your offline event."}
+				message={"Enter the name of your offline event."}
 				placeholder={"Event Name"}
-				initialValue={eventName}
 				maxLength={15}
 				actionOnPress={(valArray): void => {
-					setEventName(valArray[0]);
+					createEvent(valArray[0]);
 				}}
 				cancelOnPress={(): void => {
 					setAlertVisible(false);
 				}}
 			/>
-			{loading 
-				? 
-				<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> 
-				: 
-				<>
-					<FlatList
-						ListHeaderComponent={context.online ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }}/>}
-						showsVerticalScrollIndicator={false}
-						data={eventList}
-						renderItem={renderItem}
-						ref={flatListRef}
-						getItemLayout={(_, index): ItemLayout => (
-							{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
-						)}
-						keyExtractor={(_item, index): string => (index + 1).toString()}
-					/>
-				</>}
+
+			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			{!loading &&
+				<FlatList
+					ListHeaderComponent={context.online ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }} />}
+					showsVerticalScrollIndicator={false}
+					data={eventList}
+					renderItem={renderItem}
+					ref={flatListRef}
+					getItemLayout={(_, index): ItemLayout => (
+						{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
+					)}
+					keyExtractor={(_item, index): string => (index + 1).toString()}
+				/>
+			}
 		</View >
 	);
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, ActivityIndicator, Text, Platform, TouchableOpacity } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoEventsListItem } from "../components/EventsListRenderItem";
@@ -63,7 +63,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
 					<TouchableOpacity onPress={handleLogOut}>
@@ -133,18 +133,16 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading
-				?
-				<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />
-				: finalEventList.length < 1
-					?
-					<Text style={globalstyles.info}>{"Hmm...looks like you don't have any upcoming events for this race yet!"}</Text>
-					: <FlatList
-						showsVerticalScrollIndicator={false}
-						data={finalEventList}
-						renderItem={renderItem}
-						keyExtractor={(_item, index): string => (index + 1).toString()}
-					/>}
+			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			{!loading && finalEventList.length < 1 && <Text style={globalstyles.info}>{"No events found for this race. Please confirm that you have set up the race correctly at RunSignup."}</Text>}
+			{!loading &&
+				<FlatList
+					showsVerticalScrollIndicator={false}
+					data={finalEventList}
+					renderItem={renderItem}
+					keyExtractor={(_item, index): string => (index + 1).toString()}
+				/>
+			}
 		</View>
 	);
 };

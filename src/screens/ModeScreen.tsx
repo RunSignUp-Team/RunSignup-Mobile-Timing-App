@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { View, TouchableOpacity, Text, Alert, ActivityIndicator, Platform } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getFinishTimes } from "../helpers/AxiosCalls";
@@ -177,7 +177,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor="white"></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
 					context.online ?

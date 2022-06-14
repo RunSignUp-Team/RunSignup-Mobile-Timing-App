@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, Text, Alert, FlatList, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING } from "../components/styles";
+import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getBibs, postBibs } from "../helpers/AxiosCalls";
@@ -173,7 +173,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			)
 		});
 
@@ -308,10 +308,17 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					/>
 				</View>
 
-				{loading
-					?
-					<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />
-					:
+				{/* Header */}
+				<View style={globalstyles.tableHead}>
+					<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
+					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+					<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+						<Text style={globalstyles.deleteTableText}>-</Text>
+					</View>
+				</View>
+
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+				{!loading &&
 					<>
 						<FlatList
 							showsVerticalScrollIndicator={false}
@@ -326,20 +333,13 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
 							)}
 							keyboardShouldPersistTaps="handled"
-							ListHeaderComponent={<View style={globalstyles.tableHead}>
-								<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
-								<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-								<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
-									<Text style={globalstyles.deleteTableText}>-</Text>
-								</View>
-							</View>}
-							stickyHeaderIndices={[0]}
 						/>
 
 						<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
 							<MainButton onPress={recordBib} text={"Record"} />
 						</View>
-					</>}
+					</>
+				}
 
 				{alertIndex !== undefined && <TextInputAlert
 					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}

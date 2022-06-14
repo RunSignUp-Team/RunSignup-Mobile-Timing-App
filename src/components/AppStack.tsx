@@ -7,7 +7,7 @@ import FinishLineModeScreen from "../screens/FinishLineModeScreen";
 import ChuteModeScreen from "../screens/ChuteModeScreen";
 import VerificationModeScreen from "../screens/VerificationModeScreen";
 import OfflineEventsListScreen from "../screens/OfflineEventsScreen";
-import { BIG_FONT_SIZE, GREEN_COLOR } from "./styles";
+import { BIG_FONT_SIZE, GREEN_COLOR, WHITE_COLOR } from "./styles";
 import { createStackNavigator } from "@react-navigation/stack";
 import Logger from "../helpers/Logger";
 import * as SplashScreen from "expo-splash-screen";
@@ -56,7 +56,7 @@ export default function StartNavigator(): React.ReactElement {
 		<>
 			{appIsReady && <AppStack.Navigator screenOptions={{
 				headerStyle: { backgroundColor: GREEN_COLOR },
-				headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "RobotoBold", color: "white" },
+				headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "RobotoBold", color: WHITE_COLOR },
 				headerTitleAlign: "left"
 			}}>
 				<AppStack.Screen name="Login" component={LoginScreen} options={{

@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, TouchableOpacity, View, ViewStyle } from "react-native";
-import { BIG_FONT_SIZE, BORDER_RADIUS, DARK_GRAY_COLOR, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, SMALL_FONT_SIZE } from "./styles";
+import { BIG_FONT_SIZE, BORDER_RADIUS, DARK_GRAY_COLOR, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, RED_COLOR, SMALL_FONT_SIZE, WHITE_COLOR } from "./styles";
 
 type ButtonColor = "Red" | "Gray" | "Disabled" | "Green";
 
@@ -53,7 +53,7 @@ export default function MainButton(props: Props): React.ReactElement {
 					style={{
 						fontSize: props.listButton !== undefined ? MEDIUM_FONT_SIZE : BIG_FONT_SIZE,
 						fontFamily: "RobotoBold",
-						color: "white",
+						color: WHITE_COLOR,
 						paddingHorizontal: 1,
 					}}>
 					{props.listButton + ". "}
@@ -64,7 +64,7 @@ export default function MainButton(props: Props): React.ReactElement {
 					style={{
 						fontSize: props.listButton !== undefined ? MEDIUM_FONT_SIZE : BIG_FONT_SIZE,
 						fontFamily: "RobotoBold",
-						color: "white",
+						color: WHITE_COLOR,
 						paddingHorizontal: 1,
 					}}>
 					{props.text}
@@ -74,7 +74,7 @@ export default function MainButton(props: Props): React.ReactElement {
 						style={{
 							fontSize: SMALL_FONT_SIZE,
 							fontFamily: "Roboto",
-							color: "white",
+							color: WHITE_COLOR,
 							paddingHorizontal: 1,
 						}}>
 						{props.subtitle}

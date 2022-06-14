@@ -13,6 +13,7 @@ export const DARK_GRAY_COLOR = "#4f4f4f";
 export const GRAY_COLOR = "#a5a5a5";
 export const LIGHT_GRAY_COLOR = "#e6e6e6";
 export const BACKGROUND_COLOR = "#f2f2f2";
+export const WHITE_COLOR = "#fff";
 
 export const BIG_FONT_SIZE = 23;
 export const MEDIUM_FONT_SIZE = 20;
@@ -104,21 +105,21 @@ export const globalstyles = StyleSheet.create({
 	headerButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
 		fontFamily: "RobotoBold",
-		color: "white",
+		color: WHITE_COLOR,
 		marginRight: 10
 	},
 
 	// Text
 	info: {
 		fontSize: BIG_FONT_SIZE,
+		color: WHITE_COLOR,
+		backgroundColor: DARK_GRAY_COLOR,
 		fontFamily: "Roboto",
-		marginTop: 0,
 		marginBottom: 10,
 		textAlign: "center",
-		borderWidth: 1,
-		borderColor: "black",
 		borderRadius: BORDER_RADIUS,
 		padding: UNIVERSAL_PADDING,
+		overflow: "hidden"
 	},
 
 	// Flat Lists
@@ -232,7 +233,7 @@ export const globalstyles = StyleSheet.create({
 	tableButtonText: {
 		fontSize: MEDIUM_FONT_SIZE,
 		fontFamily: "Roboto",
-		color: "white",
+		color: WHITE_COLOR,
 		textAlign: "center",
 		textAlignVertical: "center"
 	},

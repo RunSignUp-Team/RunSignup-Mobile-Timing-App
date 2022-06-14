@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE } from "../components/styles";
+import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -190,7 +190,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			)
 		});
 
@@ -458,67 +458,66 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<KeyboardAvoidingView style={globalstyles.tableContainer} behavior={Platform.OS == "ios" ? "padding" : "height"}>
-				{
-					loading ?
-						<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />
-						:
-						<>
-							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
-								<View style={[globalstyles.timerView, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR}]}>
-									<Text style={{fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-										{GetClockTime(displayTime)}
-									</Text>
-								</View>
-								<TextInput
-									ref={bibInputRef}
-									onChangeText={setBibText}
-									editable={timerOn}
-									style={globalstyles.timerBibInput}
-									value={bibText}
-									maxLength={6}
-									placeholder="Bib Entry"
-									placeholderTextColor={GRAY_COLOR}
-									keyboardType="number-pad"
-								/>
-							</View>
+				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
+					<View style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
+						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
+							{GetClockTime(displayTime)}
+						</Text>
+					</View>
+					<TextInput
+						ref={bibInputRef}
+						onChangeText={setBibText}
+						editable={timerOn}
+						style={globalstyles.timerBibInput}
+						value={bibText}
+						maxLength={6}
+						placeholder="Bib Entry"
+						placeholderTextColor={GRAY_COLOR}
+						keyboardType="number-pad"
+					/>
+				</View>
 
-							<FlatList
-								showsVerticalScrollIndicator={false}
-								style={globalstyles.flatList}
-								ref={flatListRef}
-								data={finishTimesRef.current}
-								renderItem={renderItem}
-								initialNumToRender={10}
-								windowSize={11}
-								getItemLayout={(_, index): ItemLayout => (
-									{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
-								)}
-								keyExtractor={(_item, index): string => (index + 1).toString()}
-								keyboardShouldPersistTaps="handled"
-								ListHeaderComponent={<View style={globalstyles.tableHead}>
-									<Text style={globalstyles.placeTableHeadText}>#</Text>
-									<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-									<Text style={globalstyles.timeTableHeadText}>Time</Text>
-									<View style={[globalstyles.tableAddButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
-										<Text style={{textAlign: "center", fontFamily: "RobotoBold", fontSize: SMALL_FONT_SIZE}}>+</Text>
-									</View>
-									<View style={[globalstyles.tableDeleteButton, {backgroundColor: globalstyles.tableHead.backgroundColor}]}>
-										<Text style={globalstyles.deleteTableText}>-</Text>
-									</View>
-								</View>}
-								stickyHeaderIndices={[0]} />
+				{/* Header */}
+				<View style={globalstyles.tableHead}>
+					<Text style={globalstyles.placeTableHeadText}>#</Text>
+					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+					<Text style={globalstyles.timeTableHeadText}>Time</Text>
+					<View style={[globalstyles.tableAddButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+						<Text style={{ textAlign: "center", fontFamily: "RobotoBold", fontSize: SMALL_FONT_SIZE }}>+</Text>
+					</View>
+					<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+						<Text style={globalstyles.deleteTableText}>-</Text>
+					</View>
+				</View>
 
-							
-							<View style={{paddingHorizontal: UNIVERSAL_PADDING}}>
-								<MainButton 
-									onPress={timerOn ? recordTime : startTimer} 
-									text={timerOn ? "Record" : "Start Timer"} 
-									color={timerOn ? "Green" : "Gray"} 
-								/>
-							</View>
-						</>
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+				{!loading &&
+					<>
+						<FlatList
+							showsVerticalScrollIndicator={false}
+							style={globalstyles.flatList}
+							ref={flatListRef}
+							data={finishTimesRef.current}
+							renderItem={renderItem}
+							initialNumToRender={10}
+							windowSize={11}
+							getItemLayout={(_, index): ItemLayout => (
+								{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
+							)}
+							keyExtractor={(_item, index): string => (index + 1).toString()}
+							keyboardShouldPersistTaps="handled"
+						/>
+
+						<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
+							<MainButton
+								onPress={timerOn ? recordTime : startTimer}
+								text={timerOn ? "Record" : "Start Timer"}
+								color={timerOn ? "Green" : "Gray"}
+							/>
+						</View>
+					</>
 				}
-				
+
 				{alertIndex !== undefined && <TextInputAlert
 					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
 					message={`Edit the bib number for time ${alertIndex !== undefined ? GetClockTime(finishTimesRef.current[alertIndex]) : ""}.`}

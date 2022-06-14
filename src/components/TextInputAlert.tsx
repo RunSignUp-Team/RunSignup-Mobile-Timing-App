@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, Keyboard, KeyboardTypeOptions, Modal, Platform, Text, TextInput, TouchableHighlight, TouchableOpacity, View } from "react-native";
-import { APPLE_BLUE_COLOR, GRAY_COLOR, GREEN_COLOR, LIGHT_GRAY_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, UNIVERSAL_PADDING } from "./styles";
+import { APPLE_BLUE_COLOR, GRAY_COLOR, GREEN_COLOR, LIGHT_GRAY_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, UNIVERSAL_PADDING, WHITE_COLOR } from "./styles";
 
 interface Props {
 	visible: boolean,
@@ -46,6 +46,8 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	useEffect(() => {
 		if (props.initialValue !== undefined) {
 			setValue(props.initialValue);
+		} else {
+			setValue("");
 		}
 	}, [props.initialValue, props.visible]);
 
@@ -53,6 +55,8 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	useEffect(() => {
 		if (props.secondInitialValue !== undefined) {
 			setSecondValue(props.secondInitialValue);
+		} else {
+			setValue("");
 		}
 	}, [props.secondInitialValue, props.visible]);
 
@@ -69,7 +73,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 		return null;
 	}
 
-	const backgroundColor = droid ? "white" : "rgba(255,255,255,0.97)";
+	const backgroundColor = droid ? WHITE_COLOR : "rgba(255,255,255,0.97)";
 	const underlayColor = "rgba(225,225,225,0.97)";
 
 	return (

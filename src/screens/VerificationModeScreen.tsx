@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, TouchableWithoutFeedback, Keyboard, BackHandler, AlertButton } from "react-native";
-import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
+import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/AxiosCalls";
@@ -645,7 +645,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={(): void => { loading ? undefined : backTapped(); }} labelVisible={false} disabled={loading} tintColor="white"></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { loading ? undefined : backTapped(); }} labelVisible={false} disabled={loading} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -751,10 +751,21 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					/>
 				</View>
 
-				{loading
-					?
-					<ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />
-					:
+				{/* Header */}
+				<View style={globalstyles.tableHead}>
+					<Text style={globalstyles.placeTableHeadText}>#</Text>
+					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+					<Text style={globalstyles.timeTableHeadText}>Time</Text>
+					{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
+					{editMode &&
+						<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+							<Text style={globalstyles.deleteTableText}>-</Text>
+						</View>
+					}
+				</View>
+
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+				{!loading &&
 					<FlatList
 						showsVerticalScrollIndicator={false}
 						keyboardShouldPersistTaps="handled"
@@ -771,20 +782,9 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						getItemLayout={(_, index): ItemLayout => (
 							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
 						)}
-						ListHeaderComponent={<View style={globalstyles.tableHead}>
-							<Text style={globalstyles.placeTableHeadText}>#</Text>
-							<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-							<Text style={globalstyles.timeTableHeadText}>Time</Text>
-							{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
-							{editMode &&
-								<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
-									<Text style={globalstyles.deleteTableText}>-</Text>
-								</View>
-							}
-						</View>}
-						stickyHeaderIndices={[0]}
 					/>
 				}
+
 				{alertIndex !== undefined && alertRecord !== undefined &&
 					<TextInputAlert
 						title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
