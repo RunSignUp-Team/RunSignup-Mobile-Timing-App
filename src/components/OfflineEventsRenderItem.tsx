@@ -4,6 +4,8 @@ import { OfflineEvent } from "../screens/OfflineEventsScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import MainButton from "./MainButton";
+import AddLeadingZeros from "../helpers/AddLeadingZeros";
+import DateToDate from "../helpers/DateToDate";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -23,10 +25,24 @@ interface Props {
 }
 
 export default function OfflineEventsRenderItem(props: Props): React.ReactElement {
+
+	const time = props.item.time;
+	const date = new Date(time);
+	const [year, month, day] = DateToDate(date);
+	let hour;
+	if (date.getHours() === 12 || date.getHours() === 0) {
+		hour = 12;
+	} else {
+		hour = date.getHours() % 12;
+	}
+	const minutes = AddLeadingZeros(date.getMinutes());
+	const ampm = date.getHours() >= 12 ? "PM" : "AM";
+
 	return (
 		<MainButton 
 			text={props.item.name} 
 			listButton={props.index + 1}
+			subtitle={`${month}/${day}/${year} - ${hour}:${minutes} ${ampm}`}
 			onPress={(): void => {
 				if (!props.online) {
 					props.setEventTitle(props.item.name);

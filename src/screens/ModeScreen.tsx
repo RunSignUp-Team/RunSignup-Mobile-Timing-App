@@ -328,12 +328,16 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 								{
 									text: "Delete",
 									onPress: async (): Promise<void> => {
-										const response = await AsyncStorage.getItem("offlineEvents");
-										let eventsList = response !== null ? JSON.parse(response) : [];
-										eventsList = eventsList.filter((event: OfflineEvent) => event.time !== context.time);
-				
-										await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventsList));
-										navigation.navigate("OfflineEventsList");
+										try {
+											const response = await AsyncStorage.getItem("offlineEvents");
+											let eventsList = response !== null ? JSON.parse(response) : [];
+											eventsList = eventsList.filter((event: OfflineEvent) => event.time !== context.time);
+					
+											await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventsList));
+											navigation.navigate("OfflineEventsList");
+										} catch (error) {
+											Logger("Unknown Error (Delete Offline Event)", error, true);
+										}
 									},
 									style: "destructive",
 								},
