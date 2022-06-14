@@ -101,13 +101,11 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					iData = true;
 				}
 			} catch (error) {
-				if (error instanceof Error) {
-					if (error.message === undefined || error.message === "Network Error") {
-						// Do nothing
-					} else {
-						// Something else
-						Logger("Unknown Error (Results Disabled)", error, true);
-					}
+				if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+					// Do nothing
+				} else {
+					// Something else
+					Logger("Unknown Error (Results Disabled)", error, true);
 				}
 			}
 
@@ -275,13 +273,11 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			}
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === undefined || error.message === "Network Error") {
-					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-				} else {
-					// Something else
-					Logger("Unknown Error (Modes)", error, true);
-				}
+			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+			} else {
+				// Something else
+				Logger("Unknown Error (Modes)", error, true);
 			}
 		}
 	};

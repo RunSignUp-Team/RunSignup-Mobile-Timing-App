@@ -177,13 +177,11 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			Alert.alert("Success", `The data in ${item.name} has been successfully assigned to ${raceList[raceIndex]?.events[eventIndex]?.name}!`);
 			navigationRef.current.navigate("ModeScreen");
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === undefined || error.message === "Network Error") {
-					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-				} else {
-					// Something else
-					Logger("Unknown Error (Assign Event)", error, true);
-				}
+			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+			} else {
+				// Something else
+				Logger("Unknown Error (Assign Event)", error, true);
 			}
 		} finally {
 			setLoading(false);

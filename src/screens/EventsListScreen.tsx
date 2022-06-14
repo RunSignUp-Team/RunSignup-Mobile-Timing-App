@@ -93,13 +93,11 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 			setLoading(false);
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === undefined || error.message === "Network Error") {
-					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-				} else {
-					// Something else
-					Logger("Unknown Error (Events)", error, true);
-				}
+			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+			} else {
+				// Something else
+				Logger("Unknown Error (Events)", error, true);
 			}
 			
 			setLoading(false);

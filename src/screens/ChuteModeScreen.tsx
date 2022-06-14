@@ -101,13 +101,11 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 						} catch (error) {
-							if (error instanceof Error) {
-								if (error.message === undefined || error.message === "Network Error") {
-									Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-								} else {
-									// Something else
-									Logger("Unknown Error (Chute)", error, true);
-								}
+							if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+								Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+							} else {
+								// Something else
+								Logger("Unknown Error (Chute)", error, true);
 							}
 							setLoading(false);
 						}

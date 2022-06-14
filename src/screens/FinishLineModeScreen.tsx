@@ -121,13 +121,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 
 				} catch (error) {
-					if (error instanceof Error) {
-						if (error.message === undefined || error.message === "Network Error") {
-							Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-						} else {
-							// Something else
-							Logger("Unknown Error (Post Bibs)", error, true);
-						}
+					if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+					} else {
+						// Something else
+						Logger("Unknown Error (Post Bibs)", error, true);
 					}
 					setLoading(false);
 				}
@@ -319,15 +317,13 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				addToStorage(true, finishTimesRef.current, checkerBibsRef.current);
 			}
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === undefined || error.message === "Network Error") {
-					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-				} else if (error.message.toLowerCase().includes("out of order")) {
-					Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
-				} else {
-					// Something else
-					Logger("Unknown Error (Start Time)", error, true);
-				}
+			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+			} else if (error instanceof Error && error.message.toLowerCase().includes("out of order")) {
+				Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
+			} else {
+				// Something else
+				Logger("Unknown Error (Start Time)", error, true);
 			}
 			setLoading(false);
 		}

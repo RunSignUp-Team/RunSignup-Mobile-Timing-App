@@ -46,7 +46,8 @@
     "react-native-web": "0.17.7",
     "react-navigation": "^4.4.4",
     "react-scripts": "^5.0.1",
-    "expo-splash-screen": "~0.14.1"
+    "expo-splash-screen": "~0.14.1",
+    "expo-network": "~4.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",

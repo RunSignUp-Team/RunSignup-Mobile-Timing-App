@@ -1,5 +1,5 @@
 import React, { useContext, useCallback, useState } from "react";
-import { View, Image, BackHandler, ActivityIndicator, Platform } from "react-native";
+import { View, Image, BackHandler, ActivityIndicator, Platform, Alert } from "react-native";
 import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
@@ -11,6 +11,7 @@ import Logger from "../helpers/Logger";
 import { Buffer } from "buffer";
 import { getUser } from "../helpers/AxiosCalls";
 import * as Linking from "expo-linking";
+import * as Network from "expo-network";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -63,12 +64,21 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				try {
 					context.setEmail((await getUser(tokenParse.sub)).user.email);
 				} catch (error) {
-					Logger("No Email Found", error, false);
+					if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+					} else {
+						// Something else
+						Logger("No Email Found", error, false);
+					}
 				}
 
-				// Go to their race list
+				// Go to the race list if connected to internet
 				context.setOnline(true);
-				navigation.push("RaceList");
+				if ((await Network.getNetworkStateAsync()).isInternetReachable) {
+					navigation.push("RaceList");
+				} else {
+					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+				}
 			}
 		} catch (error) {
 			Logger("Unable to Authenticate", error, true);

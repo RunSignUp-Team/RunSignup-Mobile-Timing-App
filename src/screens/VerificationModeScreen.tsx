@@ -229,13 +229,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			updateRecords([...recordsRef.current]);
 		} catch (error) {
-			if (error instanceof Error) {
-				if (error.message === undefined || error.message === "Network Error") {
-					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-				} else {
-					// Something else
-					Logger("Unknown Error (Get Records)", error, true);
-				}
+			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+			} else {
+				// Something else
+				Logger("Unknown Error (Get Records)", error, true);
 			}
 		} finally {
 			if (reload) {
@@ -477,14 +475,13 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 				Alert.alert("Success", "Results successfully uploaded to Runsignup!");
 			} catch (error) {
-				if (error instanceof Error) {
-					if (error.message === undefined || error.message === "Network Error") {
-						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-					} else {
-						// Something else
-						Logger("Unknown Error (Save Records)", error, true);
-					}
+				if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
+					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+				} else {
+					// Something else
+					Logger("Unknown Error (Save Records)", error, true);
 				}
+				
 				if (!isUnmountedRef.current) {
 					setLoading(false);
 				}
