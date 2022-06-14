@@ -112,11 +112,12 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Delete old Bib Numbers and upload new Bib Numbers
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
-		// Appending bib numbers
 		const formData = new FormData();
-		// Post checker bibs if any of them are non-zero
-		if ((!item.bib_nums || item.bib_nums.length < 1) && item.checker_bibs.find(checkerBib => checkerBib !== 0) !== undefined) {
+		// Post checker bibs if they exist
+		if (item.checker_bibs?.length > 0) {
 			await deleteBibs(context.raceID, context.eventID);
+
+			// Appending checker bib
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
@@ -124,9 +125,11 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				"]}"
 			);
 			await postBibs(context.raceID, context.eventID, formData);
-		// Else post bib numbers
-		} else if (item.bib_nums && item.bib_nums.length > 0) {
+		// Else post bib numbers if they exist
+		} else if (item.bib_nums?.length > 0) {
 			await deleteBibs(context.raceID, context.eventID);
+
+			// Appending bib numbers
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
@@ -134,17 +137,17 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				"]}"
 			);
 			await postBibs(context.raceID, context.eventID, formData);
+		// Else unknown error
+		} else {
+			throw new Error(JSON.stringify([item.bib_nums, item.checker_bibs]));
 		}
-
 	}, [context.eventID, context.raceID]);
 
 	// Delete old Finish Times and upload new Finish Times
 	const assignFinishTimes = useCallback(async (item: OfflineEvent) => {
-		await deleteFinishTimes(context.raceID, context.eventID);
-
 		const formatStartTime = new Date(item.real_start_time);
-
 		const formDataStartTime = new FormData();
+
 		// Append request to API
 		formDataStartTime.append(
 			"request",
@@ -154,79 +157,75 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		);
 
 		await postStartTime(context.raceID, context.eventID, formDataStartTime);
-
+		await deleteFinishTimes(context.raceID, context.eventID);
 		await postFinishTimes(context.raceID, context.eventID, item.finish_times);
 	}, [context.eventID, context.raceID]);
 
-	const assignData = useCallback(async (item: OfflineEvent) => {
-		setLoading(true);
+	// Assign offline bib numbers, finish times, and start time, if any
+	const assignData = useCallback(async (item: OfflineEvent): Promise<void> => {
+		try {
+			setLoading(true);
 
-		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			// Finish Line Done
+			const flDone = await AsyncStorage.getItem(`finishLineDone:${context.time}`) === "true";
+			// Chute Done
+			const cDone = await AsyncStorage.getItem(`chuteDone:${context.time}`) === "true";
 
-		let conflicts = false;
-
-		// Check for conflicts
-		const smallerArray = Math.min(item.bib_nums.length, item.checker_bibs.length);
-		for (let i = 0; i < smallerArray; i++) {
-			if (ConflictBoolean(item.bib_nums[i], item.checker_bibs[i])) {
-				Alert.alert("Conflicts Remaining", `The Offline Event "${item.name}" contains conflicts. Please resolve them in the "${item.name}" Results and try again.`);
-				conflicts = true;
+			// Check status of offline event
+			if (
+				item.checker_bibs?.length < 1 ||
+				item.finish_times?.length < 1 ||
+				(item.bib_nums?.length > 0 && !cDone) ||
+				(item.checker_bibs?.length > 0 && !flDone) ||
+				(item.finish_times?.length > 0 && !flDone)
+			) {
+				Alert.alert("Invalid Data", `${item.name} does not have saved data. Please make sure to save your data in ${item.name} Finish Line and Chute Modes and try again.`);
 				setLoading(false);
-				break;
+				return;
 			}
+
+			// Get Local Race & Event
+			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+
+			// Check for conflicts
+			const smallerArray = Math.min(item.bib_nums ? item.bib_nums.length : 0, item.checker_bibs ? item.checker_bibs.length : 0);
+			for (let i = 0; i < smallerArray; i++) {
+				if (ConflictBoolean(item.bib_nums[i], item.checker_bibs[i])) {
+					Alert.alert("Conflicts Remaining", `${item.name} contains conflicts. Please resolve them in ${item.name} Results and try again.`);
+					setLoading(false);
+					return;
+				}
+			}
+
+			// Push to RunSignup
+			await assignBibNums(item);
+			await assignFinishTimes(item);
+
+			// Mark modes as complete
+			await AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
+			await AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+
+			// Clear local data for event
+			raceList[raceIndex].events[eventIndex].checker_bibs = [];
+			raceList[raceIndex].events[eventIndex].bib_nums = [];
+			raceList[raceIndex].events[eventIndex].finish_times = [];
+			await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+
+			Alert.alert("Success", `The data in ${item.name} has been successfully assigned to ${raceList[raceIndex]?.events[eventIndex]?.name}!`);
+			navigationRef.current.navigate("ModeScreen");
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.message === undefined || error.message === "Network Error") {
+					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+				} else {
+					// Something else
+					Logger("Unknown Error (Assign Event)", error, true);
+				}
+			}
+		} finally {
+			setLoading(false);
 		}
-
-		if (!conflicts) {
-			// Assign offline bib numbers, finish times, and start time, if any
-			try {
-				if (item.bib_nums.length > 0 || item.checker_bibs.length > 0) {
-					await assignBibNums(item);
-				}
-				if (item.finish_times.length > 0 && (item.real_start_time !== -1 || item.real_start_time !== null)) {
-					await assignFinishTimes(item);
-				}
-			} catch (error) {
-				if (error instanceof Error) {
-					if (error.message === undefined || error.message === "Network Error") {
-						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-					} else {
-						// Something else
-						Logger("Unknown Error (Offline)", error, true);
-					}
-				}
-			}
-
-			// If no bib numbers, finish times, and checker bibs
-			if (item.bib_nums.length < 1 && item.checker_bibs.length < 1 && item.finish_times.length < 1) {
-				Alert.alert("No Data", `The Offline Event "${item.name}" does not have saved Bib Numbers and Finish Times. Please make sure to save your data in the "${item.name}" Finish Line and Chute Modes and try again.`);
-				setLoading(false);
-			} else {
-				// Assign Finish Times
-				if (item.finish_times.length > 0) {
-					await AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-					raceList[raceIndex].events[eventIndex].finish_times = item.finish_times;
-				}
-				// Assign Bibs
-				if (item.bib_nums.length > 0 || item.checker_bibs.length > 0) {
-					await AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-
-					raceList[raceIndex].events[eventIndex].checker_bibs = [];
-					if (item.bib_nums === null || item.bib_nums.length < 1) {
-						// If offline event bibs are checker_bibs
-						raceList[raceIndex].events[eventIndex].bib_nums = item.checker_bibs;
-					} else {
-						// If offline event bibs are bib_nums
-						raceList[raceIndex].events[eventIndex].bib_nums = item.bib_nums;
-					}
-				}
-				
-
-				await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-				setLoading(false);
-				navigationRef.current.navigate("ModeScreen");
-			}
-		}
-	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID]);
+	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID, context.time]);
 
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: OfflineEvent, index: number }): React.ReactElement => {

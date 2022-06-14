@@ -223,7 +223,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					parsedTicipants.push(participantList.participants[i]);
 				}
 				setParticipants([...parsedTicipants]);
-			} else {
+			} else if (!__DEV__) {
 				Logger("No Participant Data Found", "No data from Runsignup", true);
 			}
 
