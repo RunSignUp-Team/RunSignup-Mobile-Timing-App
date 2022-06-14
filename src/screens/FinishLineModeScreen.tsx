@@ -208,9 +208,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						}
 
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
 					} else {
-						Alert.alert("Warning", "If you enter Finish Line Mode data after another user has already entered it for this event, your data will not be saved. Please check with other users before recording data.");
+						Alert.alert("Warning", "You cannot use Finish Line Mode on multiple devices at the same time. Please check with other users before recording data.");
 					}
 				}
 			});
@@ -228,7 +228,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					}
 					if (eventList[eventIndex].finish_times.length > 0) {
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
 					}
 				}
 			});
@@ -466,7 +466,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 								<View style={[globalstyles.timerView, {backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR}]}>
 									<Text style={{fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-										{GetClockTime(displayTime, true)}
+										{GetClockTime(displayTime)}
 									</Text>
 								</View>
 								<TextInput
@@ -521,7 +521,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				
 				{alertIndex !== undefined && <TextInputAlert
 					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
-					message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					message={`Edit the bib number for time ${alertIndex !== undefined ? GetClockTime(finishTimesRef.current[alertIndex]) : ""}.`}
 					placeholder="Enter Bib #"
 					initialValue={GetBibDisplay(checkerBibsRef.current[alertIndex] !== undefined ? checkerBibsRef.current[alertIndex] : -1)}
 					keyboardType={"number-pad"}

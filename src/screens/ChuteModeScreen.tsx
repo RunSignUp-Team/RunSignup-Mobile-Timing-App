@@ -184,7 +184,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
 				if (raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 					// Alert user of data recovery
-					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
+					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
 				}
 			});
 		} else {
@@ -193,7 +193,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				updateBibNums(eventList[eventIndex].bib_nums);
 				if (eventList[eventIndex].bib_nums.length > 0) {
 					// Alert user of data recovery
-					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap “Save” when you are done recording data.");
+					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
 				}
 			});
 		}

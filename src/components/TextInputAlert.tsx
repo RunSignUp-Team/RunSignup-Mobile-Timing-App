@@ -46,8 +46,6 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	useEffect(() => {
 		if (props.initialValue !== undefined) {
 			setValue(props.initialValue);
-		} else {
-			setValue("");
 		}
 	}, [props.initialValue, props.visible]);
 
@@ -55,8 +53,6 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	useEffect(() => {
 		if (props.secondInitialValue !== undefined) {
 			setSecondValue(props.secondInitialValue);
-		} else {
-			setValue("");
 		}
 	}, [props.secondInitialValue, props.visible]);
 

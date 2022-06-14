@@ -13,6 +13,7 @@ interface Props {
 	},
 	selectedID: number,
 	editMode: boolean,
+	maxTime: number,
 	online: boolean,
 	recordsRefSearchBib: number,
 	searchRecordsSearchBib: number,
@@ -22,6 +23,7 @@ interface Props {
 	showAlert(index: number, record: [number, number, number]): void,
 	findParticipant(bib: number): string,
 	updateRecords(records: Array<[number, number, number]>): void,
+	updateMaxTime(maxTime: number): void
 }
 
 
@@ -93,7 +95,19 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 				{props.editMode &&
 					<TouchableOpacity
 						style={globalstyles.tableDeleteButton}
-						onPress={(): void => props.updateRecords(removeOne(index, props.recordsRef.current))}>
+						onPress={(): void => {
+							props.updateRecords(removeOne(index, props.recordsRef.current));
+							if (props.maxTime === props.record[1]) {
+								let maxTime = 0;
+								const timeArray = props.recordsRef.current.map(record => record[1]).filter(time => time < Number.MAX_SAFE_INTEGER);
+								for (let i = 0; i < timeArray.length; i++) {
+									if (timeArray[i] > maxTime) {
+										maxTime = timeArray[i];
+									}	
+								}
+								props.updateMaxTime(maxTime);
+							}
+						}}>
 						<Text style={globalstyles.tableButtonText}>-</Text>
 					</TouchableOpacity>
 				}

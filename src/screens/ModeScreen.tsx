@@ -15,7 +15,6 @@ import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import { Race } from "../models/Race";
-import { Event } from "../models/Event";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -23,11 +22,11 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-const FinishLineModeMsg = "You may not re-enter Finish Line Mode on the same device, enter Finish Line Mode data after recording Chute Mode data, or enter Finish Line Mode data with unsaved Chute Mode data stored on your device.\nIf you have completed all data entry, see Results to view or edit results.";
-const ChuteModeMsg = "You may not re-enter Chute Mode data on the same device, or enter Chute Mode data with unsaved Finish Line Mode data stored on your device.\nIf you have completed all data entry, see Results to view or edit results.";
-
 const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
+
+	const FinishLineModeMsg = `You may not enter Finish Line Mode data${context.online ? ": \n1)" : ""} multiple times on the same device${context.online ? ", 2) after recording Chute Mode data, 3) or with unsaved Chute Mode data stored on your device." : "."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
+	const ChuteModeMsg = `You may not enter Chute Mode data: \n1) multiple times on the same device or 2) ${context.online ? "with unsaved Finish Line Mode data stored on your device." : "before saving Finish Line Mode data."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
 
 	const [finishLineDone, setFinishLineDone] = useState(false);
 	const [finishLineProgress, setFinishLineProgress] = useState(false);
@@ -38,8 +37,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const [hasButtonColors, setHasButtonColors] = useState(false);
 
-	const noFinishLine = finishLineDone || chuteDone || chuteProgress || !insuffData;
-	const noChute = chuteDone || finishLineProgress;
+	const noFinishLine = finishLineDone || chuteDone || chuteProgress || (context.online && !insuffData);
+	const noChute = chuteDone || finishLineProgress || (!context.online && !finishLineDone);
 	const noResults = localEdits || insuffData || (!context.online && !finishLineDone);
 
 	// Handle log out. Delete local tokens
@@ -74,6 +73,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		let cProgress = false;
 		let lEdits = false;
 		let iData = false;
+
 		if (context.online) {
 			// Finish Line Done
 			flDone = await AsyncStorage.getItem(`finishLineDone:${context.raceID}:${context.eventID}`);
@@ -124,12 +124,12 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			// Finish Line In Progress
 			const eventList = await AsyncStorage.getItem("offlineEvents");
 			if (eventList) {
-				const events = JSON.parse(eventList) as Array<Event>;
-				const event = events.find(foundEvent => foundEvent.event_id === context.eventID);
-				if (!(flDone === "true") && event && event.finish_times && event.finish_times.length > 0) {
+				const events = JSON.parse(eventList) as Array<OfflineEvent>;
+				const event = events.find(foundEvent => foundEvent.time === context.time);
+				if (!(flDone === "true") && event?.finish_times && event?.finish_times.length > 0) {
 					flProgress = true;
 				}
-				if (!(cDone === "true") && event && event.bib_nums && event.bib_nums.length > 0) {
+				if (!(cDone === "true") && event?.bib_nums && event.bib_nums.length > 0) {
 					cProgress = true;
 				}
 			}

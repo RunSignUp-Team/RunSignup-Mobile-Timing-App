@@ -1,6 +1,6 @@
-import React, { useContext, useCallback } from "react";
-import { View, Image, BackHandler } from "react-native";
-import { globalstyles } from "../components/styles";
+import React, { useContext, useCallback, useState } from "react";
+import { View, Image, BackHandler, ActivityIndicator, Platform } from "react-native";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -32,6 +32,8 @@ interface TokenParse {
 const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
+	const [loading, setLoading] = useState(false);
+
 	useFocusEffect(
 		useCallback(() => {
 			const onBackPress = (): boolean => {
@@ -47,6 +49,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 
 	/** Handle user wanting to record online races */
 	const handleRecordOnlineClick = async (): Promise<void> => {
+		setLoading(true);
 		try {
 			const accessToken = await oAuthLogin(false);
 			if (!accessToken) {
@@ -69,6 +72,8 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 		} catch (error) {
 			Logger("Unable to Authenticate", error, true);
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -90,7 +95,6 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-
 			<View style={{ flexDirection: "column", flex: 1 }}>
 				<Image
 					style={[globalstyles.image, { marginTop: 10 }]}
@@ -98,6 +102,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				/>
 				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
 				<MainButton text={"Offline Events"} onPress={handleRecordOfflineClick} />
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 			</View>
 

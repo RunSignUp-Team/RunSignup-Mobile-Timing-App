@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, TouchableWithoutFeedback, Keyboard, BackHandler } from "react-native";
+import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, TouchableWithoutFeedback, Keyboard, BackHandler, AlertButton } from "react-native";
 import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -45,6 +45,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [editMode, setEditMode] = useState(false);
 	const [conflicts, setConflicts] = useState(0);
 	const [hasAPIData, setHasAPIData] = useState(false);
+	const maxTime = useRef(0);
 
 	// Records
 	const [records, setRecords] = useState<VRecords>([]);
@@ -71,6 +72,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setRecords(newRecords);
 		recordsRef.current = newRecords;
 	}, []);
+
+	/** Updates records without re-rendering entire list */
+	const updateMaxTime = (newTime: number): void => {
+		maxTime.current = newTime;
+	};
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
@@ -201,7 +207,13 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				if (i > recordsRef.current.length - 1) {
 					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 				}
-				recordsRef.current[i][1] = GetTimeInMils(finishTimes[i].time);
+				const time = GetTimeInMils(finishTimes[i].time);
+				recordsRef.current[i][1] = time;
+
+				// Get Max Time for Adding New Records
+				if (time > maxTime.current) {
+					maxTime.current = time;
+				}
 			}
 
 			// Participants
@@ -334,10 +346,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		// If there are any conflicts and conflicts have not decreased by one
 		// (don't show alert every time the user resolves a conflict)
 		if (conflicts > 0 && conflicts > prevConflicts.current) {
+			const alertMsg = `There is conflicting data for ${conflicts === 1 ? "1 bib number" : `${conflicts} bib numbers`}. You can resolve conflicts ${hasAPIData ? "individually " : ""}by selecting the conflicting rows${hasAPIData ? ", or you can choose to clear your local conflicting data and replace it with the latest data from RunSignup" : ""}.`;
 			if (hasAPIData) {
 				Alert.alert(
 					"Warning", 
-					"There is conflicting data for one or more bib numbers. You can resolve the conflicts individually by selecting the conflicting rows, or you can choose to clear your local conflicting data and get the latest data from RunSignup.",
+					alertMsg,
 					[
 						{
 							text: "Resolve",
@@ -376,38 +389,46 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					]
 				);
 			} else {
-				Alert.alert("Warning", "There is conflicting data for one or more bib numbers. You can resolve the conflicts by selecting the conflicting rows.");
+				Alert.alert("Warning", alertMsg);
 			}
 		}
 		prevConflicts.current = conflicts - 1;
 	}, [conflictResolved, conflicts, hasAPIData, updateRecords]);
 
 	const conflictResolution = useCallback(async (index) => {
+		const buttons: Array<AlertButton> = [];
+		if (Platform.OS === "android") {
+			buttons.push({
+				text: "Cancel",
+				onPress: (): void => { return; }
+			});
+		}
+		buttons.push({
+			text: `${recordsRef.current[index][0]}`,
+			onPress: (): void => {
+				recordsRef.current[index][2] = recordsRef.current[index][0];
+				updateRecords([...recordsRef.current]);
+				conflictResolved(index);
+			}
+		},
+		{
+			text: `${recordsRef.current[index][2]}`,
+			onPress: (): void => {
+				recordsRef.current[index][0] = recordsRef.current[index][2];
+				updateRecords([...recordsRef.current]);
+				conflictResolved(index);
+			}
+		});
+		if (Platform.OS === "ios") {
+			buttons.push({
+				text: "Cancel",
+				onPress: (): void => { return; }
+			});
+		}
 		Alert.alert(
-			"Conflict Found",
+			"Resolve Conflict",
 			"There is conflicting data for this bib number. Please choose the correct bib number for this position.",
-			[
-				{
-					text: `${recordsRef.current[index][0]}`,
-					onPress: (): void => {
-						recordsRef.current[index][2] = recordsRef.current[index][0];
-						updateRecords([...recordsRef.current]);
-						conflictResolved(index);
-					}
-				},
-				{
-					text: `${recordsRef.current[index][2]}`,
-					onPress: (): void => {
-						recordsRef.current[index][0] = recordsRef.current[index][2];
-						updateRecords([...recordsRef.current]);
-						conflictResolved(index);
-					}
-				},
-				{
-					text: "Cancel",
-					onPress: (): void => { return; }
-				}
-			]
+			buttons
 		);
 	}, [conflictResolved, updateRecords]);
 
@@ -603,14 +624,15 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Adds record to bottom of Flat List
 	const addRecord = useCallback(() => {
-		recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+		recordsRef.current.push([0, maxTime.current + 10, 0]);
+		maxTime.current = maxTime.current + 10;
 		updateRecords([...recordsRef.current]);
 
 		const flatListRefCurrent = flatListRef.current;
 		if (flatListRefCurrent !== null) {
 			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: LONG_TABLE_ITEM_HEIGHT * recordsRef.current.length }); }, 100);
 		}
-	}, [updateRecords]);
+	}, [maxTime, updateRecords]);
 
 	// Enter edit mode
 	const editTable = useCallback(() => {
@@ -654,6 +676,42 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setAlertVisible(true);
 	};
 
+	const onAlertSave = (valArray: Array<string>): void => {
+		if (alertIndex !== undefined && alertRecord) {
+			if (
+				// Bib
+				(!isNaN(parseInt(valArray[0])) || parseInt(valArray[0]) === recordsRef.current[alertIndex][0]) && 
+				// Time
+				(GetTimeInMils(valArray[1]) !== -1 || (recordsRef.current[alertIndex][1] === Number.MAX_SAFE_INTEGER && valArray[1] === ""))
+			) {
+				// Valid Bib
+				recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
+				recordsRef.current[alertIndex][2] = parseInt(valArray[0]);
+				// Valid Time
+				if (valArray[1] !== "") {
+					recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
+				}
+				updateRecords([...recordsRef.current]);
+				setAlertVisible(false);
+			} else {
+				if (isNaN(parseInt(valArray[0]))) {
+					Alert.alert(
+						"Incorrect Bib Entry",
+						"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+					);
+				} else {
+					// Invalid Time
+					Alert.alert(
+						"Incorrect Finish Time Entry",
+						"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms",
+					);
+				}
+			}
+		} else {
+			setAlertVisible(false);
+		}
+	};
+
 	// Renders item on screen
 	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement => (
 		<MemoVerificationItem
@@ -667,6 +725,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			record={item}
 			selectedID={selectedID}
 			editMode={editMode}
+			maxTime={maxTime.current}
+			updateMaxTime={updateMaxTime}
 			conflictResolution={conflictResolution}
 			swapEntries={swapEntries}
 			showAlert={showAlert}
@@ -700,7 +760,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
 						ref={flatListRef}
-						onRefresh={context.online ? (): void => { getRecords(true); } : undefined}
+						onRefresh={(context.online && !editMode) ? (): void => { getRecords(true); } : undefined}
 						refreshing={refreshing}
 						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
 						extraData={selectedID}
@@ -738,41 +798,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						maxLength={6}
 						secondMaxLength={11}
 						visible={alertVisible}
-						actionOnPress={(valArray): void => {
-							if (alertIndex !== undefined && alertRecord) {
-								if (
-									// Bib
-									(!isNaN(parseInt(valArray[0])) || parseInt(valArray[0]) === recordsRef.current[alertIndex][0]) && 
-									// Time
-									(GetTimeInMils(valArray[1]) !== -1 || (recordsRef.current[alertIndex][1] === Number.MAX_SAFE_INTEGER && valArray[1] === ""))
-								) {
-									// Valid Bib
-									recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
-									recordsRef.current[alertIndex][2] = parseInt(valArray[0]);
-									// Valid Time
-									if (valArray[1] !== "") {
-										recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
-									}
-									updateRecords([...recordsRef.current]);
-									setAlertVisible(false);
-								} else {
-									if (isNaN(parseInt(valArray[0]))) {
-										Alert.alert(
-											"Incorrect Bib Entry",
-											"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
-										);
-									} else {
-										// Invalid Time
-										Alert.alert(
-											"Incorrect Finish Time Entry",
-											"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms",
-										);
-									}
-								}
-							} else {
-								setAlertVisible(false);
-							}
-						}} cancelOnPress={(): void => {
+						actionOnPress={onAlertSave} 
+						cancelOnPress={(): void => {
 							setAlertVisible(false);
 						}} />
 				}
