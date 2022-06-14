@@ -38,9 +38,9 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const [hasButtonColors, setHasButtonColors] = useState(false);
 
-	const noFinishLine = finishLineDone || chuteDone || chuteProgress;
+	const noFinishLine = finishLineDone || chuteDone || chuteProgress || !insuffData;
 	const noChute = chuteDone || finishLineProgress;
-	const noResults = localEdits || insuffData;
+	const noResults = localEdits || insuffData || (!context.online && !finishLineDone);
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(async () => {
@@ -320,12 +320,25 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				{
 					text: "Delete",
 					onPress: async (): Promise<void> => {
-						const response = await AsyncStorage.getItem("offlineEvents");
-						let eventsList = response !== null ? JSON.parse(response) : [];
-						eventsList = eventsList.filter((event: OfflineEvent) => event.time !== context.time);
-
-						await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventsList));
-						navigation.navigate("OfflineEventsList");
+						Alert.alert(
+							"Confirm Delete",
+							"Please confirm that you want to delete this event. All local data will be lost.",
+							[
+								{ text: "Cancel", onPress: (): void => { return; } },
+								{
+									text: "Delete",
+									onPress: async (): Promise<void> => {
+										const response = await AsyncStorage.getItem("offlineEvents");
+										let eventsList = response !== null ? JSON.parse(response) : [];
+										eventsList = eventsList.filter((event: OfflineEvent) => event.time !== context.time);
+				
+										await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventsList));
+										navigation.navigate("OfflineEventsList");
+									},
+									style: "destructive",
+								},
+							]
+						);
 					},
 					style: "destructive",
 				},

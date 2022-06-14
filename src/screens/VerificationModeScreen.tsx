@@ -328,11 +328,13 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [context.eventID, context.online, context.raceID, context.time]);
 
-	// Check conflicts on first load
-	const firstRun3 = useRef(1);
+	// Check conflicts
+	const prevConflicts = useRef(0);
 	useEffect(() => {
-		if (firstRun3.current === 0) {
-			if (conflicts > 0 && hasAPIData) {
+		// If there are any conflicts and conflicts have not decreased by one
+		// (don't show alert every time the user resolves a conflict)
+		if (conflicts > 0 && conflicts > prevConflicts.current) {
+			if (hasAPIData) {
 				Alert.alert(
 					"Warning", 
 					"There is conflicting data for one or more bib numbers. You can resolve the conflicts individually by selecting the conflicting rows, or you can choose to clear your local conflicting data and get the latest data from RunSignup.",
@@ -347,7 +349,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							style: "destructive",
 							onPress: (): void => {
 								Alert.alert(
-									"Are You Sure?",
+									"Confirm Clear",
 									"Are you sure you want to clear your local conflicting data? This cannot be undone.",
 									[
 										{
@@ -356,6 +358,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 										},
 										{
 											text: "Clear Local",
+											style: "destructive",
 											onPress: (): void => {
 												for (let i = 0; i < recordsRef.current.length; i++) {
 													if (ConflictBoolean(recordsRef.current[i][0], recordsRef.current[i][2])) {
@@ -372,13 +375,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						}
 					]
 				);
-			} else if (conflicts > 0) {
+			} else {
 				Alert.alert("Warning", "There is conflicting data for one or more bib numbers. You can resolve the conflicts by selecting the conflicting rows.");
 			}
 		}
-		if (firstRun3.current > 0) {
-			firstRun3.current = firstRun3.current - 1;
-		}
+		prevConflicts.current = conflicts - 1;
 	}, [conflictResolved, conflicts, hasAPIData, updateRecords]);
 
 	const conflictResolution = useCallback(async (index) => {
@@ -724,47 +725,57 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						stickyHeaderIndices={[0]}
 					/>
 				}
-				{alertIndex !== undefined && alertRecord !== undefined && <TextInputAlert
-					title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
-					message={`Edit the bib number or finish time for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
-					placeholder="Enter Bib #"
-					secondPlaceholder="Enter Finish Time"
-					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
-					secondInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
-					keyboardType={"number-pad"}
-					secondKeyboardType={"numbers-and-punctuation"}
-					maxLength={6}
-					secondMaxLength={11}
-					visible={alertVisible}
-					actionOnPress={(valArray): void => {
-						if (alertIndex !== undefined && alertRecord) {
-							if (!isNaN(parseInt(valArray[0])) && GetTimeInMils(valArray[1]) !== -1) {
-								// Valid Bib
-								recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
-								// Valid Time
-								recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
-								updateRecords([...recordsRef.current]);
-								setAlertVisible(false);
-							} else {
-								if (isNaN(parseInt(valArray[0]))) {
-									Alert.alert(
-										"Incorrect Bib Entry", 
-										"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
-									);
+				{alertIndex !== undefined && alertRecord !== undefined &&
+					<TextInputAlert
+						title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+						message={`Edit the bib number or finish time for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+						placeholder="Enter Bib #"
+						secondPlaceholder="Enter Finish Time"
+						initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
+						secondInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
+						keyboardType={"number-pad"}
+						secondKeyboardType={"numbers-and-punctuation"}
+						maxLength={6}
+						secondMaxLength={11}
+						visible={alertVisible}
+						actionOnPress={(valArray): void => {
+							if (alertIndex !== undefined && alertRecord) {
+								if (
+									// Bib
+									(!isNaN(parseInt(valArray[0])) || parseInt(valArray[0]) === recordsRef.current[alertIndex][0]) && 
+									// Time
+									(GetTimeInMils(valArray[1]) !== -1 || (recordsRef.current[alertIndex][1] === Number.MAX_SAFE_INTEGER && valArray[1] === ""))
+								) {
+									// Valid Bib
+									recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
+									recordsRef.current[alertIndex][2] = parseInt(valArray[0]);
+									// Valid Time
+									if (valArray[1] !== "") {
+										recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
+									}
+									updateRecords([...recordsRef.current]);
+									setAlertVisible(false);
 								} else {
-									// Invalid Time
-									Alert.alert(
-										"Incorrect Finish Time Entry", 
-										"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms",
-									);
+									if (isNaN(parseInt(valArray[0]))) {
+										Alert.alert(
+											"Incorrect Bib Entry",
+											"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+										);
+									} else {
+										// Invalid Time
+										Alert.alert(
+											"Incorrect Finish Time Entry",
+											"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms",
+										);
+									}
 								}
+							} else {
+								setAlertVisible(false);
 							}
-						} else {
+						}} cancelOnPress={(): void => {
 							setAlertVisible(false);
-						}
-					}} cancelOnPress={(): void => {
-						setAlertVisible(false);
-					}} />}
+						}} />
+				}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);
