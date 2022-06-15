@@ -1,11 +1,11 @@
-import React, { useContext, useCallback, useState } from "react";
-import { View, Image, BackHandler, ActivityIndicator, Platform, Alert } from "react-native";
+import React, { useContext, useCallback, useState, useEffect } from "react";
+import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, Text, TouchableOpacity } from "react-native";
 import { BLACK_COLOR, globalstyles, GRAY_COLOR } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
-import { oAuthLogin } from "../helpers/oAuth2Helper";
+import { deleteTokenInfo, getTokenInfo, oAuthLogin } from "../helpers/oAuth2Helper";
 import MainButton from "../components/MainButton";
 import Logger from "../helpers/Logger";
 import { Buffer } from "buffer";
@@ -35,12 +35,60 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [loading, setLoading] = useState(false);
+	const [loggedIn, setLoggedIn] = useState(false);
+
+	// Handle log out. Delete local tokens
+	const handleLogOut = useCallback(() => {
+		Alert.alert("Log Out?", "Are you sure you want to log out?", [
+			{
+				text: "Cancel",
+				style: "default",
+				onPress: (): void => { return; }
+			},
+			{
+				text: "Log Out",
+				style: "destructive",
+				onPress: async (): Promise<void> => {
+					try {
+						await deleteTokenInfo();
+						setLoggedIn(false);
+						Alert.alert("Logged Out", "You have successfully logged out of your RunSignup account.");
+					} catch (error) {
+						Logger("Could Not Log Out (Home)", error, true);
+					}
+				}
+			},
+		]);
+	}, []);
+
+	useEffect(() => {
+		if (loggedIn) {
+			navigation.setOptions({
+				headerRight: () => (
+					<TouchableOpacity onPress={handleLogOut}>
+						<Text style={globalstyles.headerButtonText}>Log Out</Text>
+					</TouchableOpacity>
+				)
+			});
+		} else {
+			navigation.setOptions({
+				headerRight: () => (null)
+			});
+		}
+	}, [handleLogOut, loggedIn, navigation]);
 
 	useFocusEffect(
 		useCallback(() => {
 			const onBackPress = (): boolean => {
 				return true;
 			};
+
+			const showLogOut = async (): Promise<void> => {
+				if (await getTokenInfo()) {
+					setLoggedIn(true);
+				}
+			};
+			showLogOut();
 
 			BackHandler.addEventListener("hardwareBackPress", onBackPress);
 

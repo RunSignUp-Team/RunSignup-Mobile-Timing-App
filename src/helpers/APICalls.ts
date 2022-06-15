@@ -110,6 +110,10 @@ async function handleGetCall<T>(url: string): Promise<T> {
 	}, 20000);
 
 	const attemptApiCall = async (force_login: boolean): Promise<T | KeyAuthenticationError> => {
+		if (__DEV__) {
+			console.log("GET: ", url);
+		}
+
 		const accessToken = await oAuthLogin(force_login);
 		if (accessToken === null) {
 			throw new Error("Unable to authenticate");
@@ -162,6 +166,9 @@ async function handlePostCall<T extends FormData | null>(url: string, formData: 
 	}, 20000);
 
 	const attemptApiCall = async (force_login: boolean): Promise<T | KeyAuthenticationError> => {
+		if (__DEV__) {
+			console.log("POST: ", url);
+		}
 
 		const accessToken = await oAuthLogin(force_login);
 		if (accessToken === null) {
@@ -203,8 +210,9 @@ export const getUser = async (userId: string): Promise<UserResponse> => {
 	return response;
 };
 
-/** Get Races for a specific User from RSU API */
+/** Get up to 250 Races for a specific User from RSU API */
 export const getRaces = async (): Promise<RaceResponse["races"]> => {
+	// Get races from last week -> future
 	const weekGraceDate = new Date(new Date().getTime() - (86400000*7));
 	const [year, month, day] = DateToDate(weekGraceDate);
 	const response = await handleGetCall<RaceResponse>(RUNSIGNUP_URL + `Rest/races?format=json&results_per_page=250&start_date=${year}-${month}-${day}&events=T&sort=date+ASC`);
@@ -223,9 +231,9 @@ export const getFinishTimes = async (raceID: number, eventID: number): Promise<T
 	return response.finishing_times;
 };
 
-/** Get participants from RSU API */
+/** Get up to 2000 Participants from RSU API */
 export const getParticipants = async (raceID: number, eventID: number): Promise<ParticipantResponse[0]> => {
-	const response = await handleGetCall<ParticipantResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/participants?format=json&sort=registration_id&event_id=${eventID}`);
+	const response = await handleGetCall<ParticipantResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/participants?format=json&sort=registration_id&event_id=${eventID}&results_per_page=2000`);
 	return response[0];
 };
 

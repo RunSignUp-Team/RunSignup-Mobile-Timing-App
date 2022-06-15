@@ -125,6 +125,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			setLoading(true);
 		}
+
 		try {
 			// Get bibs from API
 			const bibs = await getBibs(context.raceID, context.eventID);
