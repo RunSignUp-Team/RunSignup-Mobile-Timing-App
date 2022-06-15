@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, TouchableWithoutFeedback, Keyboard, BackHandler, AlertButton } from "react-native";
-import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, LONG_TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
+import { View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, BackHandler, AlertButton } from "react-native";
+import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, LONG_TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
-import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/AxiosCalls";
+import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/APICalls";
 import { MemoVerificationItem } from "../components/VerificationModeRenderItem";
 import GetTimeInMils from "../helpers/GetTimeInMils";
 import { HeaderBackButton } from "@react-navigation/elements";
@@ -18,6 +18,7 @@ import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 import GetClockTime from "../helpers/GetClockTime";
+import CreateAPIError from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -82,7 +83,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const backTapped = useCallback(() => {
 		if (editMode) {
 			Alert.alert(
-				"Are You Sure?", 
+				"Are You Sure?",
 				"Are you sure you want to leave? Any unsaved changes will be lost!",
 				[
 					{
@@ -94,12 +95,12 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						text: "Leave",
 						style: "destructive",
 						onPress: (): void => {
-							navigation.pop(); 
+							navigation.pop();
 						}
 					},
 				]);
 		} else {
-			navigation.pop(); 
+			navigation.pop();
 		}
 	}, [editMode, navigation]);
 
@@ -157,7 +158,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						if (!hasAPIData) {
 							setHasAPIData(true);
 						}
-						
+
 						recordsRef.current[i][0] = apiBib;
 						recordsRef.current[i][2] = localCheckerBib;
 					} else if (localBib !== undefined && !isNaN(apiBib)) {
@@ -176,7 +177,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						// Case 5: Only Local Bib
 						recordsRef.current[i][0] = localBib;
 						recordsRef.current[i][2] = localBib;
-					}  else if (localCheckerBib !== undefined) {
+					} else if (localCheckerBib !== undefined) {
 						// Case 5: Only Local Checker Bib
 						recordsRef.current[i][0] = localCheckerBib;
 						recordsRef.current[i][2] = localCheckerBib;
@@ -229,12 +230,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			updateRecords([...recordsRef.current]);
 		} catch (error) {
-			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-			} else {
-				// Something else
-				Logger("Unknown Error (Get Records)", error, true);
-			}
+			CreateAPIError("Get Records", error);
 		} finally {
 			if (reload) {
 				setRefreshing(false);
@@ -262,7 +258,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							}
 							recordsRef.current[i][0] = eventList[eventIndex].bib_nums[i];
 						}
-	
+
 						// Get Finish Times
 						for (let i = 0; i < eventList[eventIndex].finish_times.length; i++) {
 							if (i > recordsRef.current.length - 1) {
@@ -270,14 +266,14 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 							}
 							recordsRef.current[i][1] = eventList[eventIndex].finish_times[i];
 						}
-	
+
 						// Get Checker Bibs
 						for (let i = 0; i < eventList[eventIndex].checker_bibs.length; i++) {
 							if (i > recordsRef.current.length - 1) {
 								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 							}
 							recordsRef.current[i][2] = eventList[eventIndex].checker_bibs[i];
-	
+
 							// Get best bib data available into records[0]
 							if (!recordsRef.current[i][0]) {
 								if (recordsRef.current[i][2] !== undefined && recordsRef.current[i][2] !== null && recordsRef.current[i][2] !== 0) {
@@ -287,7 +283,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 								}
 							}
 						}
-	
+
 						updateRecords([...recordsRef.current]);
 						// Toggle searchID useEffect
 						setSearch("");
@@ -298,7 +294,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			}
 		}
-		
+
 		return () => {
 			isUnmountedRef.current = true;
 		};
@@ -347,7 +343,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			const alertMsg = `There is conflicting data for ${conflicts === 1 ? "1 bib number" : `${conflicts} bib numbers`}. You can resolve conflicts ${hasAPIData ? "individually " : ""}by selecting the conflicting rows${hasAPIData ? ", or you can choose to clear your local conflicting data and replace it with the latest data from RunSignup" : ""}.`;
 			if (hasAPIData) {
 				Alert.alert(
-					"Warning", 
+					"Warning",
 					alertMsg,
 					[
 						{
@@ -468,20 +464,15 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				});
 
 				AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-				AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");		
+				AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 
 				setEditMode(false);
 				setLoading(false);
 
 				Alert.alert("Success", "Results successfully uploaded to Runsignup!");
 			} catch (error) {
-				if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-					Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-				} else {
-					// Something else
-					Logger("Unknown Error (Save Records)", error, true);
-				}
-				
+				CreateAPIError("Save Records", error);
+
 				if (!isUnmountedRef.current) {
 					setLoading(false);
 				}
@@ -496,7 +487,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			});
 
 			AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
-			AsyncStorage.setItem(`chuteDone:${context.time}`, "true");	
+			AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
 
 			setEditMode(false);
 			setLoading(false);
@@ -677,7 +668,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		if (alertIndex !== undefined && alertRecord) {
 			if (
 				// Bib
-				(!isNaN(parseInt(valArray[0])) || parseInt(valArray[0]) === recordsRef.current[alertIndex][0]) && 
+				(!isNaN(parseInt(valArray[0])) || parseInt(valArray[0]) === recordsRef.current[alertIndex][0]) &&
 				// Time
 				(GetTimeInMils(valArray[1]) !== -1 || (recordsRef.current[alertIndex][1] === Number.MAX_SAFE_INTEGER && valArray[1] === ""))
 			) {
@@ -733,75 +724,70 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	);
 
 	return (
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.tableContainer}
-				behavior={Platform.OS == "ios" ? "padding" : "height"}
-				keyboardVerticalOffset={170}>
+		<View style={globalstyles.tableContainer}>
+			<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row" }}>
+				<TextInput
+					style={globalstyles.input}
+					onChangeText={setSearch}
+					value={search}
+					placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
+					placeholderTextColor={GRAY_COLOR}
+				/>
+			</View>
 
-				<View style={{backgroundColor: DARK_GREEN_COLOR, flexDirection: "row"}}>
-					<TextInput
-						style={globalstyles.input}
-						onChangeText={setSearch}
-						value={search}
-						placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
-						placeholderTextColor={GRAY_COLOR}
-					/>
-				</View>
-
-				{/* Header */}
-				<View style={globalstyles.tableHead}>
-					<Text style={globalstyles.placeTableHeadText}>#</Text>
-					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-					<Text style={globalstyles.timeTableHeadText}>Time</Text>
-					{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
-					{editMode &&
-						<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
-							<Text style={globalstyles.deleteTableText}>-</Text>
-						</View>
-					}
-				</View>
-
-				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-				{!loading &&
-					<FlatList
-						showsVerticalScrollIndicator={false}
-						keyboardShouldPersistTaps="handled"
-						style={globalstyles.longFlatList}
-						ref={flatListRef}
-						onRefresh={(context.online && !editMode) ? (): void => { getRecords(true); } : undefined}
-						refreshing={refreshing}
-						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
-						extraData={selectedID}
-						renderItem={renderItem}
-						keyExtractor={(_item, index): string => (index + 1).toString()}
-						initialNumToRender={30}
-						windowSize={11}
-						getItemLayout={(_, index): ItemLayout => (
-							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
-						)}
-					/>
+			{/* Header */}
+			<View style={globalstyles.tableHead}>
+				<Text style={globalstyles.placeTableHeadText}>#</Text>
+				<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+				<Text style={globalstyles.timeTableHeadText}>Time</Text>
+				{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
+				{editMode &&
+					<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
+						<Text style={globalstyles.deleteTableText}>-</Text>
+					</View>
 				}
+			</View>
 
-				{alertIndex !== undefined && alertRecord !== undefined &&
-					<TextInputAlert
-						title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
-						message={`Edit the bib number or finish time for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
-						placeholder="Enter Bib #"
-						secondPlaceholder="Enter Finish Time"
-						initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
-						secondInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
-						keyboardType={"number-pad"}
-						secondKeyboardType={"numbers-and-punctuation"}
-						maxLength={6}
-						secondMaxLength={11}
-						visible={alertVisible}
-						actionOnPress={onAlertSave} 
-						cancelOnPress={(): void => {
-							setAlertVisible(false);
-						}} />
-				}
-			</KeyboardAvoidingView>
-		</TouchableWithoutFeedback>
+			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			{!loading &&
+				<FlatList
+					showsVerticalScrollIndicator={false}
+					keyboardShouldPersistTaps="handled"
+					style={globalstyles.longFlatList}
+					ref={flatListRef}
+					onRefresh={(context.online && !editMode) ? (): void => { getRecords(true); } : undefined}
+					refreshing={refreshing}
+					data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
+					extraData={selectedID}
+					renderItem={renderItem}
+					keyExtractor={(_item, index): string => (index + 1).toString()}
+					initialNumToRender={30}
+					windowSize={11}
+					getItemLayout={(_, index): ItemLayout => (
+						{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
+					)}
+				/>
+			}
+
+			{alertIndex !== undefined && alertRecord !== undefined &&
+				<TextInputAlert
+					title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number or finish time for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					placeholder="Enter Bib #"
+					secondPlaceholder="Enter Finish Time"
+					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
+					secondInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
+					keyboardType={"number-pad"}
+					secondKeyboardType={"numbers-and-punctuation"}
+					maxLength={6}
+					secondMaxLength={11}
+					visible={alertVisible}
+					actionOnPress={onAlertSave}
+					cancelOnPress={(): void => {
+						setAlertVisible(false);
+					}} />
+			}
+		</View>
 	);
 };
 

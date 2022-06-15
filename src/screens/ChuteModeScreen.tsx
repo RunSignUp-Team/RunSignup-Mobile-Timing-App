@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, Text, Alert, FlatList, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
-import { getBibs, postBibs } from "../helpers/AxiosCalls";
+import { getBibs, postBibs } from "../helpers/APICalls";
 import { MemoChuteItem } from "../components/ChuteModeRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
@@ -16,6 +16,7 @@ import { ItemLayout } from "../models/ItemLayout";
 import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
+import CreateAPIError from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -101,12 +102,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 						} catch (error) {
-							if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-								Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-							} else {
-								// Something else
-								Logger("Unknown Error (Chute)", error, true);
-							}
+							CreateAPIError("Chute", error);
 							setLoading(false);
 						}
 					}
@@ -287,9 +283,10 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	return (
 		// Dismiss keyboard if user touches container
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.tableContainer}
-				behavior={Platform.OS == "ios" ? "padding" : "height"}
-				keyboardVerticalOffset={30}>
+			<KeyboardAvoidingView 
+				style={globalstyles.tableContainer}
+				behavior={Platform.OS == "ios" ? "padding" : undefined}
+				keyboardVerticalOffset={70}>
 
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
 					<TextInput
@@ -315,7 +312,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					</View>
 				</View>
 
-				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				{!loading &&
 					<>
 						<FlatList

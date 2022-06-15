@@ -1,9 +1,9 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import { View, TouchableOpacity, Text, Alert, ActivityIndicator, Platform } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
-import { getFinishTimes } from "../helpers/AxiosCalls";
+import { getFinishTimes } from "../helpers/APICalls";
 import { HeaderBackButton } from "@react-navigation/elements";
 import { OfflineEvent } from "./OfflineEventsScreen";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -15,6 +15,7 @@ import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import { Race } from "../models/Race";
+import CreateAPIError, { NetworkErrorBool } from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -101,10 +102,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					iData = true;
 				}
 			} catch (error) {
-				if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-					// Do nothing
-				} else {
-					// Something else
+				if (!NetworkErrorBool(error)) {
 					Logger("Unknown Error (Results Disabled)", error, true);
 				}
 			}
@@ -273,12 +271,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			}
 		} catch (error) {
-			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-			} else {
-				// Something else
-				Logger("Unknown Error (Modes)", error, true);
-			}
+			CreateAPIError("Modes", error);
 		}
 	};
 
@@ -363,7 +356,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			{!hasButtonColors && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			{!hasButtonColors && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
 				{hasButtonColors && <>
 					<MainButton color={noFinishLine ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} />

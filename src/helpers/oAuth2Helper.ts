@@ -1,4 +1,3 @@
-import axios, { AxiosResponse } from "axios";
 import { ResponseType, AuthRequest } from "expo-auth-session";
 import * as SecureStore from "expo-secure-store";
 import { CLIENT_ID, REDIRECT_URI, RUNSIGNUP_URL } from "../constants/oAuth2Constants";
@@ -59,15 +58,20 @@ export async function refreshTokens(refresh_token: string): Promise<RsuTokenResp
 
 	// We can now send another request to RSU to retrieve the tokens given the auth code we received earlier
 	try {
-		const res = await axios.post<FormData, AxiosResponse<RsuTokenResponses>>(refreshTokenUrl, formData);
-		const resData = res.data;
-		if ("error" in resData) {
-			Logger("Failed to Refresh Access & Refresh Tokens", `Error: "${resData.error}". Description: "${resData.error_description}". Hint: "${resData.hint}"`);
+		const response = await fetch(refreshTokenUrl, {
+			body: formData,
+			method: "POST"
+		});
+
+		const json = await response.json() as RsuTokenResponses;
+
+		if ("error" in json) {
+			Logger("Failed to Refresh Access & Refresh Tokens", `Error: "${json.error}". Description: "${json.error_description}". Hint: "${json.hint}"`);
 			return null;
 		}
 
 		// We have the token data. Return it
-		return resData;
+		return json;
 
 
 	} catch (error) {

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, Text, ActivityIndicator, Platform, BackHandler, TouchableOpacity } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
-import { getRaces } from "../helpers/AxiosCalls";
+import { getRaces } from "../helpers/APICalls";
 import { MemoRaceListItem } from "../components/RaceListRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
@@ -13,6 +13,7 @@ import { deleteTokenInfo } from "../helpers/oAuth2Helper";
 import Logger from "../helpers/Logger";
 import { Race } from "../models/Race";
 import { Event } from "../models/Event";
+import CreateAPIError from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -164,12 +165,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				setLoading(false);
 			}
 		} catch (error) {
-			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-			} else {
-				// Something else
-				Logger("Unknown Error (Races)", error, true);
-			}
+			CreateAPIError("Races", error);
 
 			if (reload) {
 				setRefreshing(false);
@@ -204,8 +200,8 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			{!loading && finalRaceList.length < 1 && <Text style={globalstyles.info}>{"No upcoming races found for this account. Please confirm that you have set up the race correctly at RunSignup."}</Text>}
+			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			{!loading && finalRaceList.length < 1 && <Text style={globalstyles.info}>{"No upcoming races found for this account. Please confirm that you have set up any races correctly at RunSignup."}</Text>}
 			{!loading &&
 				<FlatList
 					showsVerticalScrollIndicator={false}

@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, GREEN_COLOR, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, WHITE_COLOR } from "../components/styles";
+import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
-import { postFinishTimes, postStartTime, postBibs, getBibs } from "../helpers/AxiosCalls";
+import { postFinishTimes, postStartTime, postBibs, getBibs } from "../helpers/APICalls";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
 import GetClockTime from "../helpers/GetClockTime";
 import { HeaderBackButton } from "@react-navigation/elements";
@@ -18,6 +18,7 @@ import { ItemLayout } from "../models/ItemLayout";
 import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
+import CreateAPIError from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -121,12 +122,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 
 				} catch (error) {
-					if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-					} else {
-						// Something else
-						Logger("Unknown Error (Post Bibs)", error, true);
-					}
+					CreateAPIError("Post Bibs", error);
 					setLoading(false);
 				}
 			}
@@ -317,13 +313,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				addToStorage(true, finishTimesRef.current, checkerBibsRef.current);
 			}
 		} catch (error) {
-			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-			} else if (error instanceof Error && error.message.toLowerCase().includes("out of order")) {
+			if (error instanceof Error && error.message.toLowerCase().includes("out of order")) {
 				Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
 			} else {
-				// Something else
-				Logger("Unknown Error (Start Time)", error, true);
+				CreateAPIError("Start Time", error);
 			}
 			setLoading(false);
 		}
@@ -453,7 +446,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView style={globalstyles.tableContainer} behavior={Platform.OS == "ios" ? "padding" : "height"}>
+			<KeyboardAvoidingView 
+				style={globalstyles.tableContainer}
+				behavior={Platform.OS == "ios" ? "padding" : undefined}
+				keyboardVerticalOffset={70}>
+	
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 					<View style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
@@ -486,7 +483,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					</View>
 				</View>
 
-				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				{!loading &&
 					<>
 						<FlatList

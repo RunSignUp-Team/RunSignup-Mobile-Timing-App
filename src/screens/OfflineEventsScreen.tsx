@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, ActivityIndicator, Platform } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR, TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { AppContext } from "../components/AppContext";
 import { MemoOfflineEventsItem } from "../components/OfflineEventsRenderItem";
-import { deleteBibs, deleteFinishTimes, postBibs, postFinishTimes, postStartTime } from "../helpers/AxiosCalls";
+import { deleteBibs, deleteFinishTimes, postBibs, postFinishTimes, postStartTime } from "../helpers/APICalls";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import ConflictBoolean from "../helpers/ConflictBoolean";
@@ -13,9 +13,9 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
 import { ItemLayout } from "../models/ItemLayout";
-import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import MainButton from "../components/MainButton";
+import CreateAPIError from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -177,12 +177,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			Alert.alert("Success", `The data in ${item.name} has been successfully assigned to ${raceList[raceIndex]?.events[eventIndex]?.name}!`);
 			navigationRef.current.navigate("ModeScreen");
 		} catch (error) {
-			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-			} else {
-				// Something else
-				Logger("Unknown Error (Assign Event)", error, true);
-			}
+			CreateAPIError("Assign Event", error);
 		} finally {
 			setLoading(false);
 		}
@@ -266,7 +261,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				}}
 			/>
 
-			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 			{!loading &&
 				<FlatList
 					ListHeaderComponent={context.online ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }} />}

@@ -90,7 +90,7 @@ export const globalstyles = StyleSheet.create({
 		backgroundColor: BACKGROUND_COLOR
 	},
 	tableContainer: {
-		flex: 0.9,
+		flex: 1,
 		backgroundColor: BACKGROUND_COLOR
 	},
 

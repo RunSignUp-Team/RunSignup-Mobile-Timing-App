@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { View, FlatList, Alert, ActivityIndicator, Text, Platform, TouchableOpacity } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoEventsListItem } from "../components/EventsListRenderItem";
@@ -11,6 +11,7 @@ import { deleteTokenInfo } from "../helpers/oAuth2Helper";
 import Logger from "../helpers/Logger";
 import { Event } from "../models/Event";
 import { Race } from "../models/Race";
+import CreateAPIError from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -93,13 +94,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 			setLoading(false);
 		} catch (error) {
-			if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-				Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-			} else {
-				// Something else
-				Logger("Unknown Error (Events)", error, true);
-			}
-			
+			CreateAPIError("Events", error);
 			setLoading(false);
 		}
 	}, [context.raceID]);
@@ -131,7 +126,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 			{!loading && finalEventList.length < 1 && <Text style={globalstyles.info}>{"No events found for this race. Please confirm that you have set up the race correctly at RunSignup."}</Text>}
 			{!loading &&
 				<FlatList

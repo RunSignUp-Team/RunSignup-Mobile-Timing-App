@@ -1,6 +1,6 @@
 import React, { useContext, useCallback, useState } from "react";
 import { View, Image, BackHandler, ActivityIndicator, Platform, Alert } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "../components/styles";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -9,9 +9,10 @@ import { oAuthLogin } from "../helpers/oAuth2Helper";
 import MainButton from "../components/MainButton";
 import Logger from "../helpers/Logger";
 import { Buffer } from "buffer";
-import { getUser } from "../helpers/AxiosCalls";
+import { getUser } from "../helpers/APICalls";
 import * as Linking from "expo-linking";
 import * as Network from "expo-network";
+import { NetworkErrorBool } from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -62,12 +63,11 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				const tokenParse = JSON.parse(Buffer.from(tokenStr, "base64").toString()) as TokenParse;
 
 				try {
-					context.setEmail((await getUser(tokenParse.sub)).user.email);
+					const user = await getUser(tokenParse.sub);
+					context.setEmail(user.user.email);
 				} catch (error) {
-					if (error instanceof Error && (error.message === undefined || error.message === "Network Error")) {
-						Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
-					} else {
-						// Something else
+					if (!NetworkErrorBool(error)) {
+						// Non-connection related error
 						Logger("No Email Found", error, false);
 					}
 				}
@@ -112,7 +112,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				/>
 				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
 				<MainButton text={"Offline Events"} onPress={handleRecordOfflineClick} />
-				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? GREEN_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 			</View>
 
