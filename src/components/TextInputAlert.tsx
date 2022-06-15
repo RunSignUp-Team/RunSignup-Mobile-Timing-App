@@ -92,7 +92,9 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 					alignItems: "center",
 				}}>
 				{/* Main View */}
-				<View
+				<TouchableOpacity
+					activeOpacity={1}
+					onPress={(): void => { return; }}
 					style={{
 						top: "25%",
 						backgroundColor: backgroundColor,
@@ -134,13 +136,45 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 								{props.message}
 							</Text>
 						</View>
-						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
-							{/* Text Input One */}
+					</TouchableOpacity>
+
+					<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
+						{/* Text Input One */}
+						<TextInput
+							ref={inputRef}
+							value={value}
+							onChangeText={(val): void => {
+								setValue(val);
+							}}
+							onSubmitEditing={(): void => {
+								props.actionOnPress([value, secondValue]);
+							}}
+							style={{
+								backgroundColor: LIGHT_GRAY_COLOR,
+								height: droid ? 50 : 40,
+								borderRadius: droid ? 0 : 8,
+								borderWidth: droid ? 0 : 1,
+								borderBottomWidth: 1,
+								borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
+								marginVertical: 5,
+								width: normalWidth,
+								paddingHorizontal: 8,
+								fontFamily: "Roboto",
+								fontSize: SMALL_FONT_SIZE
+							}}
+							placeholder={props.placeholder}
+							placeholderTextColor={GRAY_COLOR}
+							maxLength={props.maxLength}
+							keyboardType={props.keyboardType}
+						/>
+					</View>
+					<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
+						{/* Text Input Two */}
+						{props.secondPlaceholder &&
 							<TextInput
-								ref={inputRef}
-								value={value}
+								value={secondValue}
 								onChangeText={(val): void => {
-									setValue(val);
+									setSecondValue(val);
 								}}
 								onSubmitEditing={(): void => {
 									props.actionOnPress([value, secondValue]);
@@ -158,44 +192,14 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 									fontFamily: "Roboto",
 									fontSize: SMALL_FONT_SIZE
 								}}
-								placeholder={props.placeholder}
+								placeholder={props.secondPlaceholder}
 								placeholderTextColor={GRAY_COLOR}
-								maxLength={props.maxLength}
-								keyboardType={props.keyboardType}
+								maxLength={props.secondMaxLength}
+								keyboardType={props.secondKeyboardType}
 							/>
-						</View>
-						<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
-							{/* Text Input Two */}
-							{props.secondPlaceholder &&
-								<TextInput
-									value={secondValue}
-									onChangeText={(val): void => {
-										setSecondValue(val);
-									}}
-									onSubmitEditing={(): void => {
-										props.actionOnPress([value, secondValue]);
-									}}
-									style={{
-										backgroundColor: LIGHT_GRAY_COLOR,
-										height: droid ? 50 : 40,
-										borderRadius: droid ? 0 : 8,
-										borderWidth: droid ? 0 : 1,
-										borderBottomWidth: 1,
-										borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
-										marginVertical: 5,
-										width: normalWidth,
-										paddingHorizontal: 8,
-										fontFamily: "Roboto",
-										fontSize: SMALL_FONT_SIZE
-									}}
-									placeholder={props.secondPlaceholder}
-									placeholderTextColor={GRAY_COLOR}
-									maxLength={props.secondMaxLength}
-									keyboardType={props.secondKeyboardType}
-								/>
-							}
-						</View>
-					</TouchableOpacity>
+						}
+					</View>
+
 					{/* Top Border Line for Buttons */}
 					<View
 						style={{
@@ -275,7 +279,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 							</View>
 						</TouchableHighlight>
 					</View>
-				</View>
+				</TouchableOpacity>
 			</TouchableOpacity>
 		</Modal>
 	);
