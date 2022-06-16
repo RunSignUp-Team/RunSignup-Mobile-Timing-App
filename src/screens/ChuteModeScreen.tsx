@@ -246,7 +246,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * bibNumsRef.current.length }); }, 100);
 			}
 		} else {
-			Alert.alert("No Bib Number", "You have not entered a Bib Number. Please try again.");
+			Alert.alert("No Bib Number", "You have not entered a bib number. Please try again.");
 		}
 	};
 
