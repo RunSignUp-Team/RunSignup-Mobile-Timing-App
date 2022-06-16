@@ -34,7 +34,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 
 	return (
 		<View onStartShouldSetResponder={(): boolean => true} style={{ padding: 0, margin: 0 }}>
-			<TouchableOpacity style={conflictItem ? globalstyles.conflictLongTableItem : (index === props.selectedID ? globalstyles.selectedLongTableItem : globalstyles.longTableItem)}
+			<TouchableOpacity style={conflictItem ? globalstyles.conflictLongTableItem : ((index === props.selectedID && index !== -1) ? globalstyles.selectedLongTableItem : globalstyles.longTableItem)}
 				disabled={!conflictItem}
 				onPress={(): void => props.conflictResolution(index)}
 			>

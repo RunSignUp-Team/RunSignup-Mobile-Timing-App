@@ -58,6 +58,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [participants, setParticipants] = useState<Array<ParticipantDetails>>([]);
 	const [searchRecords, setSearchRecords] = useState<VRecords>(recordsRef.current);
 	const [search, setSearch] = useState("");
+	// [index]: bib
+	const prevSearchRecord = useRef<Record<number, Array<number>>>({});
 
 	// Edit Alert
 	const [alertVisible, setAlertVisible] = useState(false);
@@ -631,11 +633,46 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [context.online, participants]);
 
-	useEffect(() => {
-		if (search !== undefined) {
-			setSearchRecords([...recordsRef.current.filter(entry => entry[0].toString().includes(search.trim()) || findParticipant(entry[0]).toLowerCase().includes(search.trim().toLowerCase()))]);
+	// Search records
+	const searchList = useCallback(() => {
+		if (search !== undefined && search.trim().length > 0) {
+			setSearchRecords([...recordsRef.current.filter((entry, index) => {
+				// Search records
+				if (entry[0].toString().includes(search.trim()) || findParticipant(entry[0]).toLowerCase().includes(search.trim().toLowerCase())) {
+					return true;
+				}
+
+				// Search previous bibs to still show just-edited participants
+				const prevSearchBibs = prevSearchRecord.current[index];
+
+				if (prevSearchBibs) {
+					for (let i = 0; i < prevSearchBibs.length; i++) {
+						const prevSearchBib = prevSearchBibs[i];
+						if (
+							(prevSearchBib.toString().includes(search.trim()) ||
+							findParticipant(prevSearchBib).toLowerCase().includes(search.trim().toLowerCase()))
+						) {
+							return true;
+						}
+					}
+				}
+
+				return false;
+			}
+			)]);
 		}
-	}, [search, saveResults, findParticipant]);
+	}, [findParticipant, search]);
+
+	// Search records when data changes
+	useEffect(() => {
+		searchList();
+	}, [search, saveResults, findParticipant, records, alertVisible, searchList]);
+
+	// Clear prevSearchRecord when search changes
+	useEffect(() => {
+		prevSearchRecord.current = {};
+		searchList();
+	}, [search, searchList]);
 
 	// Swap two entries in table
 	const swapEntries = useCallback((index) => {
@@ -648,12 +685,14 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			// Swap
 			setSelectedID(-1);
-			const temp = recordsRef.current[lastIndex][0];
-			recordsRef.current[lastIndex][0] = recordsRef.current[index][0];
-			recordsRef.current[lastIndex][2] = recordsRef.current[index][2];
-			recordsRef.current[index][0] = temp;
-			recordsRef.current[index][2] = temp;
-			updateRecords([...recordsRef.current]);
+			if (recordsRef.current[lastIndex]) {
+				const temp = recordsRef.current[lastIndex][0];
+				recordsRef.current[lastIndex][0] = recordsRef.current[index][0];
+				recordsRef.current[lastIndex][2] = recordsRef.current[index][2];
+				recordsRef.current[index][0] = temp;
+				recordsRef.current[index][2] = temp;
+				updateRecords([...recordsRef.current]);
+			}
 		}
 	}, [lastIndex, tapped, updateRecords]);
 
@@ -724,6 +763,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				// Time
 				(GetTimeInMils(valArray[1]) !== -1 || (recordsRef.current[alertIndex][1] === Number.MAX_SAFE_INTEGER && valArray[1] === ""))
 			) {
+				// Add previous bib to prevSearchRecord for searching
+				if (search !== undefined && search.trim().length > 0) {
+					prevSearchRecord.current[alertIndex] = prevSearchRecord.current[alertIndex] ? [...prevSearchRecord.current[alertIndex], recordsRef.current[alertIndex][0]] : [recordsRef.current[alertIndex][0]];
+				}
+
 				// Valid Bib
 				recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
 				recordsRef.current[alertIndex][2] = parseInt(valArray[0]);
@@ -758,26 +802,29 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	};
 
 	// Renders item on screen
-	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement => (
-		<MemoVerificationItem
-			// Passed down to trigger rerender when a bib is edited or a conflict is resolved
-			recordsRefSearchBib={recordsRef.current[index][0]}
-			searchRecordsSearchBib={searchRecords[index] !== undefined ? searchRecords[index][0] : -1}
-			conflictBoolean={ConflictBoolean(recordsRef.current[index][0], recordsRef.current[index][2])}
+	const renderItem = ({ item, index }: { item: VRecord, index: number }): React.ReactElement | null => (
+		// When searching, the records do not update immediately when a record is deleted,
+		// So we show null here until they do
+		recordsRef.current[index] ?
+			<MemoVerificationItem
+				// Passed down to trigger rerender when a bib is edited or a conflict is resolved
+				recordsRefSearchBib={recordsRef.current[index][0]}
+				searchRecordsSearchBib={searchRecords[index] !== undefined ? searchRecords[index][0] : -1}
+				conflictBoolean={ConflictBoolean(recordsRef.current[index][0], recordsRef.current[index][2])}
 
-			recordsRef={recordsRef}
-			updateRecords={updateRecords}
-			record={item}
-			selectedID={selectedID}
-			editMode={editMode}
-			maxTime={maxTime.current}
-			updateMaxTime={updateMaxTime}
-			conflictResolution={conflictResolution}
-			swapEntries={swapEntries}
-			showAlert={showAlert}
-			findParticipant={findParticipant}
-			online={context.online}
-		/>
+				recordsRef={recordsRef}
+				updateRecords={updateRecords}
+				record={item}
+				selectedID={selectedID}
+				editMode={editMode}
+				maxTime={maxTime.current}
+				updateMaxTime={updateMaxTime}
+				conflictResolution={conflictResolution}
+				swapEntries={swapEntries}
+				showAlert={showAlert}
+				findParticipant={findParticipant}
+				online={context.online}
+			/> : null
 	);
 
 	return (
