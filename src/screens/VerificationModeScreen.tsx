@@ -447,6 +447,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {
 		setLoading(true);
+		let blankTimes = false;
 
 		// Reformat times and bibs
 		for (let i = 0; i < recordsRef.current.length; i++) {
@@ -457,6 +458,16 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			if (isNaN(recordsRef.current[i][0]) || recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === null) {
 				recordsRef.current[i][0] = 0;
 				recordsRef.current[i][2] = 0;
+			}
+
+			// Ignore empty finish times at the end of the list
+			if (recordsRef.current[i][1] === Number.MAX_SAFE_INTEGER) {
+				for (let j = i + 1; j < recordsRef.current.length; j++) {
+					if (recordsRef.current[j][1] !== Number.MAX_SAFE_INTEGER && recordsRef.current[j][1] !== undefined) {
+						blankTimes = true;
+						break;
+					}
+				}
 			}
 		}
 
@@ -474,7 +485,10 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			// Alert if starts with 0
 			Alert.alert("Incorrect Bib Entry", "There is a Bib Entry that starts with 0 in the list. Please fill in the correct value.");
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => entry[1] === Number.MAX_SAFE_INTEGER).length > 0) {
+		} else if (
+			(recordsRef.current.filter((entry) => entry[1] === Number.MAX_SAFE_INTEGER).length > 0 && blankTimes) || 
+			(recordsRef.current.filter((entry) => entry[1] === Number.MAX_SAFE_INTEGER).length === recordsRef.current.length && recordsRef.current.length > 0)
+		) {
 			// Alert if blank finish time
 			Alert.alert("Incorrect Finish Time Entry", "There is a blank Finish Time in the list. Please fill in the correct value.");
 			setLoading(false);
