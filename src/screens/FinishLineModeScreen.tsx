@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, WHITE_COLOR } from "../components/styles";
+import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -19,6 +19,7 @@ import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 import CreateAPIError from "../helpers/CreateAPIError";
+import Icon from "../components/IcoMoon";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -60,7 +61,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const backTapped = useCallback(() => {
 		if (finishTimesRef.current.length > 0) {
 			Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
-				{ text: "Cancel", onPress: (): void => { return; } },
+				{ text: "Cancel" },
 				{
 					text: "Leave",
 					onPress: (): void => {
@@ -344,7 +345,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					"Save Results",
 					"Are you sure you want to save to the cloud and quit?",
 					[
-						{ text: "Cancel", onPress: (): void => { return; } },
+						{ text: "Cancel" },
 						{
 							text: "Save & Quit",
 							onPress: (): void => {
@@ -360,7 +361,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					"Save Results",
 					"Are you sure you want to save the results and quit?",
 					[
-						{ text: "Cancel", onPress: () => null },
+						{ text: "Cancel" },
 						{
 							text: "Save & Quit",
 							onPress: (): void => {
@@ -475,11 +476,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					<Text style={globalstyles.placeTableHeadText}>#</Text>
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 					<Text style={globalstyles.timeTableHeadText}>Time</Text>
-					<View style={[globalstyles.tableAddButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
-						<Text style={{ textAlign: "center", fontFamily: "RobotoBold", fontSize: SMALL_FONT_SIZE }}>+</Text>
+					<View style={globalstyles.tableAddButton}>
+						<Icon name="plus2" color={BLACK_COLOR} size={15} />
 					</View>
-					<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
-						<Text style={globalstyles.deleteTableText}>-</Text>
+					<View style={globalstyles.tableDeleteButton}>
+						<Icon name="minus2" color={BLACK_COLOR} size={15} />
 					</View>
 				</View>
 

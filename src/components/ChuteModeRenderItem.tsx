@@ -1,7 +1,8 @@
 import React, { memo, useCallback } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import removeOne from "../helpers/RemoveOne";
-import { globalstyles } from "./styles";
+import Icon from "./IcoMoon";
+import { globalstyles, RED_COLOR } from "./styles";
 
 interface Props {
 	updateBibNums(bibNums: Array<number>): void,
@@ -36,7 +37,7 @@ export default function ChuteModeRenderItem(props: Props): React.ReactElement {
 			<TouchableOpacity
 				style={globalstyles.tableDeleteButton}
 				onPress={removeSelf}>
-				<Text style={globalstyles.tableButtonText}>-</Text>
+				<Icon name="minus-circle" color={RED_COLOR} size={25} />
 			</TouchableOpacity>
 		</View>
 	);

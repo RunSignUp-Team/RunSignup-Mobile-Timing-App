@@ -37,11 +37,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(() => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
-			{
-				text: "Cancel",
-				style: "default",
-				onPress: (): void => { return; }
-			},
+			{ text: "Cancel" },
 			{
 				text: "Log Out",
 				style: "destructive",

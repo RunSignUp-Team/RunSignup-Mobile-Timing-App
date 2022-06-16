@@ -51,7 +51,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
-				<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
+				<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 		});
 	}, [context.eventID, context.online, context.raceID, navigation]);

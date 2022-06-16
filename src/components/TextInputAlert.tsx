@@ -56,7 +56,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 		if (props.secondInitialValue !== undefined) {
 			setSecondValue(props.secondInitialValue);
 		} else {
-			setValue("");
+			setSecondValue("");
 		}
 	}, [props.secondInitialValue, props.visible]);
 

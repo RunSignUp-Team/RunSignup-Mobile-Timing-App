@@ -53,7 +53,7 @@ export default function OfflineEventsRenderItem(props: Props): React.ReactElemen
 						"Assign Event",
 						`Are you sure you want to assign the data stored in ${props.item.name} to ${props.eventTitle}? This cannot be undone and will replace any existing data.`,
 						[
-							{ text: "Cancel", onPress: (): void => { return; } },
+							{ text: "Cancel" },
 							{
 								text: "Assign",
 								onPress: (): void => {

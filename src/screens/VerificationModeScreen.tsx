@@ -19,6 +19,7 @@ import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 import GetClockTime from "../helpers/GetClockTime";
 import CreateAPIError from "../helpers/CreateAPIError";
+import Icon from "../components/IcoMoon";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -51,6 +52,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	// Records
 	const [records, setRecords] = useState<VRecords>([]);
 	const recordsRef = useRef<VRecords>(records);
+	const [rStartLength, setRStartLength] = useState(0);
 
 	// Search
 	const [participants, setParticipants] = useState<Array<ParticipantDetails>>([]);
@@ -86,21 +88,17 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				"Are You Sure?",
 				"Are you sure you want to leave? Any unsaved changes will be lost!",
 				[
-					{
-						text: "Cancel",
-						style: "default",
-						onPress: (): void => { return; }
-					},
+					{ text: "Cancel" },
 					{
 						text: "Leave",
 						style: "destructive",
 						onPress: (): void => {
-							navigation.pop();
+							navigation.goBack();
 						}
 					},
 				]);
 		} else {
-			navigation.pop();
+			navigation.goBack();
 		}
 	}, [editMode, navigation]);
 
@@ -261,11 +259,18 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						}
 
 						// Get Finish Times
-						for (let i = 0; i < eventList[eventIndex].finish_times.length; i++) {
+						const finishTimes = eventList[eventIndex].finish_times;
+						for (let i = 0; i < finishTimes.length; i++) {
+							const finishTime = finishTimes[i];
 							if (i > recordsRef.current.length - 1) {
 								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 							}
-							recordsRef.current[i][1] = eventList[eventIndex].finish_times[i];
+							recordsRef.current[i][1] = finishTime;
+
+							// Get Max Time for Adding New Records
+							if (finishTime > maxTime.current) {
+								maxTime.current = finishTime;
+							}
 						}
 
 						// Get Checker Bibs
@@ -301,6 +306,16 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		};
 	}, [context.online, context.time, getRecords, updateRecords]);
 
+	const secondRun = useRef(1);
+	useEffect(() => {
+		if (secondRun.current === 0) {
+			setRStartLength(recordsRef.current.length);
+		}
+		if (secondRun.current >= 0) {
+			secondRun.current = secondRun.current - 1;
+		}
+	}, [records]);
+
 	// Set conflicts
 	useEffect(() => {
 		let count = 0;
@@ -312,8 +327,180 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setConflicts(count);
 	}, [records]);
 
+	const pushAndClear = useCallback(async () => {
+		if (context.online) {
+			try {
+				// Clear old bib data
+				await deleteBibs(context.raceID, context.eventID);
+				// Post new bib data if the user hasn't deleted all records
+				if (recordsRef.current.length > 0) {
+					// Online Funtionality
+					// Form Data
+					const formDataBibs = new FormData();
+					formDataBibs.append(
+						"request",
+						JSON.stringify({
+							last_finishing_place: 0,
+							bib_nums: recordsRef.current.map(entry => entry[0])
+						})
+					);
+
+					await postBibs(context.raceID, context.eventID, formDataBibs);
+				}
+
+				// Clear old finish time data
+				await deleteFinishTimes(context.raceID, context.eventID);
+				// Post new finish time data if the user hasn't deleted all records
+				if (recordsRef.current.length > 0) {
+					await postFinishTimes(context.raceID, context.eventID, recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]));
+				}
+
+				// Clear local data upon successful upload
+				GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+					if (raceIndex !== null && eventIndex !== null) {
+						raceList[raceIndex].events[eventIndex].checker_bibs = [];
+						raceList[raceIndex].events[eventIndex].bib_nums = [];
+						raceList[raceIndex].events[eventIndex].finish_times = [];
+						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					}
+				});
+
+				AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+				AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
+
+				setEditMode(false);
+				setLoading(false);
+
+				if (recordsRef.current.length > 0) {
+					Alert.alert("Success", "Results successfully uploaded to Runsignup!");
+				} else {
+					Alert.alert("Success", "Results successfully deleted from Runsignup!");
+					navigation.goBack();
+				}
+			} catch (error) {
+				CreateAPIError("confirm all bibs & finish times are formatted correctly", error);
+
+				if (!isUnmountedRef.current) {
+					setLoading(false);
+				}
+			}
+		} else {
+			try {
+				// Offline Functionality
+				GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
+					eventList[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
+					eventList[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+					eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
+					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+				});
+
+				AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
+				AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
+
+				setEditMode(false);
+
+				if (recordsRef.current.length > 0) {
+					Alert.alert("Success", "Results successfully saved to your local device!");
+				} else {
+					Alert.alert("Success", "Results successfully deleted from your local device!");
+					navigation.goBack();
+				}
+			} catch (error) {
+				Logger("Unknown Error (Offline: confirm all bibs & finish times are formatted correctly", error, true);
+			} finally {
+				setLoading(false);
+			}
+
+		}
+		setRStartLength(recordsRef.current.length);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+
+	const saveResults = useCallback(() => {
+		// Sort finish times
+		updateRecords([...recordsRef.current.sort((a, b) => (a[1] - b[1]))]);
+
+		if (recordsRef.current.length < 1 && rStartLength !== 0) {
+			setLoading(false);
+			Alert.alert(
+				"Are You Sure?",
+				"Are you sure you want to delete all records?",
+				[
+					{ text: "Cancel" },
+					{ text: "Delete All", onPress: (): void => { 
+						Alert.alert(
+							"Confirm Delete?",
+							"Please confirm that you want to delete all records for this event. All data will be lost.",
+							[
+								{ text: "Cancel" },
+								{ text: "Delete All", onPress: (): void => { pushAndClear(); }, style: "destructive"}
+							]
+						);
+					}, style: "destructive"}
+				]
+			);
+		} else {
+			pushAndClear();
+		}
+	}, [pushAndClear, rStartLength, updateRecords]);
+
+	// Check entries for errors
+	const checkEntries = useCallback(async () => {
+		setLoading(true);
+
+		// Reformat times and bibs
+		for (let i = 0; i < recordsRef.current.length; i++) {
+			if (recordsRef.current[i][1] === undefined) {
+				recordsRef.current[i][1] = Number.MAX_SAFE_INTEGER;
+			}
+
+			if (isNaN(recordsRef.current[i][0]) || recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === null) {
+				recordsRef.current[i][0] = 0;
+				recordsRef.current[i][2] = 0;
+			}
+		}
+
+		updateRecords([...recordsRef.current]);
+
+		if (recordsRef.current.filter((entry) => entry[0] === null).length > 0) {
+			// Alert if blank bib entry
+			Alert.alert("Incorrect Bib Entry", "There is a blank Bib Entry in the list. Please fill in the correct value.");
+			setLoading(false);
+		} else if (recordsRef.current.filter(entry => !(/^(\d)+$/gm.test(entry[0].toString()))).length > 0) {
+			// Alert if non number
+			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the Bib Entries list. Please correct that entry before submitting.");
+			setLoading(false);
+		} else if (recordsRef.current.filter((entry) => (entry[0].toString().substring(0, 1) === "0" && entry[0].toString().length > 1)).length > 0) {
+			// Alert if starts with 0
+			Alert.alert("Incorrect Bib Entry", "There is a Bib Entry that starts with 0 in the list. Please fill in the correct value.");
+			setLoading(false);
+		} else if (recordsRef.current.filter((entry) => entry[1] === Number.MAX_SAFE_INTEGER).length > 0) {
+			// Alert if blank finish time
+			Alert.alert("Incorrect Finish Time Entry", "There is a blank Finish Time in the list. Please fill in the correct value.");
+			setLoading(false);
+		} else if (recordsRef.current.filter((entry) => (entry[1] === -1)).length > 0) {
+			// Alert if incorrect finish time
+			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH:MM:SS:MS\nHH:MM:SS.MS\nHH:MM:SS\nMM:SS.MS\nMM:SS\nSS.MS");
+			setLoading(false);
+		} else if (recordsRef.current.filter((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
+			// Alert if too large finish time
+			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is too large in the list. Please correct the value.");
+			setLoading(false);
+		} else if (recordsRef.current.filter((entry) => entry[1] === 0).length > 0) {
+			// Alert if zero finish time
+			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is zero in the list. Please correct the value.");
+			setLoading(false);
+		} else {
+			saveResults();
+		}
+	}, [saveResults, updateRecords]);
+
 	// Update local storage to reflect conflict resolved
 	const conflictResolved = useCallback((index) => {
+		// Save results when all conflicts are resolved
+		if (conflicts === 1) {
+			checkEntries();
+		}
+
 		if (context.online) {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
@@ -333,7 +520,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			});
 		}
-	}, [context.eventID, context.online, context.raceID, context.time]);
+	}, [checkEntries, conflicts, context.eventID, context.online, context.raceID, context.time]);
 
 	// Check conflicts
 	const prevConflicts = useRef(0);
@@ -347,10 +534,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					"Warning",
 					alertMsg,
 					[
-						{
-							text: "Resolve",
-							onPress: (): void => { return; }
-						},
+						{ text: "Resolve" },
 						// Batch Conflict Resolution
 						{
 							text: "Clear Local",
@@ -360,10 +544,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 									"Confirm Clear",
 									"Are you sure you want to clear your local conflicting data? This cannot be undone.",
 									[
-										{
-											text: "Cancel",
-											onPress: (): void => { return; }
-										},
+										{ text: "Cancel" },
 										{
 											text: "Clear Local",
 											style: "destructive",
@@ -371,8 +552,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 												for (let i = 0; i < recordsRef.current.length; i++) {
 													if (ConflictBoolean(recordsRef.current[i][0], recordsRef.current[i][2])) {
 														recordsRef.current[i][2] = recordsRef.current[i][0];
-														updateRecords([...recordsRef.current]);
 														conflictResolved(i);
+														updateRecords([...recordsRef.current]);
 													}
 												}
 											}
@@ -393,32 +574,26 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const conflictResolution = useCallback(async (index) => {
 		const buttons: Array<AlertButton> = [];
 		if (Platform.OS === "android") {
-			buttons.push({
-				text: "Cancel",
-				onPress: (): void => { return; }
-			});
+			buttons.push({ text: "Cancel" });
 		}
 		buttons.push({
 			text: `${recordsRef.current[index][0]}`,
 			onPress: (): void => {
 				recordsRef.current[index][2] = recordsRef.current[index][0];
-				updateRecords([...recordsRef.current]);
 				conflictResolved(index);
+				updateRecords([...recordsRef.current]);
 			}
 		},
 		{
 			text: `${recordsRef.current[index][2]}`,
 			onPress: (): void => {
 				recordsRef.current[index][0] = recordsRef.current[index][2];
-				updateRecords([...recordsRef.current]);
 				conflictResolved(index);
+				updateRecords([...recordsRef.current]);
 			}
 		});
 		if (Platform.OS === "ios") {
-			buttons.push({
-				text: "Cancel",
-				onPress: (): void => { return; }
-			});
+			buttons.push({ text: "Cancel" });
 		}
 		Alert.alert(
 			"Resolve Conflict",
@@ -426,150 +601,6 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			buttons
 		);
 	}, [conflictResolved, updateRecords]);
-
-	const saveResults = useCallback(async () => {
-		// Sort finish times
-		updateRecords([...recordsRef.current.sort((a, b) => (a[1] - b[1]))]);
-
-		if (context.online) {
-			// Online Funtionality
-			// Form Data
-			const formDataBibs = new FormData();
-			formDataBibs.append(
-				"request",
-				JSON.stringify({
-					last_finishing_place: 0,
-					bib_nums: recordsRef.current.map(entry => entry[0])
-				})
-			);
-
-			try {
-				// Clear old bib data
-				await deleteBibs(context.raceID, context.eventID);
-				// Post new bib data
-				await postBibs(context.raceID, context.eventID, formDataBibs);
-
-				// Clear old finish time data
-				await deleteFinishTimes(context.raceID, context.eventID);
-				// Post new finish time data
-				await postFinishTimes(context.raceID, context.eventID, recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]));
-
-				// Clear local data upon successful upload
-				GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-					if (raceIndex !== null && eventIndex !== null) {
-						raceList[raceIndex].events[eventIndex].checker_bibs = [];
-						raceList[raceIndex].events[eventIndex].bib_nums = [];
-						raceList[raceIndex].events[eventIndex].finish_times = [];
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-					}
-				});
-
-				AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-				AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-
-				setEditMode(false);
-				setLoading(false);
-
-				Alert.alert("Success", "Results successfully uploaded to Runsignup!");
-			} catch (error) {
-				CreateAPIError("Save Records", error);
-
-				if (!isUnmountedRef.current) {
-					setLoading(false);
-				}
-			}
-		} else {
-			// Offline Functionality
-			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-				eventList[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
-				eventList[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
-				eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
-				AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-			});
-
-			AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
-			AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
-
-			setEditMode(false);
-			setLoading(false);
-
-			Alert.alert("Success", "Edits have been saved to your local device!");
-		}
-	}, [context.eventID, context.online, context.raceID, context.time, updateRecords]);
-
-	// Check entries for errors
-	const checkEntries = useCallback(async () => {
-		setLoading(true);
-		let blankTimes = false;
-
-		// Reformat times and bibs
-		for (let i = 0; i < recordsRef.current.length; i++) {
-			if (recordsRef.current[i][1] === undefined) {
-				recordsRef.current[i][1] = Number.MAX_SAFE_INTEGER;
-			}
-
-			if (isNaN(recordsRef.current[i][0]) || recordsRef.current[i][0] === undefined || recordsRef.current[i][0] === null) {
-				recordsRef.current[i][0] = 0;
-				recordsRef.current[i][2] = 0;
-			}
-
-			// Ignore empty finish times at the end of the list
-			if (recordsRef.current[i][1] === Number.MAX_SAFE_INTEGER) {
-				for (let j = i + 1; j < recordsRef.current.length; j++) {
-					if (recordsRef.current[j][1] !== Number.MAX_SAFE_INTEGER && recordsRef.current[j][1] !== undefined) {
-						blankTimes = true;
-						break;
-					}
-				}
-			}
-		}
-
-		updateRecords([...recordsRef.current]);
-
-		if (recordsRef.current.filter((entry) => entry[0] === null).length > 0) {
-			// Alert if blank bib entry
-			Alert.alert("Incorrect Bib Entry", "There is a blank Bib Entry in the list. Please fill in the correct value.");
-			setLoading(false);
-		} else if (recordsRef.current.filter(entry => !(/^(\d)+$/gm.test(entry[0].toString()))).length > 0) {
-			// Alert if non number
-			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the Bib Entries list. Please correct that entry before submitting.");
-			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[0].toString().substring(0, 1) === "0" && entry[0].toString().length > 1)).length > 0) {
-			// Alert if starts with 0
-			Alert.alert("Incorrect Bib Entry", "There is a Bib Entry that starts with 0 in the list. Please fill in the correct value.");
-			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => entry[1] === Number.MAX_SAFE_INTEGER).length > 0 && blankTimes) {
-			// Alert if blank or incorrect finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is a blank Finish Time in the list. Please fill in the correct value.");
-			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[1] === -1)).length > 0) {
-			// Alert if blank or incorrect finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms");
-			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
-			// Alert if too large finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is too large in the list. Please correct the value.");
-			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => entry[1] === 0).length > 0) {
-			// Alert if zero finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is zero in the list. Please correct the value.");
-			setLoading(false);
-		} else {
-			saveResults();
-		}
-	}, [saveResults, updateRecords]);
-
-	// Save after final conflict resolution
-	const firstRun2 = useRef(true);
-	useEffect(() => {
-		if (firstRun2.current) {
-			firstRun2.current = false;
-			return;
-		}
-		if (conflicts === 0) {
-			checkEntries();
-		}
-	}, [checkEntries, conflicts]);
 
 	// Returns participant with bib number of index if found
 	const findParticipant = useCallback((bib: number) => {
@@ -627,7 +658,12 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const editTable = useCallback(() => {
 		setEditMode(true);
 		Alert.alert(
-			"Edit Mode", "Tap on a bib number or finish time to edit it. Tap on two places to swap the entries in the list.\nWARNING: Do not edit data until results have been saved in both the Finish Line and Chute Modes. Once data has been edited, you will not be able to re-open either mode.");
+			"Edit Mode", 
+			`WARNING: Once data has been edited here, you will not be able to re-open either Finish Line Mode or Chute Mode.\n${recordsRef.current.length > 0 ? "Tap on a bib number or finish time to edit it. Tap on two places to swap the bibs in the list. " : ""}Tap + to add a record.`,
+			[
+				{ text: "I Understand", style: "destructive" }
+			]
+		);
 	}, []);
 
 	// Display edit / save button in header
@@ -638,8 +674,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			),
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
-					{editMode && !loading && <TouchableOpacity style={{ marginRight: 10 }} onPress={(): void => addRecord()} >
-						<Text style={globalstyles.headerButtonText}>Add Row</Text>
+					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={(): void => addRecord()} >
+						<Icon name={"plus3"} size={20} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 
 					{!loading && conflicts === 0 && <TouchableOpacity
@@ -692,7 +728,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					// Invalid Time
 					Alert.alert(
 						"Incorrect Finish Time Entry",
-						"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nhh:mm:ss:ms\nhh:mm:ss.ms\nhh:mm:ss\nmm:ss.ms\nmm:ss\nss.ms",
+						"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH:MM:SS:MS\nHH:MM:SS.MS\nHH:MM:SS\nMM:SS.MS\nMM:SS\nSS.MS",
 					);
 				}
 			}
@@ -726,31 +762,44 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.tableContainer}>
-			<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row" }}>
-				<TextInput
-					style={globalstyles.input}
-					onChangeText={setSearch}
-					value={search}
-					placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
-					placeholderTextColor={GRAY_COLOR}
-				/>
-			</View>
+			{!loading && !editMode && recordsRef.current.length < 1 &&
+				<View style={globalstyles.container}>
+					<Text style={globalstyles.info}>
+						No records found for this event. Enter data in Finish Line Mode & Chute Mode, then come back here to view & edit results (or directly enter data here by tapping "Edit").
+					</Text>
+				</View>
+			}
+
+
+			{(recordsRef.current.length > 0 || editMode) &&
+				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row" }}>
+					<TextInput
+						style={[globalstyles.input, { borderWidth: 0 }]}
+						onChangeText={setSearch}
+						value={search}
+						placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
+						placeholderTextColor={GRAY_COLOR}
+					/>
+				</View>
+			}
 
 			{/* Header */}
-			<View style={globalstyles.tableHead}>
-				<Text style={globalstyles.placeTableHeadText}>#</Text>
-				<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-				<Text style={globalstyles.timeTableHeadText}>Time</Text>
-				{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
-				{editMode &&
-					<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
-						<Text style={globalstyles.deleteTableText}>-</Text>
-					</View>
-				}
-			</View>
+			{(recordsRef.current.length > 0 || editMode) &&
+				<View style={globalstyles.tableHead}>
+					<Text style={globalstyles.placeTableHeadText}>#</Text>
+					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
+					<Text style={globalstyles.timeTableHeadText}>Time</Text>
+					{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
+					{editMode &&
+						<View style={globalstyles.tableDeleteButton}>
+							<Icon name="minus2" color={BLACK_COLOR} size={15} />
+						</View>
+					}
+				</View>
+			}
 
 			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			{!loading &&
+			{!loading && recordsRef.current.length > 0 &&
 				<FlatList
 					showsVerticalScrollIndicator={false}
 					keyboardShouldPersistTaps="handled"

@@ -17,6 +17,7 @@ import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 import CreateAPIError from "../helpers/CreateAPIError";
+import Icon from "../components/IcoMoon";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -50,7 +51,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const backTapped = useCallback(() => {
 		if (bibNumsRef.current.length > 0) {
 			Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
-				{ text: "Cancel", onPress: (): void => { return; } },
+				{ text: "Cancel" },
 				{
 					text: "Leave",
 					onPress: (): void => {
@@ -217,9 +218,9 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			Alert.alert(
 				"Save Results",
-				"Are you sure you want to save to the cloud and quit?",
+				`Are you sure you want to save ${context.online ? "to the cloud" : "results"} and quit?`,
 				[
-					{ text: "Cancel", onPress: (): void => { return; } },
+					{ text: "Cancel" },
 					{
 						text: "Save & Quit",
 						onPress: (): void => {
@@ -231,7 +232,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				]
 			);
 		}
-	}, [addToStorage]);
+	}, [addToStorage, context.online]);
 
 	// Record button
 	const recordBib = (): void => {
@@ -307,8 +308,8 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				<View style={globalstyles.tableHead}>
 					<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
-					<View style={[globalstyles.tableDeleteButton, { backgroundColor: globalstyles.tableHead.backgroundColor }]}>
-						<Text style={globalstyles.deleteTableText}>-</Text>
+					<View style={globalstyles.tableDeleteButton}>
+						<Icon name="minus2" color={BLACK_COLOR} size={15} />
 					</View>
 				</View>
 

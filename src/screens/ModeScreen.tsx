@@ -14,8 +14,7 @@ import Logger from "../helpers/Logger";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
-import { Race } from "../models/Race";
-import CreateAPIError, { NetworkErrorBool } from "../helpers/CreateAPIError";
+import CreateAPIError from "../helpers/CreateAPIError";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -26,30 +25,25 @@ type Props = {
 const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
-	const FinishLineModeMsg = `You may not enter Finish Line Mode data${context.online ? ": \n1)" : ""} multiple times on the same device${context.online ? ", 2) after recording Chute Mode data, 3) or with unsaved Chute Mode data stored on your device." : "."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
-	const ChuteModeMsg = `You may not enter Chute Mode data: \n1) multiple times on the same device or 2) ${context.online ? "with unsaved Finish Line Mode data stored on your device." : "before saving Finish Line Mode data."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
+	const msgHeader = "Permission Denied";
+	const FinishLineModeMsg = `You may not enter Finish Line Mode data: \n1) multiple times on the same device, ${!context.online ? "or ": ""}2) after creating/editing results${context.online ? ", 3) after recording Chute Mode data, or 4) with unsaved Chute Mode data stored on your device." : "."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
+	const ChuteModeMsg = `You may not enter Chute Mode data: \n1) multiple times on the same device, 2) after creating/editing results, or 3) ${context.online ? "with unsaved Finish Line Mode data stored on your device." : "before saving Finish Line Mode data."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
 
 	const [finishLineDone, setFinishLineDone] = useState(false);
 	const [finishLineProgress, setFinishLineProgress] = useState(false);
 	const [chuteDone, setChuteDone] = useState(false);
 	const [chuteProgress, setChuteProgress] = useState(false);
-	const [localEdits, setLocalEdits] = useState(true);
-	const [insuffData, setInsuffData] = useState(false);
 
 	const [hasButtonColors, setHasButtonColors] = useState(false);
 
-	const noFinishLine = finishLineDone || chuteDone || chuteProgress || (context.online && !insuffData);
+	const noFinishLine = finishLineDone || chuteDone || chuteProgress;
 	const noChute = chuteDone || finishLineProgress || (!context.online && !finishLineDone);
-	const noResults = localEdits || insuffData || (!context.online && !finishLineDone);
+	const noResults = chuteProgress || finishLineProgress;
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(async () => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
-			{
-				text: "Cancel",
-				style: "default",
-				onPress: (): void => { return; }
-			},
+			{ text: "Cancel" },
 			{
 				text: "Log Out",
 				style: "destructive",
@@ -72,80 +66,53 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		let cDone = null;
 		let flProgress = false;
 		let cProgress = false;
-		let lEdits = false;
-		let iData = false;
 
 		if (context.online) {
 			// Finish Line Done
-			flDone = await AsyncStorage.getItem(`finishLineDone:${context.raceID}:${context.eventID}`);
-			// Chute Done
-			cDone = await AsyncStorage.getItem(`chuteDone:${context.raceID}:${context.eventID}`);
-
-			// Finish Line In Progress
-			const raceList = await AsyncStorage.getItem("onlineRaces");
-			if (raceList) {
-				const races = JSON.parse(raceList) as Array<Race>;
-				const race = races.find(race => race.race_id === context.raceID);
-				const event = race?.events.find(event => event.event_id === context.eventID);
-				if (!(flDone === "true") && event && event.finish_times && event.finish_times.length > 0) {
-					flProgress = true;
-				}
-				if (!(cDone === "true") && event && event.bib_nums && event.bib_nums.length > 0) {
-					cProgress = true;
-				}
-			}
-
-			// Results Disabled
+			flDone = await AsyncStorage.getItem(`finishLineDone:${context.raceID}:${context.eventID}`) === "true";
 			try {
 				const finishTimes = await getFinishTimes(context.raceID, context.eventID);
-				if (finishTimes === null || finishTimes.length < 1) {
-					iData = true;
+				if (finishTimes.length > 0) {
+					flDone = true;
 				}
-			} catch (error) {
-				if (!NetworkErrorBool(error)) {
-					Logger("Unknown Error (Results Disabled)", error, true);
-				}
+			} catch {
+				// Ignore
 			}
 
+			// Chute Done
+			cDone = await AsyncStorage.getItem(`chuteDone:${context.raceID}:${context.eventID}`) === "true";
+
+			// Check if Finish Line / Chute in progress
 			const [localRaceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-			if (!finishLineDone && localRaceList[raceIndex].events[eventIndex].finish_times.length > 0) {
-				lEdits = true;
+			if (!flDone && localRaceList[raceIndex].events[eventIndex].finish_times.length > 0) {
+				flProgress = true;
+			}
+			if (!cDone && localRaceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
+				cProgress = true;
 			}
 		} else {
 			// Finish Line Done
-			flDone = await AsyncStorage.getItem(`finishLineDone:${context.time}`);
+			flDone = await AsyncStorage.getItem(`finishLineDone:${context.time}`) === "true";
 			// Chute Done
-			cDone = await AsyncStorage.getItem(`chuteDone:${context.time}`);
+			cDone = await AsyncStorage.getItem(`chuteDone:${context.time}`) === "true";
 
-			// Finish Line In Progress
-			const eventList = await AsyncStorage.getItem("offlineEvents");
-			if (eventList) {
-				const events = JSON.parse(eventList) as Array<OfflineEvent>;
-				const event = events.find(foundEvent => foundEvent.time === context.time);
-				if (!(flDone === "true") && event?.finish_times && event?.finish_times.length > 0) {
-					flProgress = true;
-				}
-				if (!(cDone === "true") && event?.bib_nums && event.bib_nums.length > 0) {
-					cProgress = true;
-				}
-			}
-
-			// Results Disabled
+			// Check if Finish Line / Chute in progress
 			const [localEventList, eventIndex] = await GetLocalOfflineEvent(context.time);
-			if (!finishLineDone && localEventList[eventIndex].finish_times.length > 0) {
-				lEdits = true;
+			if (!flDone && localEventList[eventIndex].finish_times.length > 0) {
+				flProgress = true;
+			}
+			if (!cDone && localEventList[eventIndex].bib_nums.length > 0) {
+				cProgress = true;
 			}
 		}
 
-		setFinishLineDone(flDone === "true" ? true : false);
+		setFinishLineDone(flDone);
 		setFinishLineProgress(flProgress);
 		setChuteProgress(cProgress);
-		setChuteDone(cDone === "true" ? true : false);
-		setLocalEdits(lEdits);
-		setInsuffData(iData);
+		setChuteDone(cDone);
 
 		setHasButtonColors(true);
-	}, [context.eventID, context.online, context.raceID, context.time, finishLineDone]);
+	}, [context.eventID, context.online, context.raceID, context.time]);
 
 	// Get button colors on focus
 	useFocusEffect(
@@ -173,7 +140,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
 					context.online ?
@@ -192,7 +159,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const finishLineTapped = async (): Promise<void> => {
 		if (noFinishLine) {
 			Alert.alert(
-				"Cannot Re-Enter Data",
+				msgHeader,
 				FinishLineModeMsg
 			);
 		} else {
@@ -218,7 +185,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const finishLineTappedOffline = (): void => {
 		if (noFinishLine) {
 			Alert.alert(
-				"Cannot Re-Enter Data",
+				msgHeader,
 				FinishLineModeMsg
 			);
 		} else {
@@ -230,7 +197,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const chuteTapped = (): void => {
 		if (noChute) {
 			Alert.alert(
-				"Cannot Re-Enter Data",
+				msgHeader,
 				ChuteModeMsg
 			);
 		} else {
@@ -242,7 +209,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const chuteTappedOffline = (): void => {
 		if (noChute) {
 			Alert.alert(
-				"Cannot Re-Enter Data", 
+				msgHeader, 
 				ChuteModeMsg
 			);
 		} else {
@@ -255,20 +222,13 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const verificationTapped = async (): Promise<void> => {
 		try {
 			// Check for local edits
-			if (localEdits) {
+			if (noResults) {
 				Alert.alert(
 					"Local Data Not Uploaded", 
 					"There is local data on your device that has not been saved & uploaded to RunSignup. Please save that data and try again."
 				);
 			} else {
-				if (insuffData) {
-					Alert.alert(
-						"No Data Found", 
-						"Insufficient data found on RunSignup. Please enter finish times on this device or another and try again."
-					);
-				} else {
-					navigation.navigate("VerificationMode");
-				}
+				navigation.navigate("VerificationMode");
 			}
 		} catch (error) {
 			CreateAPIError("Modes", error);
@@ -278,21 +238,13 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	// Verification Mode tapped (offline)
 	const verificationTappedOffline = async (): Promise<void> => {
 		try {
-			if (localEdits) {
+			if (noResults) {
 				Alert.alert(
 					"Local Data Not Saved", 
 					"There is local data on your device that has not been saved. Please save that data and try again."
 				);
 			} else {
-				// Only open if Finish Line data is saved
-				if (finishLineDone) {
-					navigation.navigate("VerificationMode");
-				} else {
-					Alert.alert(
-						"No Data Entered",
-						"Insufficient data found. Please enter finish times / bibs and try again."
-					);
-				}
+				navigation.navigate("VerificationMode");
 			}
 		} catch (error) {
 			Logger("Unknown Error (Offline Modes)", error, true);
@@ -305,7 +257,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			"Delete Event",
 			"Are you sure you want to delete this event? You will lose all local data. This action cannot be reversed!",
 			[
-				{ text: "Cancel", onPress: (): void => { return; } },
+				{ text: "Cancel" },
 				{
 					text: "Delete",
 					onPress: async (): Promise<void> => {
@@ -313,7 +265,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 							"Confirm Delete",
 							"Please confirm that you want to delete this event. All local data will be lost.",
 							[
-								{ text: "Cancel", onPress: (): void => { return; } },
+								{ text: "Cancel" },
 								{
 									text: "Delete",
 									onPress: async (): Promise<void> => {

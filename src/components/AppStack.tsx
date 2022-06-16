@@ -12,6 +12,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Logger from "../helpers/Logger";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
+import { Dimensions } from "react-native";
 
 export type RootStackParamList = {
 	SplashScreen: undefined,
@@ -37,9 +38,10 @@ export default function StartNavigator(): React.ReactElement {
 				await SplashScreen.preventAutoHideAsync();
 				// Pre-load fonts, make any API calls you need to do here
 				await Font.loadAsync({
-					"Roboto": require("../assets/Roboto/Roboto-Regular.ttf"),
-					"RobotoBold": require("../assets/Roboto/Roboto-Bold.ttf"),
-					"RobotoMono": require("../assets/Roboto/RobotoMono-VariableFont_wght.ttf"),
+					"Roboto": require("../assets/Fonts/Roboto-Regular.ttf"),
+					"RobotoBold": require("../assets/Fonts/Roboto-Bold.ttf"),
+					"RobotoMono": require("../assets/Fonts/RobotoMono-VariableFont_wght.ttf"),
+					"IcoMoon":  require("../assets/Fonts/IcoMoon-Ultimate.ttf")
 				});
 			} catch (error) {
 				Logger("Could Not Load Fonts. Please Restart.", error, true);
@@ -56,7 +58,7 @@ export default function StartNavigator(): React.ReactElement {
 		<>
 			{appIsReady && <AppStack.Navigator screenOptions={{
 				headerStyle: { backgroundColor: GREEN_COLOR },
-				headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "RobotoBold", color: WHITE_COLOR },
+				headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "RobotoBold", color: WHITE_COLOR, maxWidth: Dimensions.get("screen").width - 170 },
 				headerTitleAlign: "left"
 			}}>
 				<AppStack.Screen name="Login" component={LoginScreen} options={{

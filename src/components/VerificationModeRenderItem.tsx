@@ -1,10 +1,11 @@
 import React, { memo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { globalstyles } from "./styles";
+import { globalstyles, RED_COLOR } from "./styles";
 import removeOne from "../helpers/RemoveOne";
 import GetClockTime from "../helpers/GetClockTime";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import GetBibDisplay from "../helpers/GetBibDisplay";
+import Icon from "./IcoMoon";
 
 interface Props {
 	record: [number, number, number],
@@ -108,7 +109,7 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 								props.updateMaxTime(maxTime);
 							}
 						}}>
-						<Text style={globalstyles.tableButtonText}>-</Text>
+						<Icon name="minus-circle" color={RED_COLOR} size={25} />
 					</TouchableOpacity>
 				}
 			</TouchableOpacity>

@@ -29,11 +29,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(async () => {
 		Alert.alert("Log Out?", "Are you sure you want to log out?", [
-			{
-				text: "Cancel",
-				style: "default",
-				onPress: (): void => { return; }
-			},
+			{ text: "Cancel" },
 			{
 				text: "Log Out",
 				style: "destructive",
@@ -64,7 +60,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 			navigation.setOptions({
 				headerLeft: () => (
-					<HeaderBackButton onPress={(): void => { navigation.pop(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
+					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
 					<TouchableOpacity onPress={handleLogOut}>

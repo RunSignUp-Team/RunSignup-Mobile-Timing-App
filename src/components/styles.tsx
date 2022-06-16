@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 export const GREEN_COLOR = "#00ac65";
 export const DARK_GREEN_COLOR = "#00663C";
@@ -26,6 +26,8 @@ export const TABLE_ITEM_HEIGHT = 50;
 export const LONG_TABLE_ITEM_HEIGHT = 50;
 
 export const UNIVERSAL_PADDING = 20;
+
+const droid = Platform.OS === "android";
 
 interface GenericTableText {
 	fontSize: number,
@@ -175,7 +177,7 @@ export const globalstyles = StyleSheet.create({
 	// Table Text
 	placeTableText: {
 		...genericTableText,
-		flex: 0.75, // Overriden on Chute mode
+		flex: 0.75, // Overriden on Chute mode,
 	},
 	bibTableText: {
 		...genericTableText,
@@ -214,6 +216,8 @@ export const globalstyles = StyleSheet.create({
 	deleteTableText: {
 		...genericTableHeadText,
 		textAlign: "center",
+		fontSize: SMALL_FONT_SIZE + 3,
+		// bottom: droid ? 1 : 0.2
 	},
 	addTableText: {
 		...genericTableHeadText,
@@ -223,19 +227,10 @@ export const globalstyles = StyleSheet.create({
 	// Table Buttons (flex set in individual files)
 	tableDeleteButton: {
 		...genericTableButton,
-		backgroundColor: RED_COLOR,
 	},
 	tableAddButton: {
 		...genericTableButton,
-		backgroundColor: GREEN_COLOR,
 		marginRight: 5
-	},
-	tableButtonText: {
-		fontSize: MEDIUM_FONT_SIZE,
-		fontFamily: "Roboto",
-		color: WHITE_COLOR,
-		textAlign: "center",
-		textAlignVertical: "center"
 	},
 
 	// Text Input
@@ -271,9 +266,7 @@ export const globalstyles = StyleSheet.create({
 	// Timer
 	timerView: {
 		paddingHorizontal: 8,
-		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
-		borderColor: DARK_GRAY_COLOR,
 		margin: 10,
 		marginLeft: UNIVERSAL_PADDING,
 		flex: 2,
@@ -283,9 +276,7 @@ export const globalstyles = StyleSheet.create({
 	},
 	timerBibInput: {
 		paddingHorizontal: 8,
-		borderWidth: 1,
 		borderRadius: BORDER_RADIUS,
-		borderColor: DARK_GRAY_COLOR,
 		margin: 10,
 		marginRight: UNIVERSAL_PADDING,
 		flex: 1,

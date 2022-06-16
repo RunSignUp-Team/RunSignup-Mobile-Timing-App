@@ -59,7 +59,7 @@ export default function MainButton(props: Props): React.ReactElement {
 					{props.listButton + ". "}
 				</Text>
 			}
-			<View style={{flexDirection: "column"}}>
+			<View style={{flexDirection: "column", flex: props.subtitle ? 0.95 : undefined}}>
 				<Text 
 					style={{
 						fontSize: props.listButton !== undefined ? MEDIUM_FONT_SIZE : BIG_FONT_SIZE,
@@ -69,7 +69,7 @@ export default function MainButton(props: Props): React.ReactElement {
 					}}>
 					{props.text}
 				</Text>
-				{props.subtitle && 
+				{!!props.subtitle && 
 					<Text
 						style={{
 							fontSize: SMALL_FONT_SIZE,

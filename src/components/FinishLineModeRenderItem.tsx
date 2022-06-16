@@ -1,8 +1,9 @@
 import React, { memo, useCallback } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import removeOne from "../helpers/RemoveOne";
-import { globalstyles } from "./styles";
+import { globalstyles, GREEN_COLOR, RED_COLOR } from "./styles";
 import GetClockTime from "../helpers/GetClockTime";
+import Icon from "./IcoMoon";
 
 interface Props {
 	checkerBibsRef: {
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function FinishLineModeRenderItem(props: Props): React.ReactElement {
+
 	const addOne = useCallback(() => {
 		props.addOne(props.time, props.index);
 	}, [props]);
@@ -43,15 +45,15 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 				<Text style={globalstyles.bibTableText}>{props.bib}</Text>
 			</TouchableOpacity>
 			<Text style={globalstyles.timeTableText}>{GetClockTime(props.time)}</Text>
-			<TouchableOpacity
+			<TouchableOpacity 
 				style={globalstyles.tableAddButton}
 				onPress={addOne}>
-				<Text style={globalstyles.tableButtonText}>+</Text>
+				<Icon  name="plus-circle" color={GREEN_COLOR} size={25}/>
 			</TouchableOpacity>
 			<TouchableOpacity
 				style={globalstyles.tableDeleteButton}
 				onPress={removeSelf}>
-				<Text style={globalstyles.tableButtonText}>-</Text>
+				<Icon  name="minus-circle" color={RED_COLOR} size={25}/>
 			</TouchableOpacity>
 		</View>
 	);
