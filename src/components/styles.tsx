@@ -1,4 +1,4 @@
-import { Platform, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 export const GREEN_COLOR = "#00ac65";
 export const DARK_GREEN_COLOR = "#00663C";
@@ -26,8 +26,6 @@ export const TABLE_ITEM_HEIGHT = 50;
 export const LONG_TABLE_ITEM_HEIGHT = 50;
 
 export const UNIVERSAL_PADDING = 20;
-
-const droid = Platform.OS === "android";
 
 interface GenericTableText {
 	fontSize: number,
@@ -217,7 +215,6 @@ export const globalstyles = StyleSheet.create({
 		...genericTableHeadText,
 		textAlign: "center",
 		fontSize: SMALL_FONT_SIZE + 3,
-		// bottom: droid ? 1 : 0.2
 	},
 	addTableText: {
 		...genericTableHeadText,
