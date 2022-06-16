@@ -730,6 +730,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				// Valid Time
 				if (valArray[1] !== "") {
 					recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
+
+					// Update Max Time
+					if (GetTimeInMils(valArray[1]) > maxTime.current) {
+						maxTime.current = GetTimeInMils(valArray[1]);
+					}
 				}
 				updateRecords([...recordsRef.current]);
 				setAlertVisible(false);
