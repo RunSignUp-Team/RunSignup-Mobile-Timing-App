@@ -306,6 +306,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		};
 	}, [context.online, context.time, getRecords, updateRecords]);
 
+	// Only show delete alert if there were previously records saved for the event
 	const secondRun = useRef(1);
 	useEffect(() => {
 		if (secondRun.current === 0) {
