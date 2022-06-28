@@ -59,7 +59,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
-		if (finishTimesRef.current.length > 0) {
+		if (startTime.current > -1) {
 			Alert.alert("Go to Mode Screen", "Are you sure you want to go back to the Mode Screen? Changes will be saved, but you should not edit Results until you complete recording data here.", [
 				{ text: "Cancel" },
 				{
@@ -193,19 +193,21 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			// Online mode
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
-					if (raceList[raceIndex].events[eventIndex].finish_times.length > 0) {
-						updateFinishTimes(raceList[raceIndex].events[eventIndex].finish_times);
-						updateCheckerBibs(raceList[raceIndex].events[eventIndex].checker_bibs);
-						const prevStart = raceList[raceIndex].events[eventIndex].real_start_time;
-						if (prevStart !== null && prevStart !== -1) {
-							setTimerOn(true);
-							startTime.current = prevStart;
-						}
-
+					// Check if they previously started recording
+					const prevStart = raceList[raceIndex].events[eventIndex].real_start_time;
+					if (prevStart !== null && prevStart !== -1) {
+						setTimerOn(true);
+						startTime.current = prevStart;
 						// Alert user of data recovery
 						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
 					} else {
 						Alert.alert("Warning", "You cannot use Finish Line Mode on multiple devices at the same time. Please check with other users before recording data.");
+					}
+
+					// Get latest data
+					if (raceList[raceIndex].events[eventIndex].finish_times.length > 0) {
+						updateFinishTimes(raceList[raceIndex].events[eventIndex].finish_times);
+						updateCheckerBibs(raceList[raceIndex].events[eventIndex].checker_bibs);
 					}
 				}
 			});
@@ -214,17 +216,20 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			// Offline mode
 			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 				if (eventIndex !== -1) {
-					updateFinishTimes(eventList[eventIndex].finish_times);
-					updateCheckerBibs(eventList[eventIndex].checker_bibs);
+					// Check if they previously started recording
 					const prevStart = eventList[eventIndex].real_start_time;
 					if (prevStart !== null && prevStart !== -1) {
 						setTimerOn(true);
 						startTime.current = prevStart;
-					}
-					if (eventList[eventIndex].finish_times.length > 0) {
 						// Alert user of data recovery
 						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
 					}
+
+					// Get latest data
+					if (eventList[eventIndex].finish_times.length > 0) {
+						updateFinishTimes(eventList[eventIndex].finish_times);
+						updateCheckerBibs(eventList[eventIndex].checker_bibs);	
+					}	
 				}
 			});
 		}
@@ -385,6 +390,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		// Race hasn't started yet
 		if (startTime.current === 0) {
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
+		} else if (Date.now() - startTime.current > 86399999) {
+			Alert.alert("Record Error", "You have recorded a time that is too large.");
 		} else {
 			finishTimesRef.current.push(Date.now() - startTime.current);
 			if (!bibText) {
@@ -477,10 +484,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 					<Text style={globalstyles.timeTableHeadText}>Time</Text>
 					<View style={globalstyles.tableAddButton}>
-						<Icon name="plus2" color={BLACK_COLOR} size={15} />
+						<Icon name="plus2" color={BLACK_COLOR} size={10} />
 					</View>
 					<View style={globalstyles.tableDeleteButton}>
-						<Icon name="minus2" color={BLACK_COLOR} size={15} />
+						<Icon name="minus2" color={BLACK_COLOR} size={10} />
 					</View>
 				</View>
 

@@ -84,7 +84,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			// Check if Finish Line / Chute in progress
 			const [localRaceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-			if (!flDone && localRaceList[raceIndex].events[eventIndex].finish_times.length > 0) {
+			if (!flDone && localRaceList[raceIndex].events[eventIndex].real_start_time > -1) {
 				flProgress = true;
 			}
 			if (!cDone && localRaceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
@@ -98,7 +98,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			// Check if Finish Line / Chute in progress
 			const [localEventList, eventIndex] = await GetLocalOfflineEvent(context.time);
-			if (!flDone && localEventList[eventIndex].finish_times.length > 0) {
+			if (!flDone && localEventList[eventIndex].real_start_time > -1) {
 				flProgress = true;
 			}
 			if (!cDone && localEventList[eventIndex].bib_nums.length > 0) {

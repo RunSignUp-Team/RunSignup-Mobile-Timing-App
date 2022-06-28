@@ -309,7 +309,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 					<View style={globalstyles.tableDeleteButton}>
-						<Icon name="minus2" color={BLACK_COLOR} size={15} />
+						<Icon name="minus2" color={BLACK_COLOR} size={10} />
 					</View>
 				</View>
 

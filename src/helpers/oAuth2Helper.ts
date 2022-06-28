@@ -1,5 +1,6 @@
 import { ResponseType, AuthRequest } from "expo-auth-session";
 import * as SecureStore from "expo-secure-store";
+import { Alert } from "react-native";
 import { CLIENT_ID, REDIRECT_URI, RUNSIGNUP_URL } from "../constants/oAuth2Constants";
 import Logger from "./Logger";
 
@@ -233,7 +234,8 @@ export function canUseSecureStore(): Promise<boolean> {
 export async function deleteTokenInfo(): Promise<void> {
 
 	if (!(await canUseSecureStore())) return;
-	return SecureStore.deleteItemAsync(TOKEN_INFO_KEY);
+	SecureStore.deleteItemAsync(TOKEN_INFO_KEY);
+	Alert.alert("Logged Out", "You have successfully logged out of the RaceDay Mobile Timing app. Note: Your RunSignup credentials may still be saved in your browser.");
 }
 
 /** 

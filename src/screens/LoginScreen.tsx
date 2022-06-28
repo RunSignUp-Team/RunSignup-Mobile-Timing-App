@@ -48,7 +48,6 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 					try {
 						await deleteTokenInfo();
 						setLoggedIn(false);
-						Alert.alert("Logged Out", "You have successfully logged out of your RunSignup account.");
 					} catch (error) {
 						Logger("Could Not Log Out (Home)", error, true);
 					}

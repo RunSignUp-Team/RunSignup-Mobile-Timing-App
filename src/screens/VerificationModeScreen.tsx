@@ -419,9 +419,6 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
 
 	const saveResults = useCallback(() => {
-		// Sort finish times
-		updateRecords([...recordsRef.current.sort((a, b) => (a[1] - b[1]))]);
-
 		if (recordsRef.current.length < 1 && rStartLength !== 0) {
 			setLoading(false);
 			Alert.alert(
@@ -444,12 +441,15 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			pushAndClear();
 		}
-	}, [pushAndClear, rStartLength, updateRecords]);
+	}, [pushAndClear, rStartLength]);
 
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {
 		setLoading(true);
 		let blankTimes = false;
+
+		// Sort finish times
+		updateRecords([...recordsRef.current.sort((a, b) => (a[1] - b[1]))]);
 
 		// Reformat times and bibs
 		for (let i = 0; i < recordsRef.current.length; i++) {
@@ -463,6 +463,8 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 
 			// Ignore empty finish times at the end of the list
+			// Should theoretically never happen, 
+			// Now that we sort records before entering this if statement
 			if (recordsRef.current[i][1] === Number.MAX_SAFE_INTEGER) {
 				for (let j = i + 1; j < recordsRef.current.length; j++) {
 					if (recordsRef.current[j][1] !== Number.MAX_SAFE_INTEGER && recordsRef.current[j][1] !== undefined) {
@@ -473,38 +475,41 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 		}
 
-		updateRecords([...recordsRef.current]);
+		const blankBibIndex = recordsRef.current.findIndex((entry) => entry[0] === null);
+		const badBibIndex = recordsRef.current.findIndex(entry => !(/^(\d)+$/gm.test(entry[0].toString())));
+		const zeroBibIndex = recordsRef.current.findIndex((entry) => (entry[0].toString().substring(0, 1) === "0" && entry[0].toString().length > 1));
+		const blankTimeIndex = recordsRef.current.findIndex((entry) => entry[1] === Number.MAX_SAFE_INTEGER);
+		const badTimeIndex = recordsRef.current.findIndex((entry) => (entry[1] === -1));
+		const bigTimeIndex = recordsRef.current.findIndex((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER));
+		const zeroTimeIndex = recordsRef.current.findIndex((entry) => entry[1] === 0);
 
-		if (recordsRef.current.filter((entry) => entry[0] === null).length > 0) {
+		if (blankBibIndex !== -1) {
 			// Alert if blank bib entry
-			Alert.alert("Incorrect Bib Entry", "There is a blank Bib Entry in the list. Please fill in the correct value.");
+			Alert.alert("Incorrect Bib Entry", `There is a blank bib number at row ${blankBibIndex + 1}. Please correct the value.`);
 			setLoading(false);
-		} else if (recordsRef.current.filter(entry => !(/^(\d)+$/gm.test(entry[0].toString()))).length > 0) {
+		} else if (badBibIndex !== -1) {
 			// Alert if non number
-			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the Bib Entries list. Please correct that entry before submitting.");
+			Alert.alert("Incorrect Bib Entry", `There is a non-numeric bib number at row ${badBibIndex + 1}. Please correct the value.`);
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[0].toString().substring(0, 1) === "0" && entry[0].toString().length > 1)).length > 0) {
+		} else if (zeroBibIndex !== -1) {
 			// Alert if starts with 0
-			Alert.alert("Incorrect Bib Entry", "There is a Bib Entry that starts with 0 in the list. Please fill in the correct value.");
+			Alert.alert("Incorrect Bib Entry", `There is a bib number that starts with 0 at row ${zeroBibIndex + 1}. Please fill in the correct value.`);
 			setLoading(false);
-		} else if (
-			(recordsRef.current.filter((entry) => entry[1] === Number.MAX_SAFE_INTEGER).length > 0 && blankTimes) || 
-			(recordsRef.current.filter((entry) => entry[1] === Number.MAX_SAFE_INTEGER).length === recordsRef.current.length && recordsRef.current.length > 0)
-		) {
+		} else if (blankTimeIndex !== -1 && blankTimes) {
 			// Alert if blank finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is a blank Finish Time in the list. Please fill in the correct value.");
+			Alert.alert("Incorrect Finish Time Entry", `There is a blank finish time at row ${blankTimeIndex + 1}. Please fill in the correct value.`);
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[1] === -1)).length > 0) {
+		} else if (badTimeIndex !== -1) {
 			// Alert if incorrect finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is an incorrectly typed Finish Time in the list. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH:MM:SS:MS\nHH:MM:SS.MS\nHH:MM:SS\nMM:SS.MS\nMM:SS\nSS.MS");
+			Alert.alert("Incorrect Finish Time Entry", `There is an incorrectly typed finish time at row ${badTimeIndex + 1}. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH : MM : SS : MS\nHH : MM: SS . MS\nHH : MM : SS\nMM : SS . MS\nMM : SS\nSS . MS`);
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER)).length > 0) {
+		} else if (bigTimeIndex !== -1) {
 			// Alert if too large finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is too large in the list. Please correct the value.");
+			Alert.alert("Incorrect Finish Time Entry", `There is a finish time that is too large at row ${bigTimeIndex + 1}. Please correct the value.`);
 			setLoading(false);
-		} else if (recordsRef.current.filter((entry) => entry[1] === 0).length > 0) {
+		} else if (zeroTimeIndex !== -1) {
 			// Alert if zero finish time
-			Alert.alert("Incorrect Finish Time Entry", "There is a Finish Time that is zero in the list. Please correct the value.");
+			Alert.alert("Incorrect Finish Time Entry", `There is a finish time that is zero at row ${zeroTimeIndex}. Please correct the value.`);
 			setLoading(false);
 		} else {
 			saveResults();
@@ -698,8 +703,13 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Adds record to bottom of Flat List
 	const addRecord = useCallback(() => {
-		recordsRef.current.push([0, maxTime.current + 10, 0]);
-		maxTime.current = maxTime.current + 10;
+		// Only increase time if we are not at 23:59:59:99
+		if (maxTime.current + 10 <= 86399999) {
+			recordsRef.current.push([0, maxTime.current + 10, 0]);
+			maxTime.current = maxTime.current + 10;
+		} else {
+			recordsRef.current.push([0, maxTime.current, 0]);
+		}
 		updateRecords([...recordsRef.current]);
 
 		const flatListRefCurrent = flatListRef.current;
@@ -757,12 +767,22 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const onAlertSave = (valArray: Array<string>): void => {
 		if (alertIndex !== undefined && alertRecord) {
-			if (
-				// Bib
-				(!isNaN(parseInt(valArray[0])) || parseInt(valArray[0]) === recordsRef.current[alertIndex][0]) &&
-				// Time
-				(GetTimeInMils(valArray[1]) !== -1 || (recordsRef.current[alertIndex][1] === Number.MAX_SAFE_INTEGER && valArray[1] === ""))
-			) {
+			if (!valArray[0]) {
+				// Alert if blank bib entry
+				Alert.alert("Incorrect Bib Entry", "The bib number you have entered is blank. Please correct the value.");
+			} else if (!(/^(\d)+$/gm.test(valArray[0]))) {
+				// Alert if non number
+				Alert.alert("Incorrect Bib Entry", "The bib number you have entered is not a number. Please correct the value.");
+			} else if (GetTimeInMils(valArray[1]) === -1 && (recordsRef.current[alertIndex][1] !== Number.MAX_SAFE_INTEGER || valArray[1] !== "")) {
+				// Alert if incorrect finish time
+				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is incorrectly typed. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH : MM : SS : MS\nHH : MM : SS . MS\nHH : MM : SS\nMM : SS . MS\nMM : SS\nSS . MS");
+			} else if (GetTimeInMils(valArray[1]) > 86399999 && GetTimeInMils(valArray[1]) !== Number.MAX_SAFE_INTEGER) {
+				// Alert if too large finish time
+				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is too large. Please correct the value.");
+			} else if (GetTimeInMils(valArray[1]) === 0) {
+				// Alert if zero finish time
+				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is zero. Please correct the value.");
+			} else {
 				// Add previous bib to prevSearchRecord for searching
 				if (search !== undefined && search.trim().length > 0) {
 					prevSearchRecord.current[alertIndex] = prevSearchRecord.current[alertIndex] ? [...prevSearchRecord.current[alertIndex], recordsRef.current[alertIndex][0]] : [recordsRef.current[alertIndex][0]];
@@ -782,19 +802,6 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 				updateRecords([...recordsRef.current]);
 				setAlertVisible(false);
-			} else {
-				if (isNaN(parseInt(valArray[0]))) {
-					Alert.alert(
-						"Incorrect Bib Entry",
-						"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
-					);
-				} else {
-					// Invalid Time
-					Alert.alert(
-						"Incorrect Finish Time Entry",
-						"The finish time you have entered is invalid. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH:MM:SS:MS\nHH:MM:SS.MS\nHH:MM:SS\nMM:SS.MS\nMM:SS\nSS.MS",
-					);
-				}
 			}
 		} else {
 			setAlertVisible(false);
@@ -859,7 +866,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
 					{editMode &&
 						<View style={globalstyles.tableDeleteButton}>
-							<Icon name="minus2" color={BLACK_COLOR} size={15} />
+							<Icon name="minus2" color={BLACK_COLOR} size={10} />
 						</View>
 					}
 				</View>
