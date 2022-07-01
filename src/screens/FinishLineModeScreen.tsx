@@ -315,16 +315,20 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				// Alert if no finishing times have been recorded
 				Alert.alert("No Results", "You have not recorded any results. Please try again.");
 			} else {
-				await postFinishTimes(context.raceID, context.eventID, finishTimesRef.current);
-				addToStorage(true, finishTimesRef.current, checkerBibsRef.current);
+				try {
+					await postFinishTimes(context.raceID, context.eventID, finishTimesRef.current);
+					addToStorage(true, finishTimesRef.current, checkerBibsRef.current);
+				} catch (error) {
+					if (error instanceof Error && error.message.toLowerCase().includes("out of order")) {
+						Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
+					} else {
+						CreateAPIError("Post Times", error);
+					}
+					setLoading(false);
+				}
 			}
 		} catch (error) {
-			if (error instanceof Error && error.message.toLowerCase().includes("out of order")) {
-				Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
-			} else {
-				CreateAPIError("Start Time", error);
-			}
-			setLoading(false);
+			CreateAPIError("Start Time", error);
 		}
 	}, [addToStorage, context.eventID, context.raceID]);
 

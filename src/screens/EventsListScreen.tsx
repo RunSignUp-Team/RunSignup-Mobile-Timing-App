@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { View, FlatList, Alert, ActivityIndicator, Text, Platform, TouchableOpacity } from "react-native";
-import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
+import { View, FlatList, Alert, ActivityIndicator, Text, Platform, TouchableOpacity, TextInput } from "react-native";
+import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoEventsListItem } from "../components/EventsListRenderItem";
@@ -12,6 +12,8 @@ import Logger from "../helpers/Logger";
 import { Event } from "../models/Event";
 import { Race } from "../models/Race";
 import CreateAPIError from "../helpers/CreateAPIError";
+import { useIsFocused } from "@react-navigation/native";
+import Icon from "../components/IcoMoon";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -23,8 +25,14 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [finalEventList, setFinalEventList] = useState<Array<Event>>([]);
+	const [search, setSearch] = useState("");
 	const [loading, setLoading] = useState(false);
 	const navigationRef = useRef<ScreenNavigationProp>(navigation);
+	const isFocused = useIsFocused();
+
+	useEffect(() => {
+		setSearch("");
+	}, [isFocused]);
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(async () => {
@@ -63,8 +71,8 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
-					<TouchableOpacity onPress={handleLogOut}>
-						<Text style={globalstyles.headerButtonText}>Log Out</Text>
+					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
 					</TouchableOpacity>
 				),
 				headerTitle: raceName ? raceName : "Events"
@@ -120,19 +128,45 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 		);
 	};
 
+	const data = finalEventList.filter(event => event.name.toLowerCase().includes(search.toLowerCase().trim()));
+
 	return (
-		<View style={globalstyles.container}>
-			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			{!loading && finalEventList.length < 1 && <Text style={globalstyles.info}>{"No events found for this race. Please confirm that you have set up the race correctly at RunSignup."}</Text>}
-			{!loading &&
-				<FlatList
-					showsVerticalScrollIndicator={false}
-					data={finalEventList}
-					renderItem={renderItem}
-					keyExtractor={(_item, index): string => (index + 1).toString()}
-				/>
+		<>
+			{/* Search Bar */}
+			{!loading && finalEventList.length > 0 ?
+				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row" }}>
+					<TextInput
+						style={[globalstyles.input, { borderWidth: 0, marginHorizontal: UNIVERSAL_PADDING }]}
+						onChangeText={setSearch}
+						value={search}
+						placeholder={"Search by Event Name"}
+						placeholderTextColor={GRAY_COLOR}
+					/>
+				</View>
+				: null
 			}
-		</View>
+
+			{/* Main View */}
+			<View style={globalstyles.container}>
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+
+				{!loading && finalEventList.length < 1 && <Text style={globalstyles.info}>{"No events found for this race. Please confirm that you have set up the race correctly at RunSignup."}</Text>}
+
+				{!loading && finalEventList.length > 0 && data.length < 1 ?
+					<Text style={globalstyles.info}>{"No events found with that name. Please try again."}</Text>
+					: null
+				}
+
+				{!loading &&
+					<FlatList
+						showsVerticalScrollIndicator={false}
+						data={data}
+						renderItem={renderItem}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
+					/>
+				}
+			</View>
+		</>
 	);
 };
 

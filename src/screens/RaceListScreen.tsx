@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { View, FlatList, Alert, Text, ActivityIndicator, Platform, BackHandler, TouchableOpacity } from "react-native";
-import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
+import { View, FlatList, Alert, Text, ActivityIndicator, Platform, BackHandler, TouchableOpacity, TextInput } from "react-native";
+import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getRaces } from "../helpers/APICalls";
 import { MemoRaceListItem } from "../components/RaceListRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
@@ -14,6 +14,7 @@ import Logger from "../helpers/Logger";
 import { Race } from "../models/Race";
 import { Event } from "../models/Event";
 import CreateAPIError from "../helpers/CreateAPIError";
+import Icon from "../components/IcoMoon";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -25,9 +26,15 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [finalRaceList, setFinalRaceList] = useState<Array<Race>>([]);
+	const [search, setSearch] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [refreshing, setRefreshing] = useState(false);
 	const navigationRef = useRef(navigation);
+	const isFocused = useIsFocused();
+
+	useEffect(() => {
+		setSearch("");
+	}, [isFocused]);
 
 	// Log out with alert
 	const goToHomeScreen = useCallback(() => {
@@ -73,8 +80,8 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				<HeaderBackButton onPress={goToHomeScreen} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 			headerRight: () => (
-				<TouchableOpacity onPress={handleLogOut}>
-					<Text style={globalstyles.headerButtonText}>Log Out</Text>
+				<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+					<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
 				</TouchableOpacity>
 			)
 		});
@@ -194,21 +201,47 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 		);
 	};
 
+	const data = finalRaceList.filter(race => race.name.toLowerCase().includes(search.toLowerCase().trim()));
+
 	return (
-		<View style={globalstyles.container}>
-			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			{!loading && finalRaceList.length < 1 && <Text style={globalstyles.info}>{"No upcoming races found for this account. Please confirm that you have set up any races correctly at RunSignup."}</Text>}
-			{!loading &&
-				<FlatList
-					showsVerticalScrollIndicator={false}
-					data={finalRaceList}
-					onRefresh={(): void => { fetchRaces(true); }}
-					refreshing={refreshing}
-					renderItem={renderItem}
-					keyExtractor={(_item, index): string => (index + 1).toString()}
-				/>
+		<>
+			{/* Search Bar */}
+			{!loading && finalRaceList.length > 0 ?
+				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row" }}>
+					<TextInput
+						style={[globalstyles.input, { borderWidth: 0, marginHorizontal: UNIVERSAL_PADDING }]}
+						onChangeText={setSearch}
+						value={search}
+						placeholder={"Search by Race Name"}
+						placeholderTextColor={GRAY_COLOR}
+					/>
+				</View>
+				: null
 			}
-		</View>
+
+			{/* Main View */}
+			<View style={globalstyles.container}>
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+
+				{!loading && finalRaceList.length < 1 && <Text style={globalstyles.info}>{"No upcoming races found for this account. Please confirm that you have set up any races correctly at RunSignup."}</Text>}
+
+				{!loading && finalRaceList.length > 0 && data.length < 1 ?
+					<Text style={globalstyles.info}>{"No races found with that name. Please try again."}</Text>
+					: null
+				}
+
+				{!loading &&
+					<FlatList
+						showsVerticalScrollIndicator={false}
+						data={data}
+						onRefresh={(): void => { fetchRaces(true); }}
+						refreshing={refreshing}
+						renderItem={renderItem}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
+					/>
+				}
+			</View>
+		</>
 	);
 };
 

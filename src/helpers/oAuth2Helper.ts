@@ -138,7 +138,7 @@ export async function oAuthLogin(force_login: boolean): Promise<string | null> {
 
 		// Delete local tokens - force user to log in again
 		if (force_login) {
-			await deleteTokenInfo();
+			await deleteTokenInfo(true);
 		}
 
 		// Try getting the local access token (and refresh it if necessary) before prompting user to sign in
@@ -231,10 +231,11 @@ export function canUseSecureStore(): Promise<boolean> {
 /**
  * Delete the tokens from the SecureStore
  */
-export async function deleteTokenInfo(): Promise<void> {
+export async function deleteTokenInfo(noAlert?: boolean): Promise<void> {
 
 	if (!(await canUseSecureStore())) return;
 	SecureStore.deleteItemAsync(TOKEN_INFO_KEY);
+	if (noAlert) return;
 	Alert.alert("Logged Out", "You have successfully logged out of the RaceDay Mobile Timing app. Note: Your RunSignup credentials may still be saved in your browser.");
 }
 

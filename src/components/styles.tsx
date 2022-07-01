@@ -25,7 +25,7 @@ export const BORDER_RADIUS = 12;
 export const TABLE_ITEM_HEIGHT = 50;
 export const LONG_TABLE_ITEM_HEIGHT = 50;
 
-export const UNIVERSAL_PADDING = 20;
+export const UNIVERSAL_PADDING = 15;
 
 interface GenericTableText {
 	fontSize: number,
@@ -106,7 +106,8 @@ export const globalstyles = StyleSheet.create({
 		fontSize: MEDIUM_FONT_SIZE,
 		fontFamily: "RobotoBold",
 		color: WHITE_COLOR,
-		marginRight: 10
+		marginRight: 10,
+		textAlign: "right"
 	},
 
 	// Text
@@ -115,7 +116,6 @@ export const globalstyles = StyleSheet.create({
 		color: WHITE_COLOR,
 		backgroundColor: DARK_GRAY_COLOR,
 		fontFamily: "Roboto",
-		marginBottom: 10,
 		textAlign: "center",
 		borderRadius: BORDER_RADIUS,
 		padding: UNIVERSAL_PADDING,
@@ -251,13 +251,6 @@ export const globalstyles = StyleSheet.create({
 		width: "100%",
 		height: "15%",
 		resizeMode: "contain",
-	},
-	headerImage: {
-		alignSelf: "center",
-		height: 15,
-		width: 15,
-		resizeMode: "contain",
-		marginRight: 15,
 	},
 
 	// Timer

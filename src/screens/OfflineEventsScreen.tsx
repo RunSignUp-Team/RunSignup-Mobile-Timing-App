@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { View, FlatList, Alert, ActivityIndicator, Platform } from "react-native";
-import { BLACK_COLOR, globalstyles, GRAY_COLOR, TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
+import { View, FlatList, Alert, ActivityIndicator, Platform, TextInput, Text } from "react-native";
+import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { AppContext } from "../components/AppContext";
@@ -37,6 +37,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const [eventList, setEventList] = useState<Array<OfflineEvent>>([]);
+	const [search, setSearch] = useState("");
 
 	const [alertVisible, setAlertVisible] = useState(false);
 	const isFocused = useIsFocused();
@@ -71,6 +72,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			setLoading(false);
 		};
 		getOfflineEvents();
+		setSearch("");
 	}, [isFocused]);
 
 	// Delete old Bib Numbers and upload new Bib Numbers
@@ -88,7 +90,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				"]}"
 			);
 			await postBibs(context.raceID, context.eventID, formData);
-		// Else post bib numbers if they exist
+			// Else post bib numbers if they exist
 		} else if (item.bib_nums?.length > 0) {
 			await deleteBibs(context.raceID, context.eventID);
 
@@ -100,7 +102,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				"]}"
 			);
 			await postBibs(context.raceID, context.eventID, formData);
-		// Else unknown error
+			// Else unknown error
 		} else {
 			throw new Error(JSON.stringify([item.bib_nums, item.checker_bibs]));
 		}
@@ -245,10 +247,51 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		);
 	};
 
+	const data = eventList.filter(event => event.name.toLowerCase().includes(search.toLowerCase().trim()));
+
 	return (
-		<View style={globalstyles.container}>
-			<TextInputAlert 
-				visible={alertVisible} 
+		<>
+			{/* Search Bar */}
+			{!loading && eventList.length > 0 ?
+				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row" }}>
+					<TextInput
+						style={[globalstyles.input, { borderWidth: 0, marginHorizontal: UNIVERSAL_PADDING }]}
+						onChangeText={setSearch}
+						value={search}
+						placeholder={"Search by Event Name"}
+						placeholderTextColor={GRAY_COLOR}
+					/>
+				</View>
+				: null
+			}
+
+			{/* Main View */}
+			<View style={globalstyles.container}>
+				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+
+				{!loading && data.length < 1 ?
+					<Text style={globalstyles.info}>{"No events found with that name. Please try again."}</Text>
+					: null
+				}
+
+				{!loading &&
+					<FlatList
+						ListHeaderComponent={context.online || data.length < 1 ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
+						showsVerticalScrollIndicator={false}
+						data={data}
+						renderItem={renderItem}
+						ref={flatListRef}
+						getItemLayout={(_, index): ItemLayout => (
+							{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
+						)}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
+					/>
+				}
+			</View>
+
+			{/* Add Event Input */}
+			<TextInputAlert
+				visible={alertVisible}
 				title={"Set Event Name"}
 				message={"Enter the name of your offline event."}
 				placeholder={"Event Name"}
@@ -260,22 +303,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 					setAlertVisible(false);
 				}}
 			/>
-
-			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			{!loading &&
-				<FlatList
-					ListHeaderComponent={context.online ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50 }} />}
-					showsVerticalScrollIndicator={false}
-					data={eventList}
-					renderItem={renderItem}
-					ref={flatListRef}
-					getItemLayout={(_, index): ItemLayout => (
-						{ length: TABLE_ITEM_HEIGHT, offset: TABLE_ITEM_HEIGHT * index, index }
-					)}
-					keyExtractor={(_item, index): string => (index + 1).toString()}
-				/>
-			}
-		</View >
+		</>
 	);
 };
 

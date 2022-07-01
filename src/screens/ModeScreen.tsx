@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
-import { View, TouchableOpacity, Text, Alert, ActivityIndicator, Platform } from "react-native";
+import { View, TouchableOpacity, Alert, ActivityIndicator, Platform } from "react-native";
 import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -15,6 +15,7 @@ import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import CreateAPIError from "../helpers/CreateAPIError";
+import Icon from "../components/IcoMoon";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -26,8 +27,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const msgHeader = "Permission Denied";
-	const FinishLineModeMsg = `You may not enter Finish Line Mode data: \n1) multiple times on the same device, ${!context.online ? "or ": ""}2) after creating/editing results${context.online ? ", 3) after recording Chute Mode data, or 4) with unsaved Chute Mode data stored on your device." : "."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
-	const ChuteModeMsg = `You may not enter Chute Mode data: \n1) multiple times on the same device, 2) after creating/editing results, or 3) ${context.online ? "with unsaved Finish Line Mode data stored on your device." : "before saving Finish Line Mode data."}\nIf you have completed all data entry, see "Results" to view or edit results.`;
+	const FinishLineModeMsg = `You may not enter Finish Line Mode data: \n1) multiple times on the same device, ${!context.online ? "or " : ""}2) after creating/editing results${context.online ? ", 3) after recording Chute Mode data, or 4) with unsaved Chute Mode data stored on your device." : "."}\nIf you have completed all data entry, go to Results to view or edit results.`;
+	const ChuteModeMsg = `You may not enter Chute Mode data: \n1) multiple times on the same device, 2) after creating/editing results, or 3) ${context.online ? "with unsaved Finish Line Mode data stored on your device." : "before saving Finish Line Mode data."}\nIf you have completed all data entry, go to Results to view or edit results.`;
 
 	const [finishLineDone, setFinishLineDone] = useState(false);
 	const [finishLineProgress, setFinishLineProgress] = useState(false);
@@ -136,16 +137,16 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					eventName = eventList[eventIndex].name;
 				}
 			}
-	
-	
+
+
 			navigation.setOptions({
 				headerLeft: () => (
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
 					context.online ?
-						<TouchableOpacity onPress={handleLogOut}>
-							<Text style={globalstyles.headerButtonText}>Log Out</Text>
+						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
 						</TouchableOpacity> :
 						null
 				),
@@ -209,7 +210,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const chuteTappedOffline = (): void => {
 		if (noChute) {
 			Alert.alert(
-				msgHeader, 
+				msgHeader,
 				ChuteModeMsg
 			);
 		} else {
@@ -224,7 +225,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			// Check for local edits
 			if (noResults) {
 				Alert.alert(
-					"Local Data Not Uploaded", 
+					"Local Data Not Uploaded",
 					"There is local data on your device that has not been saved & uploaded to RunSignup. Please save that data and try again."
 				);
 			} else {
@@ -240,7 +241,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		try {
 			if (noResults) {
 				Alert.alert(
-					"Local Data Not Saved", 
+					"Local Data Not Saved",
 					"There is local data on your device that has not been saved. Please save that data and try again."
 				);
 			} else {
@@ -273,7 +274,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 											const response = await AsyncStorage.getItem("offlineEvents");
 											let eventsList = response !== null ? JSON.parse(response) : [];
 											eventsList = eventsList.filter((event: OfflineEvent) => event.time !== context.time);
-					
+
 											await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventsList));
 											navigation.navigate("OfflineEventsList");
 										} catch (error) {
@@ -309,14 +310,12 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	return (
 		<View style={globalstyles.container}>
 			{!hasButtonColors && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			<View style={{ justifyContent: "space-around", alignItems: "center" }}>
-				{hasButtonColors && <>
-					<MainButton color={noFinishLine ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} />
-					<MainButton color={noChute ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
-					<MainButton color={noResults ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
-					<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
-				</>}
-			</View>
+			{hasButtonColors && <>
+				<MainButton color={noFinishLine ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
+				<MainButton color={noChute ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
+				<MainButton color={noResults ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
+				<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
+			</>}
 		</View>
 	);
 };

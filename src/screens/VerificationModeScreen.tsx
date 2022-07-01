@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
-import { View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, BackHandler, AlertButton } from "react-native";
+import { View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, BackHandler, AlertButton, Linking } from "react-native";
 import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, LONG_TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -349,6 +349,9 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					);
 
 					await postBibs(context.raceID, context.eventID, formDataBibs);
+					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
+				} else {
+					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "false");
 				}
 
 				// Clear old finish time data
@@ -356,6 +359,9 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				// Post new finish time data if the user hasn't deleted all records
 				if (recordsRef.current.length > 0) {
 					await postFinishTimes(context.raceID, context.eventID, recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]));
+					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+				} else {
+					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "false");
 				}
 
 				// Clear local data upon successful upload
@@ -364,12 +370,11 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						raceList[raceIndex].events[eventIndex].checker_bibs = [];
 						raceList[raceIndex].events[eventIndex].bib_nums = [];
 						raceList[raceIndex].events[eventIndex].finish_times = [];
+						raceList[raceIndex].events[eventIndex].real_start_time = -1;
 						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 					}
 				});
 
-				AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-				AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 
 				setEditMode(false);
 				setLoading(false);
@@ -390,26 +395,33 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			try {
 				// Offline Functionality
-				GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-					eventList[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
-					eventList[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
-					eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
-					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-				});
-
-				AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
-				AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
+				if (recordsRef.current.length > 0) {
+					GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
+						eventList[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
+						eventList[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+						eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
+						AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+						AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
+						AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
+						Alert.alert("Success", "Results successfully saved to your local device!");
+					});
+				} else {
+					GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
+						eventList[eventIndex].bib_nums = [];
+						eventList[eventIndex].finish_times = [];
+						eventList[eventIndex].checker_bibs = [];
+						eventList[eventIndex].real_start_time = -1;
+						AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+						AsyncStorage.setItem(`finishLineDone:${context.time}`, "false");
+						AsyncStorage.setItem(`chuteDone:${context.time}`, "false");
+						Alert.alert("Success", "Results successfully deleted from your local device!");
+						navigation.goBack();
+					});
+				}
 
 				setEditMode(false);
-
-				if (recordsRef.current.length > 0) {
-					Alert.alert("Success", "Results successfully saved to your local device!");
-				} else {
-					Alert.alert("Success", "Results successfully deleted from your local device!");
-					navigation.goBack();
-				}
 			} catch (error) {
-				Logger("Unknown Error (Offline: confirm all bibs & finish times are formatted correctly", error, true);
+				Logger("Unknown Error (Offline: confirm all bibs & finish times are formatted correctly)", error, true);
 			} finally {
 				setLoading(false);
 			}
@@ -730,6 +742,15 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		);
 	}, []);
 
+	const openLink = useCallback(async (): Promise<void> => {
+		const url = `https://runsignup.com/Race/${context.raceID}/Results/Dashboard/EditIndividualResults`;
+		if (await Linking.canOpenURL(url)) {
+			Linking.openURL(url);
+		} else {
+			Logger("Cannot Open Link", "Device Not Set Up Correctly", true);
+		}
+	}, [context.raceID]);
+
 	// Display edit / save button in header
 	useEffect(() => {
 		navigation.setOptions({
@@ -739,7 +760,10 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
 					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={(): void => addRecord()} >
-						<Icon name={"plus3"} size={20} color={WHITE_COLOR} />
+						<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
+					</TouchableOpacity>}
+					{!editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
+						<Icon name={"stats-bars2"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 
 					{!loading && conflicts === 0 && <TouchableOpacity
@@ -756,7 +780,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				</View>
 			),
 		});
-	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink]);
 
 	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]): void => {
@@ -839,7 +863,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			{!loading && !editMode && recordsRef.current.length < 1 &&
 				<View style={globalstyles.container}>
 					<Text style={globalstyles.info}>
-						No records found for this event. Enter data in Finish Line Mode & Chute Mode, then come back here to view & edit results (or directly enter data here by tapping "Edit").
+						No records found for this event. Enter data in Finish Line Mode & Chute Mode, then come back here to view & edit results (or directly enter data here by tapping Edit).
 					</Text>
 				</View>
 			}

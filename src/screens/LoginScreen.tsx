@@ -1,6 +1,6 @@
 import React, { useContext, useCallback, useState, useEffect } from "react";
-import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, Text, TouchableOpacity } from "react-native";
-import { BLACK_COLOR, globalstyles, GRAY_COLOR } from "../components/styles";
+import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, TouchableOpacity } from "react-native";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -13,6 +13,7 @@ import { getUser } from "../helpers/APICalls";
 import * as Linking from "expo-linking";
 import * as Network from "expo-network";
 import { NetworkErrorBool } from "../helpers/CreateAPIError";
+import Icon from "../components/IcoMoon";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -60,8 +61,8 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 		if (loggedIn) {
 			navigation.setOptions({
 				headerRight: () => (
-					<TouchableOpacity onPress={handleLogOut}>
-						<Text style={globalstyles.headerButtonText}>Log Out</Text>
+					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
 					</TouchableOpacity>
 				)
 			});
@@ -101,6 +102,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 			const accessToken = await oAuthLogin(false);
 			if (!accessToken) {
 				Logger("Unable to Authenticate", "Unable to authenticate. Please try again.", true);
+				deleteTokenInfo(true);
 			}
 			else {
 				// Store User ID on login

@@ -12,7 +12,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import Logger from "../helpers/Logger";
 import * as SplashScreen from "expo-splash-screen";
 import * as Font from "expo-font";
-import { Dimensions } from "react-native";
+import { StatusBar } from "react-native";
 
 export type RootStackParamList = {
 	SplashScreen: undefined,
@@ -41,7 +41,7 @@ export default function StartNavigator(): React.ReactElement {
 					"Roboto": require("../assets/Fonts/Roboto-Regular.ttf"),
 					"RobotoBold": require("../assets/Fonts/Roboto-Bold.ttf"),
 					"RobotoMono": require("../assets/Fonts/RobotoMono-VariableFont_wght.ttf"),
-					"IcoMoon":  require("../assets/Fonts/IcoMoon-Ultimate.ttf")
+					"IcoMoon": require("../assets/Fonts/IcoMoon-Ultimate.ttf")
 				});
 			} catch (error) {
 				Logger("Could Not Load Fonts. Please Restart.", error, true);
@@ -56,9 +56,12 @@ export default function StartNavigator(): React.ReactElement {
 
 	return (
 		<>
+			<StatusBar
+				backgroundColor={GREEN_COLOR}
+			/>
 			{appIsReady && <AppStack.Navigator screenOptions={{
 				headerStyle: { backgroundColor: GREEN_COLOR },
-				headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "RobotoBold", color: WHITE_COLOR, maxWidth: Dimensions.get("screen").width - 170 },
+				headerTitleStyle: { fontSize: BIG_FONT_SIZE, fontFamily: "RobotoBold", color: WHITE_COLOR },
 				headerTitleAlign: "left"
 			}}>
 				<AppStack.Screen name="Login" component={LoginScreen} options={{
@@ -71,8 +74,8 @@ export default function StartNavigator(): React.ReactElement {
 				<AppStack.Screen name="RaceList" component={RaceListScreen} options={{
 					title: "Your Races",
 				}} />
-				<AppStack.Screen name="EventsList" component={EventsListScreen}/>
-				<AppStack.Screen name="ModeScreen" component={ModeScreen}/>
+				<AppStack.Screen name="EventsList" component={EventsListScreen} />
+				<AppStack.Screen name="ModeScreen" component={ModeScreen} />
 				<AppStack.Screen name="FinishLineMode" component={FinishLineModeScreen} options={{
 					title: "Finish Line Mode",
 					gestureEnabled: false
