@@ -430,26 +430,30 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setRStartLength(recordsRef.current.length);
 	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
 
-	const saveResults = useCallback(() => {
+	const saveResults = useCallback((skipAlert?: boolean) => {
 		if (recordsRef.current.length < 1 && rStartLength !== 0) {
 			setLoading(false);
-			Alert.alert(
-				"Are You Sure?",
-				"Are you sure you want to delete all records?",
-				[
-					{ text: "Cancel" },
-					{ text: "Delete All", onPress: (): void => { 
-						Alert.alert(
-							"Confirm Delete?",
-							"Please confirm that you want to delete all records for this event. All data will be lost.",
-							[
-								{ text: "Cancel" },
-								{ text: "Delete All", onPress: (): void => { pushAndClear(); }, style: "destructive"}
-							]
-						);
-					}, style: "destructive"}
-				]
-			);
+			if (skipAlert) {
+				pushAndClear();
+			} else {
+				Alert.alert(
+					"Are You Sure?",
+					"Are you sure you want to delete all records?",
+					[
+						{ text: "Cancel" },
+						{ text: "Delete All", onPress: (): void => { 
+							Alert.alert(
+								"Confirm Delete?",
+								"Please confirm that you want to delete all records for this event. All data will be lost.",
+								[
+									{ text: "Cancel" },
+									{ text: "Delete All", onPress: (): void => { pushAndClear(); }, style: "destructive"}
+								]
+							);
+						}, style: "destructive"}
+					]
+				);
+			}
 		} else {
 			pushAndClear();
 		}
@@ -751,6 +755,37 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [context.raceID]);
 
+	const deleteAllRecords = useCallback(() => {
+		if (recordsRef.current.length > 0) {
+			Alert.alert(
+				"Are You Sure?",
+				"Are you sure you want to delete all records?",
+				[
+					{ text: "Cancel" },
+					{ text: "Delete All", onPress: (): void => { 
+						Alert.alert(
+							"Confirm Delete?",
+							`Please confirm that you want to delete all records for this event. All data will be lost forever${context.online ? ", both on RunSignup and your device" : ""}.`,
+							[
+								{ text: "Cancel" },
+								{
+									text: "Delete All",
+									onPress: (): void => {
+										updateRecords([]);
+										saveResults(true);
+									},
+									style: "destructive"
+								}
+							]
+						);
+					}, style: "destructive"}
+				]
+			);
+		} else {
+			Alert.alert("No Records", "There are no records to delete!");
+		}
+	}, [context.online, saveResults, updateRecords]);
+
 	// Display edit / save button in header
 	useEffect(() => {
 		navigation.setOptions({
@@ -759,13 +794,20 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			),
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
-					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={(): void => addRecord()} >
+					{/* Delete All Records */}
+					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={deleteAllRecords} >
+						<Icon name={"bin5"} size={22} color={WHITE_COLOR} />
+					</TouchableOpacity>}
+					{/* Add Record */}
+					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={addRecord} >
 						<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>}
-					{!editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
+					{/* RSU Results */}
+					{!editMode && !loading && recordsRef.current.length > 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
 						<Icon name={"stats-bars2"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 
+					{/* Edit / Save */}
 					{!loading && conflicts === 0 && <TouchableOpacity
 						onPress={(): void => {
 							if (!editMode) {
@@ -780,7 +822,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				</View>
 			),
 		});
-	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords]);
 
 	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]): void => {
