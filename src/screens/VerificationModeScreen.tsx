@@ -803,7 +803,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 					{/* RSU Results */}
-					{!editMode && !loading && recordsRef.current.length > 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
+					{!editMode && !loading && context.online && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
 						<Icon name={"stats-bars2"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 
@@ -822,7 +822,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				</View>
 			),
 		});
-	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords, context.online]);
 
 	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]): void => {
