@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 export const GREEN_COLOR = "#00ac65";
 export const DARK_GREEN_COLOR = "#00663C";
@@ -274,5 +274,40 @@ export const globalstyles = StyleSheet.create({
 		fontSize: BIG_FONT_SIZE,
 		fontFamily: "Roboto",
 		backgroundColor: LIGHT_GRAY_COLOR,
+	},
+
+	// Time Entry
+	timeInput: {
+		flexDirection: "row", 
+		alignItems: "center", 
+		justifyContent: "space-between", 
+		backgroundColor: LIGHT_GRAY_COLOR,
+		borderRadius: Platform.OS === "android" ? 0 : 8,
+		overflow: "hidden",
+		borderColor: GRAY_COLOR,
+		borderWidth: Platform.OS === "android" ? 0 : 1,
+		flex: 1,
+	}, 
+	timeInputButton: {
+		flex: 1,
+		borderBottomWidth: 2,
+		justifyContent: "center",
+		alignItems: "center",
+		marginHorizontal: 8
+	},
+	timeInputText: {
+		fontFamily: "Roboto",
+		fontSize: SMALL_FONT_SIZE,
+		textAlign: "center",
+		minWidth: 30,
+		paddingTop: 2,
+		alignSelf: "center",
+		minHeight: 20
+	},
+	timeSeparator: {
+		fontFamily: "RobotoBold",
+		fontSize: SMALL_FONT_SIZE,
+		width: 10,
+		textAlign: "center"
 	},
 });

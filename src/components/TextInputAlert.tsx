@@ -1,15 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, Keyboard, KeyboardTypeOptions, Modal, Platform, Text, TextInput, TouchableHighlight, TouchableOpacity, View } from "react-native";
+import { Dimensions, Keyboard, Modal, Platform, Text, TextInput, TouchableHighlight, TouchableOpacity, View, KeyboardTypeOptions } from "react-native";
 import { APPLE_BLUE_COLOR, GRAY_COLOR, GREEN_COLOR, LIGHT_GRAY_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, UNIVERSAL_PADDING, WHITE_COLOR } from "./styles";
+import TimeEntry from "./TimeEntry";
 
 interface Props {
 	visible: boolean,
 	title: string,
 	message: string,
+	type: "text" | "time" | "both"
+
 	placeholder: string,
 	initialValue?: string,
 	maxLength?: number,
 	keyboardType?: KeyboardTypeOptions,
+	timeInitialValue?: string,
 
 	/** onPress for Cancel Button */
 	cancelOnPress: () => void,
@@ -20,20 +24,14 @@ interface Props {
 	cancelButtonTitle?: string,
 	/** Title of Action Button. Defaults to "OK". */
 	actionButtonTitle?: string,
-
-	/** Placeholder for second Text Input; if this is defined, the second TextInput appears */
-	secondPlaceholder?: string,
-	secondInitialValue?: string,
-	secondMaxLength?: number,
-	secondKeyboardType?: KeyboardTypeOptions
 }
 
 /** Text Input Alert */
 export default function TextInputAlert(props: Props): React.ReactElement | null {
-	const inputRef = useRef<TextInput>(null);
+	const textRef = useRef<TextInput>(null);
 
-	const [value, setValue] = useState("");
-	const [secondValue, setSecondValue] = useState("");
+	const [textValue, setTextValue] = useState("");
+	const [timeValue, setTimeValue] = useState("");
 
 	const droid = Platform.OS === "android";
 	const androidRadius = 5;
@@ -42,29 +40,29 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 	const maxWidth = 500;
 	const normalWidth = Math.min(minWidth, maxWidth) - (UNIVERSAL_PADDING * 2);
 
-	// Set text input value whenever initial value changes
+	// Set text input textValue whenever initial textValue changes
 	useEffect(() => {
 		if (props.initialValue !== undefined) {
-			setValue(props.initialValue);
+			setTextValue(props.initialValue);
 		} else {
-			setValue("");
+			setTextValue("");
 		}
 	}, [props.initialValue, props.visible]);
 
-	// Set second text input value whenever second initial value changes
+	// Set text input textValue whenever initial textValue changes
 	useEffect(() => {
-		if (props.secondInitialValue !== undefined) {
-			setSecondValue(props.secondInitialValue);
+		if (props.timeInitialValue !== undefined) {
+			setTimeValue(props.timeInitialValue);
 		} else {
-			setSecondValue("");
+			setTimeValue("");
 		}
-	}, [props.secondInitialValue, props.visible]);
+	}, [props.timeInitialValue, props.visible]);
 
 	// Focus on text input when modal becomes visible
 	useEffect(() => {
 		if (props.visible) {
 			setTimeout(() => {
-				inputRef.current?.focus();
+				textRef.current?.focus();
 			}, 200);
 		}
 	}, [props.visible]);
@@ -138,16 +136,16 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 						</View>
 					</TouchableOpacity>
 
-					<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
+					{(props.type === "text" || props.type === "both") ? <View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
 						{/* Text Input One */}
 						<TextInput
-							ref={inputRef}
-							value={value}
+							ref={textRef}
+							value={textValue}
 							onChangeText={(val): void => {
-								setValue(val);
+								setTextValue(val);
 							}}
 							onSubmitEditing={(): void => {
-								props.actionOnPress([value, secondValue]);
+								props.actionOnPress([textValue, timeValue]);
 							}}
 							style={{
 								backgroundColor: LIGHT_GRAY_COLOR,
@@ -167,38 +165,14 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 							maxLength={props.maxLength}
 							keyboardType={props.keyboardType}
 						/>
-					</View>
-					<View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
-						{/* Text Input Two */}
-						{props.secondPlaceholder &&
-							<TextInput
-								value={secondValue}
-								onChangeText={(val): void => {
-									setSecondValue(val);
-								}}
-								onSubmitEditing={(): void => {
-									props.actionOnPress([value, secondValue]);
-								}}
-								style={{
-									backgroundColor: LIGHT_GRAY_COLOR,
-									height: droid ? 50 : 40,
-									borderRadius: droid ? 0 : 8,
-									borderWidth: droid ? 0 : 1,
-									borderBottomWidth: 1,
-									borderColor: droid ? GREEN_COLOR : GRAY_COLOR,
-									marginVertical: 5,
-									width: normalWidth,
-									paddingHorizontal: 8,
-									fontFamily: "Roboto",
-									fontSize: SMALL_FONT_SIZE
-								}}
-								placeholder={props.secondPlaceholder}
-								placeholderTextColor={GRAY_COLOR}
-								maxLength={props.secondMaxLength}
-								keyboardType={props.secondKeyboardType}
-							/>
-						}
-					</View>
+					</View> : null}
+
+					{(props.type === "time" || props.type === "both") ?
+						<View style={{ flexDirection: "row", height: droid ? 50 : 40, width: normalWidth, marginVertical: 5 }}>
+							<TimeEntry initialValue={props.timeInitialValue} setValue={setTimeValue} />
+						</View>
+						: null
+					}
 
 					{/* Top Border Line for Buttons */}
 					<View
@@ -258,7 +232,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 						<TouchableHighlight
 							underlayColor={underlayColor}
 							style={{ width: (Math.min(minWidth, maxWidth) - 4) / 2, borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
-								props.actionOnPress([value, secondValue]);
+								props.actionOnPress([textValue, timeValue]);
 							}}>
 							{/* Action Button Text */}
 							<View

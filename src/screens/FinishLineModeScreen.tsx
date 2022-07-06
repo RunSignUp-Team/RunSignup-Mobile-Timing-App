@@ -523,36 +523,40 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					</>
 				}
 
-				{alertIndex !== undefined && <TextInputAlert
-					title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
-					message={`Edit the bib number for time ${alertIndex !== undefined ? GetClockTime(finishTimesRef.current[alertIndex]) : ""}.`}
-					placeholder="Enter Bib #"
-					initialValue={GetBibDisplay(checkerBibsRef.current[alertIndex] !== undefined ? checkerBibsRef.current[alertIndex] : -1)}
-					keyboardType={"number-pad"}
-					maxLength={6}
-					visible={alertVisible}
-					actionOnPress={(valArray): void => {
-						if (alertIndex !== undefined) {
-							if (!isNaN(parseInt(valArray[0]))) {
-								// Valid Bib
-								checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
-								updateCheckerBibs([...checkerBibsRef.current]);
-								setAlertVisible(false);
-								if (inputWasFocused) {
-									bibInputRef.current?.focus();
+				{alertIndex !== undefined &&
+					<TextInputAlert
+						title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+						message={`Edit the bib number for time ${alertIndex !== undefined ? GetClockTime(finishTimesRef.current[alertIndex]) : ""}.`}
+						placeholder={"Enter Bib #"}
+						type={"text"}
+						initialValue={GetBibDisplay(checkerBibsRef.current[alertIndex] !== undefined ? checkerBibsRef.current[alertIndex] : -1)}
+						keyboardType={"number-pad"}
+						maxLength={6}
+						visible={alertVisible}
+						actionOnPress={(valArray): void => {
+							if (alertIndex !== undefined) {
+								if (!isNaN(parseInt(valArray[0]))) {
+									// Valid Bib
+									checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
+									updateCheckerBibs([...checkerBibsRef.current]);
+									setAlertVisible(false);
+									if (inputWasFocused) {
+										bibInputRef.current?.focus();
+									}
+								} else {
+									Alert.alert(
+										"Incorrect Bib Entry",
+										"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
+									);
 								}
 							} else {
-								Alert.alert(
-									"Incorrect Bib Entry", 
-									"The bib number you have entered is invalid. Please correct the value. Bibs must be numeric.",
-								);
+								setAlertVisible(false);
 							}
-						} else {
+						}} cancelOnPress={(): void => {
 							setAlertVisible(false);
-						}
-					}} cancelOnPress={(): void => {
-						setAlertVisible(false);
-					}} />}
+						}}
+					/>
+				}
 			</KeyboardAvoidingView>
 		</TouchableWithoutFeedback>
 	);

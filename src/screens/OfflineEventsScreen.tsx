@@ -295,6 +295,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				title={"Set Event Name"}
 				message={"Enter the name of your offline event."}
 				placeholder={"Event Name"}
+				type={"text"}
 				maxLength={15}
 				actionOnPress={(valArray): void => {
 					createEvent(valArray[0]);
