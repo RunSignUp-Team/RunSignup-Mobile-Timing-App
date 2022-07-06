@@ -847,7 +847,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is too large. Please correct the value.");
 			} else if (GetTimeInMils(valArray[1]) === 0) {
 				// Alert if zero finish time
-				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is invalid. Please correct the value.");
+				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is zero. Please correct the value.");
 			} else {
 				// Add previous bib to prevSearchRecord for searching
 				if (search !== undefined && search.trim().length > 0) {

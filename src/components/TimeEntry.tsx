@@ -25,8 +25,11 @@ export default function TimeEntry(props: Props): React.ReactElement {
 	const milliRef = useRef<TextInput>(null);
 
 	const createClockTime = useCallback((): string => {
-		const clockTime = addLeadingZeros(Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
-		return clockTime;
+		if (hours || minutes || seconds || milli) {
+			return addLeadingZeros(Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
+		} else {
+			return "";
+		}
 	}, [hours, milli, minutes, seconds]);
 
 	useEffect(() => {
