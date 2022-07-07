@@ -269,14 +269,14 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			<View style={globalstyles.container}>
 				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 
-				{!loading && data.length < 1 ?
+				{!loading && eventList.length > 0 && data.length < 1 ?
 					<Text style={globalstyles.info}>{"No events found with that name. Please try again."}</Text>
 					: null
 				}
 
 				{!loading &&
 					<FlatList
-						ListHeaderComponent={context.online || data.length < 1 ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
+						ListHeaderComponent={(context.online || (data.length < 1 && eventList.length > 0)) ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
 						showsVerticalScrollIndicator={false}
 						data={data}
 						renderItem={renderItem}

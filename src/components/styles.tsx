@@ -133,8 +133,14 @@ export const globalstyles = StyleSheet.create({
 	},
 	longFlatList: {
 		overflow: "hidden",
+	},
+	shortFlatList: {
+		height: "30%",
+		flexGrow: 0,
+		marginBottom: 10,
 		borderBottomWidth: 1,
-		borderColor: DARK_GRAY_COLOR
+		borderColor: DARK_GRAY_COLOR,
+		overflow: "hidden",
 	},
 
 	// Table Items
@@ -271,8 +277,8 @@ export const globalstyles = StyleSheet.create({
 		marginRight: UNIVERSAL_PADDING,
 		flex: 1,
 		height: 45,
-		fontSize: BIG_FONT_SIZE,
-		fontFamily: "Roboto",
+		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "RobotoBold",
 		backgroundColor: LIGHT_GRAY_COLOR,
 	},
 
@@ -310,4 +316,43 @@ export const globalstyles = StyleSheet.create({
 		width: 10,
 		textAlign: "center"
 	},
+
+	altStartButton: {
+		paddingHorizontal: 8,
+		borderRadius: BORDER_RADIUS,
+		margin: 10,
+		marginRight: UNIVERSAL_PADDING,
+		flex: 1,
+		height: 45,
+		alignItems: "center",
+		justifyContent: "center"
+	},
+	altStartText: {
+		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "RobotoBold",
+		color: WHITE_COLOR
+	},
+	altBibContainer: {
+		flex: 1, 
+		alignItems: "center", 
+		padding: 7,
+		flexDirection: "row",
+	},
+	altBibButton: {
+		height: 45,
+		alignItems: "center",
+		justifyContent: "center",
+		flexGrow: 1,
+		borderRadius: 5
+	},
+	altBibText: {
+		color: WHITE_COLOR, 
+		fontFamily: "RobotoBold", 
+		fontSize: MEDIUM_FONT_SIZE,
+	},
+	altTimeText: {
+		color: WHITE_COLOR, 
+		fontFamily: "Roboto", 
+		fontSize: TABLE_FONT_SIZE,
+	}
 });

@@ -11,7 +11,8 @@ interface Props {
 	subtitle?: string,
 	/** Index of item */
 	listButton?: number,
-	color?: ButtonColor
+	color?: ButtonColor,
+	disabled?: boolean,
 }
 
 export default function MainButton(props: Props): React.ReactElement {
@@ -46,7 +47,8 @@ export default function MainButton(props: Props): React.ReactElement {
 					backgroundColor: GetColor(props.color),
 					flexDirection: "row"
 				},
-				props.buttonStyle]} 
+				props.buttonStyle]}
+			disabled={props.disabled}
 			onPress={props.onPress}>
 			{props.listButton !== undefined && 
 				<Text

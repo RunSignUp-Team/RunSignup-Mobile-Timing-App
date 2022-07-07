@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { OfflineEvent } from "../screens/OfflineEventsScreen";
+import { OfflineEvent } from "../screens/OfflineEvents";
 
 /**
  * Get the local event list and event index if possible

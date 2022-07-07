@@ -90,7 +90,7 @@ type Participants = {
 	participants: Array<ParticipantDetails>
 }
 
-type ParticipantResponse = [
+export type ParticipantResponse = [
 	Participants
 ]
 
@@ -104,10 +104,10 @@ async function handleGetCall<T>(url: string): Promise<T> {
 	const controller = new AbortController();
 	const signal = controller.signal;
 
-	// If all else fails, abort API call after 20 seconds
+	// If all else fails, abort API call after 15 seconds
 	setTimeout(() => {
 		controller.abort();
-	}, 20000);
+	}, 15000);
 
 	const attemptApiCall = async (force_login: boolean): Promise<T | KeyAuthenticationError> => {
 		if (__DEV__) {
@@ -160,10 +160,10 @@ async function handlePostCall<T extends FormData | null>(url: string, formData: 
 	const controller = new AbortController();
 	const signal = controller.signal;
 
-	// If all else fails, abort API call after 20 seconds
+	// If all else fails, abort API call after 15 seconds
 	setTimeout(() => {
 		controller.abort();
-	}, 20000);
+	}, 15000);
 
 	const attemptApiCall = async (force_login: boolean): Promise<T | KeyAuthenticationError> => {
 		if (__DEV__) {

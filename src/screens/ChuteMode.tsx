@@ -94,6 +94,15 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								);
 
 								await postBibs(context.raceID, context.eventID, formData);
+
+								// Clear local data upon successful upload
+								GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+									if (raceIndex !== null && eventIndex !== null) {
+										raceList[raceIndex].events[eventIndex].bib_nums = [];
+										AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+									}
+								});
+
 								// Don't allow further changes
 								setLoading(false);
 								navigation.navigate("ModeScreen");

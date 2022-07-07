@@ -1,39 +1,33 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, WHITE_COLOR } from "../components/styles";
+import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
+import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, BLACK_COLOR, MEDIUM_FONT_SIZE, WHITE_COLOR, DARK_GRAY_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
-import { postFinishTimes, postStartTime, postBibs, getBibs } from "../helpers/APICalls";
-import addLeadingZeros from "../helpers/AddLeadingZeros";
+import { getParticipants, ParticipantResponse } from "../helpers/APICalls";
 import GetClockTime from "../helpers/GetClockTime";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../components/AppStack";
-import MainButton from "../components/MainButton";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { TabParamList } from "../components/AppStack";
 import { ItemLayout } from "../models/ItemLayout";
-import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
-import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import { MemoBibItem } from "../components/MemoBibItem";
+import { AddToStorage } from "../helpers/FLAddToStorage";
+import { CheckEntries } from "../helpers/FLCheckEntries";
 
-type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
+type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
 type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-export default function FinishLineModeScreen({ navigation }: Props): React.ReactElement {
+export default function AltFinishLineMode({ navigation }: Props): React.ReactElement {
 	const context = useContext(AppContext);
-
-	// Bib Input
-	const [bibText, setBibText] = useState("");
-	const [inputWasFocused, setInputWasFocused] = useState(true);
-	const bibInputRef = useRef<TextInput>(null);
 
 	// Timer
 	const [timerOn, setTimerOn] = useState(false);
@@ -47,6 +41,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	// Checker Bibs
 	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const checkerBibsRef = useRef(checkerBibs);
+
+	// Alt Bib Display
+	const [rsuBibs, setRSUBibs] = useState<Array<number>>([]);
+	const rsuBibsRef = useRef(rsuBibs);
 
 	// Alert
 	const [alertVisible, setAlertVisible] = useState(false);
@@ -75,97 +73,63 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		}
 	}, [navigation]);
 
-	/** Save the finish times and checker bibs to local storage and/or RSU API */
-	const addToStorage = useCallback(async (final, finishTimesParam, checkerBibsParam) => {
-		if (context.online) {
-			// Set start time locally
-			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-				if (raceIndex !== -1 && eventIndex !== -1) {
-					raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
-					raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
-					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-				} else {
-					Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex], true);
-				}
-			});
-
-			if (final) {
-				try {
-					const bibs = await getBibs(context.raceID, context.eventID);
-
-					if (bibs && bibs.length > 0) {
-						// If there are already bibs saved from Chute Mode, navigate to Verification Mode
-						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-						setLoading(false);
-						navigation.navigate("ModeScreen");
-						navigation.navigate("VerificationMode");
-					} else {
-						// Otherwise push bibs
-						// Formatting and appending bib numbers
-						const formData = new FormData();
-						formData.append(
-							"request",
-							JSON.stringify({
-								last_finishing_place: 0,
-								bib_nums: checkerBibsParam
-							})
-						);
-
-						await postBibs(context.raceID, context.eventID, formData);
-						setLoading(false);
-						navigation.navigate("ModeScreen");
-					}
-
-					// Don't allow further changes to Finish Line Mode
-					// However, there is a use case where someone could complete Finish Line Mode without adding bibs,
-					// And then want to add the bibs at the end of the race in Chute Mode,
-					// So we leave that option open to them
-					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-
-				} catch (error) {
-					CreateAPIError("Post Bibs", error);
-					setLoading(false);
-				}
-			}
-		} else {
-			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-				if (eventIndex !== -1) {
-					eventList[eventIndex].finish_times = finishTimesParam;
-					eventList[eventIndex].checker_bibs = checkerBibsParam;
-					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-				} else {
-					Logger("Local Storage Error (Finish Line)", [eventList, eventIndex], true);
-				}
-			});
-
-			if (final) {
-				// Navigate away
-				AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
-				setLoading(false);
-
-				navigation.navigate("ModeScreen");
-				await AsyncStorage.getItem(`chuteDone:${context.time}`, (_err, result) => {
-					if (result === "true") {
-						navigation.navigate("VerificationMode");
-					}
-				});
-			}
-		}
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
-
 	/** Updates Finish Times without re-rendering entire list */
 	const updateFinishTimes = useCallback((newFinishTimes: Array<number>) => {
 		finishTimesRef.current = newFinishTimes;
 		setFinishTimes(finishTimesRef.current);
-		addToStorage(false, finishTimesRef.current, checkerBibsRef.current);
-	}, [addToStorage]);
+		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
 
 	/** Updates Checker Bibs without re-rendering entire list */
 	const updateCheckerBibs = useCallback((newBibs: Array<number>) => {
 		checkerBibsRef.current = newBibs;
 		setCheckerBibs(checkerBibsRef.current);
-		addToStorage(false, finishTimesRef.current, checkerBibsRef.current);
-	}, [addToStorage]);
+		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+
+	/** Updates Alt Bibs without re-rendering entire list */
+	const updateAltBibs = useCallback((newBibs: Array<number>) => {
+		rsuBibsRef.current = newBibs;
+		setRSUBibs(rsuBibsRef.current);
+	}, []);
+
+	useFocusEffect(useCallback(() => {
+		const loadRSUBibs = async (): Promise<void> => {
+			setLoading(true);
+			let participants: ParticipantResponse[0] | undefined;
+			try {
+				participants = await getParticipants(context.raceID, context.eventID);
+				let bibs: Array<number> = participants.participants?.map(participant => participant.bib_num).filter(filteredBib => filteredBib !== null);
+				bibs = bibs.filter((c, index) => bibs.indexOf(c) === index).sort((a, b) => (a - b));
+				if (participants.participants && bibs.length > 0) {
+					updateAltBibs(bibs);
+					AsyncStorage.setItem(`altBibs:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
+				} else {
+					throw Error("No Participants or Bibs");
+				}
+			} catch {
+				const storedBibsString = await AsyncStorage.getItem(`altBibs:${context.raceID}:${context.eventID}`);
+				if (storedBibsString) {
+					updateAltBibs(JSON.parse(storedBibsString));
+				} else {
+					Alert.alert(
+						"No Bibs Found",
+						"No bib numbers were found for this event at RunSignup. Please try again.",
+						[
+							{
+								text: "Go Back",
+								onPress: (): void => {
+									navigation.navigate("ListView");
+								}
+							}
+						]
+					);
+				}
+			}
+		};
+		loadRSUBibs();
+		setLoading(false);
+	}, [context.eventID, context.raceID, navigation, updateAltBibs]));
 
 	useFocusEffect(
 		useCallback(() => {
@@ -182,8 +146,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	);
 
 	/** Get old data in case screen closed before saving */
-	useEffect(() => {
-		navigation.setOptions({
+	useFocusEffect(useCallback(() => {
+		navigation.getParent()?.setOptions({
 			headerLeft: () => (
 				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			)
@@ -198,10 +162,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (prevStart !== null && prevStart !== -1) {
 						setTimerOn(true);
 						startTime.current = prevStart;
-						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
-					} else {
-						Alert.alert("Warning", "You cannot use Finish Line Mode on multiple devices at the same time. Please check with other users before recording data.");
 					}
 
 					// Get latest data
@@ -221,8 +181,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (prevStart !== null && prevStart !== -1) {
 						setTimerOn(true);
 						startTime.current = prevStart;
-						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
 					}
 
 					// Get latest data
@@ -234,17 +192,21 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			});
 		}
 
+		const flatListRefCurrent = flatListRef.current;
+		if (flatListRefCurrent !== null) {
+			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
+		}
+
 		// Done with initial loading
 		setLoading(false);
 
 		return () => {
 			isUnmounted.current = true;
 		};
-	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]);
+	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]));
 
 	// Start the timer interval when user asks to record times
 	useEffect(() => {
-
 		// Timer hasn't started yet. Exit now
 		if (!timerOn) return;
 
@@ -253,7 +215,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			startTime.current = Date.now();
 		}
 
-		// Set to AsyncStorage the current time so we can come back to this time if the user app crashes, or leaves this screen
+		// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
 		if (context.online) {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
@@ -289,142 +251,46 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		setTimerOn(true);
 	}, []);
 
-	// Post Times to API
-	const saveResults = useCallback(async () => {
-		const formDataStartTime = new FormData();
-
-		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-		if (raceIndex === -1 || eventIndex === -1) return;
-
-		const formatStartTime = new Date(raceList[raceIndex].events[eventIndex].real_start_time);
-
-		// Append request to API
-		formDataStartTime.append(
-			"request",
-			JSON.stringify({
-				start_time: `${formatStartTime.getFullYear()}-${addLeadingZeros(formatStartTime.getMonth() + 1)}-${addLeadingZeros(formatStartTime.getDate())} ${addLeadingZeros(formatStartTime.getHours())}:${addLeadingZeros(formatStartTime.getMinutes())}:${addLeadingZeros(formatStartTime.getSeconds())}`
-			})
-		);
-
-		// Post start time
-		try {
-			await postStartTime(context.raceID, context.eventID, formDataStartTime);
-
-			// Post Finish Times data
-			if (finishTimesRef.current.length < 1) {
-				// Alert if no finishing times have been recorded
-				Alert.alert("No Results", "You have not recorded any results. Please try again.");
-			} else {
-				try {
-					await postFinishTimes(context.raceID, context.eventID, finishTimesRef.current);
-					addToStorage(true, finishTimesRef.current, checkerBibsRef.current);
-				} catch (error) {
-					if (error instanceof Error && error.message.toLowerCase().includes("out of order")) {
-						Alert.alert("Results Error", "Results have already been posted for this event! You cannot re-post results.");
-					} else {
-						CreateAPIError("Post Times", error);
-					}
-					setLoading(false);
-				}
-			}
-		} catch (error) {
-			CreateAPIError("Start Time", error);
-		}
-	}, [addToStorage, context.eventID, context.raceID]);
-
-
-	// Check entries for errors
-	const checkEntries = useCallback(() => {
-		// If no results posted
-		if (checkerBibsRef.current.length < 1) {
-			// Alert if no finishing times have been recorded
-			Alert.alert("No Results", "You have not recorded any results. Please try again.");
-		} else if (checkerBibsRef.current.filter(entry => entry === null).length > 0) {
-			// Alert if blank bib entry
-			Alert.alert("Incorrect Bib Entry", "There is a blank bib entry in the list. Please fill in the correct value.");
-		} else if (checkerBibsRef.current.includes(NaN)) {
-			// Alert if non-numeric entry
-			Alert.alert("Incorrect Bib Entry", "You have entered a non-numeric character in the bib entries list. Please correct that entry before submitting.");
-		} else if (checkerBibsRef.current.filter(entry => (entry.toString().substring(0, 1) === "0" && entry.toString().length > 1)).length > 0) {
-			// Filter bib numbers that start with 0
-			Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
-		} else {
-			if (context.online) {
-				Alert.alert(
-					"Save Results",
-					"Are you sure you want to save to the cloud and quit?",
-					[
-						{ text: "Cancel" },
-						{
-							text: "Save & Quit",
-							onPress: (): void => {
-								setLoading(true);
-								saveResults();
-							},
-							style: "destructive",
-						},
-					]
-				);
-			} else {
-				Alert.alert(
-					"Save Results",
-					"Are you sure you want to save the results and quit?",
-					[
-						{ text: "Cancel" },
-						{
-							text: "Save & Quit",
-							onPress: (): void => {
-								if (finishTimesRef.current.length < 1) {
-									Alert.alert("No Results", "You have not recorded any results. Please try again.");
-								} else {
-									setLoading(true);
-									addToStorage(true, finishTimesRef.current, checkerBibsRef.current);
-								}
-							},
-							style: "destructive",
-						},
-					]
-				);
-			}
-		}
-	}, [addToStorage, saveResults, context.online]);
-
 	/** Add a time to the finish times */
-	const recordTime = useCallback(() => {
+	const recordTime = useCallback((bib?: number) => {
 		// Race hasn't started yet
-		if (startTime.current === 0) {
+		if (startTime.current === -1) {
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 		} else if (Date.now() - startTime.current > 86399999) {
 			Alert.alert("Record Error", "You have recorded a time that is too large.");
 		} else {
 			finishTimesRef.current.push(Date.now() - startTime.current);
-			if (!bibText) {
-				checkerBibsRef.current.push(0);
-				updateCheckerBibs([...checkerBibsRef.current]);
+			if (bib) {
+				// Clear old bib if it exists
+				const oldBibIndex = checkerBibsRef.current.indexOf(bib);
+				if (oldBibIndex >= 0) {
+					checkerBibsRef.current[oldBibIndex] = 0;
+				}
+				checkerBibsRef.current.push(bib);
 			} else {
-				checkerBibsRef.current.push(parseInt(bibText));
-				updateCheckerBibs([...checkerBibsRef.current]);
-				setBibText("");
+				checkerBibsRef.current.push(0);
 			}
-
+			updateCheckerBibs(checkerBibsRef.current);
 			const flatListRefCurrent = flatListRef.current;
 			if (flatListRefCurrent !== null) {
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
 			}
 		}
-	}, [bibText, updateCheckerBibs]);
+	}, [updateCheckerBibs]);
 
 
 	// Display save button in header
 	useEffect(() => {
-		navigation.setOptions({
+		navigation.getParent()?.setOptions({
 			headerRight: () => (
-				timerOn && <TouchableOpacity onPress={checkEntries}>
+				timerOn && <TouchableOpacity onPress={(): void => {
+					CheckEntries(context.raceID, context.eventID, context.online, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
+				}}>
 					<Text style={globalstyles.headerButtonText}>Save</Text>
 				</TouchableOpacity>
 			),
 		});
-	}, [navigation, checkEntries, timerOn]);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn]);
 
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {
@@ -438,7 +304,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const showAlert = (index: number): void => {
 		setAlertIndex(index);
 		setAlertVisible(true);
-		setInputWasFocused(!!bibInputRef.current?.isFocused());
 	};
 
 	// Renders item on screen
@@ -456,6 +321,18 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		/>
 	), [addOne, updateCheckerBibs, updateFinishTimes]);
 
+	const bibRenderItem = useCallback(({ item }) => {
+		const checkerBibsIndex = checkerBibsRef.current.indexOf(item);
+
+		return <MemoBibItem 
+			bib={item} 
+			time={GetClockTime(finishTimesRef.current[checkerBibsIndex])}
+			handleBibTap={recordTime} 
+			alreadyEntered={checkerBibsIndex >= 0}
+			checkerBibsRef={checkerBibsRef}
+		/>;
+	}, [recordTime]);
+
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 			<KeyboardAvoidingView 
@@ -469,17 +346,19 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							{GetClockTime(displayTime)}
 						</Text>
 					</View>
-					<TextInput
-						ref={bibInputRef}
-						onChangeText={setBibText}
-						editable={timerOn}
-						style={globalstyles.timerBibInput}
-						value={bibText}
-						maxLength={6}
-						placeholder="Bib Entry"
-						placeholderTextColor={GRAY_COLOR}
-						keyboardType="number-pad"
-					/>
+					<TouchableOpacity 
+						onPress={(): void => {
+							if (timerOn) {
+								recordTime();
+							} else {
+								startTimer();
+							}
+						}}
+						style={[globalstyles.altStartButton, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : DARK_GRAY_COLOR }]}>
+						<Text style={globalstyles.altStartText}>
+							{timerOn ? "Blank Bib" : "Start Timer"}
+						</Text>
+					</TouchableOpacity>
 				</View>
 
 				{/* Header */}
@@ -500,7 +379,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					<>
 						<FlatList
 							showsVerticalScrollIndicator={false}
-							style={globalstyles.flatList}
+							style={globalstyles.shortFlatList}
 							ref={flatListRef}
 							data={finishTimesRef.current}
 							renderItem={renderItem}
@@ -513,13 +392,21 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							keyboardShouldPersistTaps="handled"
 						/>
 
-						<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
-							<MainButton
-								onPress={timerOn ? recordTime : startTimer}
-								text={timerOn ? "Record" : "Start Timer"}
-								color={timerOn ? "Green" : "Gray"}
-							/>
-						</View>
+						<FlatList
+							data={rsuBibsRef.current}
+							numColumns={4}
+							style={globalstyles.longFlatList}
+							showsVerticalScrollIndicator={false}
+							renderItem={bibRenderItem}
+							keyExtractor={(_item, index): string => {
+								return "altBib_" + _item + index;
+							}}
+							initialNumToRender={10}
+							windowSize={11}
+							keyboardShouldPersistTaps="handled"
+						/>
+
+						<View style={{height: 10, borderBottomWidth: 1, borderBottomColor: DARK_GRAY_COLOR}}/>
 					</>
 				}
 
@@ -540,9 +427,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
 									updateCheckerBibs([...checkerBibsRef.current]);
 									setAlertVisible(false);
-									if (inputWasFocused) {
-										bibInputRef.current?.focus();
-									}
 								} else {
 									Alert.alert(
 										"Incorrect Bib Entry",

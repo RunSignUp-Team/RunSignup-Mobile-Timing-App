@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, BackHandler, AlertButton, Linking } from "react-native";
-import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, LONG_TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, LONG_TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/APICalls";
@@ -20,6 +20,7 @@ import GetBibDisplay from "../helpers/GetBibDisplay";
 import GetClockTime from "../helpers/GetClockTime";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -37,6 +38,8 @@ type VRecords = Array<VRecord>;
 
 const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
+
+	const insets = useSafeAreaInsets();
 
 	// Swap
 	const [selectedID, setSelectedID] = useState(-1);
@@ -330,13 +333,14 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setConflicts(count);
 	}, [records]);
 
-	const pushAndClear = useCallback(async () => {
+	const clearAndPush = useCallback(async () => {
 		if (context.online) {
 			try {
 				// Clear old bib data
 				await deleteBibs(context.raceID, context.eventID);
 				// Post new bib data if the user hasn't deleted all records
-				if (recordsRef.current.length > 0) {
+				const bibNums = recordsRef.current.map(entry => entry[0]);
+				if (bibNums.length > 0) {
 					// Online Funtionality
 					// Form Data
 					const formDataBibs = new FormData();
@@ -344,24 +348,21 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 						"request",
 						JSON.stringify({
 							last_finishing_place: 0,
-							bib_nums: recordsRef.current.map(entry => entry[0])
+							bib_nums: bibNums
 						})
 					);
 
 					await postBibs(context.raceID, context.eventID, formDataBibs);
 					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-				} else {
-					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "false");
 				}
 
 				// Clear old finish time data
 				await deleteFinishTimes(context.raceID, context.eventID);
 				// Post new finish time data if the user hasn't deleted all records
-				if (recordsRef.current.length > 0) {
-					await postFinishTimes(context.raceID, context.eventID, recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]));
+				const finishTimes = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+				if (finishTimes.length > 0) {
+					await postFinishTimes(context.raceID, context.eventID, finishTimes);
 					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-				} else {
-					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "false");
 				}
 
 				// Clear local data upon successful upload
@@ -434,7 +435,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		if (recordsRef.current.length < 1 && rStartLength !== 0) {
 			setLoading(false);
 			if (skipAlert) {
-				pushAndClear();
+				clearAndPush();
 			} else {
 				Alert.alert(
 					"Are You Sure?",
@@ -447,7 +448,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 								"Please confirm that you want to delete all records for this event. All data will be lost.",
 								[
 									{ text: "Cancel" },
-									{ text: "Delete All", onPress: (): void => { pushAndClear(); }, style: "destructive"}
+									{ text: "Delete All", onPress: (): void => { clearAndPush(); }, style: "destructive"}
 								]
 							);
 						}, style: "destructive"}
@@ -455,9 +456,9 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				);
 			}
 		} else {
-			pushAndClear();
+			clearAndPush();
 		}
-	}, [pushAndClear, rStartLength]);
+	}, [clearAndPush, rStartLength]);
 
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {
@@ -644,7 +645,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const findParticipant = useCallback((bib: number) => {
 		if (context.online) {
 			try {
-				const p = participants.find((participant) => participant.bib_num.toString() === bib.toString());
+				const p = participants.find((participant) => participant.bib_num === bib);
 				return p !== undefined ? `${p.user.first_name} ${p.user.last_name}` : "No Name";
 			} catch {
 				return "No Name";
@@ -939,25 +940,29 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 
 			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			{!loading && recordsRef.current.length > 0 &&
-				<FlatList
-					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps="handled"
-					style={globalstyles.longFlatList}
-					ref={flatListRef}
-					onRefresh={(context.online && !editMode) ? (): void => { getRecords(true); } : undefined}
-					refreshing={refreshing}
-					data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
-					extraData={selectedID}
-					renderItem={renderItem}
-					keyExtractor={(_item, index): string => (index + 1).toString()}
-					initialNumToRender={30}
-					windowSize={11}
-					getItemLayout={(_, index): ItemLayout => (
-						{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
-					)}
-				/>
-			}
+			{!loading && recordsRef.current.length > 0 ?
+				<>
+					<FlatList
+						showsVerticalScrollIndicator={false}
+						keyboardShouldPersistTaps="handled"
+						style={globalstyles.longFlatList}
+						ref={flatListRef}
+						onRefresh={(context.online && !editMode) ? (): void => { getRecords(true); } : undefined}
+						refreshing={refreshing}
+						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
+						extraData={selectedID}
+						renderItem={renderItem}
+						keyExtractor={(_item, index): string => (index + 1).toString()}
+						initialNumToRender={30}
+						windowSize={11}
+						getItemLayout={(_, index): ItemLayout => (
+							{ length: LONG_TABLE_ITEM_HEIGHT, offset: LONG_TABLE_ITEM_HEIGHT * index, index }
+						)}
+					/>
+
+					<View style={{ height: insets.bottom, borderTopWidth: 1, borderTopColor: DARK_GRAY_COLOR }} />
+				</>
+				: null}
 
 			{alertIndex !== undefined && alertRecord !== undefined &&
 				<TextInputAlert

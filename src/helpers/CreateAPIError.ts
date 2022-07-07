@@ -7,9 +7,11 @@ export const NetworkErrorBool = (error: unknown): boolean => {
 };
 
 /** Creates an error after checking for network connection */
-export default function CreateAPIError(location: string, error: unknown): void {
+export default function CreateAPIError(location: string, error: unknown, hideAlert?: boolean): void {
 	if (error instanceof Error && NetworkErrorBool(error)) {
-		Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+		if (!hideAlert) {
+			Alert.alert("Connection Error", "No response received from the server. Please check your internet connection and try again.");
+		}
 	} else {
 		// Something else
 		Logger(`Unknown Error (${location})`, error, true);

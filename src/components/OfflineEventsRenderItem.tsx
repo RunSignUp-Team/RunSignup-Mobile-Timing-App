@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Alert } from "react-native";
-import { OfflineEvent } from "../screens/OfflineEventsScreen";
+import { OfflineEvent } from "../screens/OfflineEvents";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import MainButton from "./MainButton";
