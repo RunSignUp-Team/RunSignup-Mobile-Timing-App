@@ -76,10 +76,52 @@ interface UserResponse {
 }
 
 export type ParticipantDetails = {
+	affiliate_profit: string,
+	age: number | null,
+	amount_paid: string,
 	bib_num: number,
+	chip_num: string | null,
+	event_id: number,
+	extra_fees: string,
+	giveaway: string | null,
+	giveaway_option_id: number | null,
+	imported: "T" | "F",
+	last_modified: number,
+	offline_payment_amount: string,
+	partner_fee: string,
+	processing_fee: string,
+	processing_fee_paid_by_race: string,
+	processing_fee_paid_by_user: string,
+	race_fee: string,
+	registration_date: string,
+	registration_id: number,
+	rsu_transaction_id: number | null,
+	team_bib_num: number | null,
+	team_gender: string | null,
+	team_id: number | null,
+	team_name: string | null,
+	team_type: string | null,
+	team_type_id: number | null,
+	transaction_id: number | null,
+	usatf_discount_additional_field: string | null,
+	usatf_discount_amount_in_cents: string,
 	user: {
+		address: {
+			city: string,
+			country_code: string,
+			state: string,
+			street: string | null,
+			zipcode: string,
+		},
+		dob: string | null,
+		email: string | null,
 		first_name: string,
-		last_name: string
+		gender: string,
+		last_name: string,
+		middle_name: string | null,
+		phone: string | null,
+		profile_image_url: string | null,
+		user_id: number,
 	}
 }
 

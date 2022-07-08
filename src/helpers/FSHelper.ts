@@ -29,12 +29,12 @@ export const GetTimingFilePath = (raceID: number, eventID: number, time: number,
 export const WriteFiles = async (raceID: number, eventID: number, records: VRecords, participants: Array<ParticipantDetails>, online: boolean, time: number): Promise<void> => {
 	let resultsString = "";
 	if (online) {
-		resultsString = "Bib Number,Finish Time,Participant\n";
+		resultsString = "Place,Bib,Name,Gender,Age,City,State,Finish Time\n";
 	} else {
-		resultsString = "Bib Number,Finish Time\n";
+		resultsString = "Bib,Finish Time\n";
 	}
 
-	let timingString = "Bib Number\tTime of Day\n";
+	let timingString = "Bib\tTime of Day\n";
 
 	// Results File
 	for (let i = 0; i < records.length; i++) {
@@ -42,15 +42,23 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 		const time = records[i][1];
 
 		let name = "No Name";
+		let gender = "N/A";
+		let age = "N/A";
+		let city = "N/A";
+		let state = "N/A";
 		if (online && bib > 0) {
 			const p = participants.find((participant) => participant.bib_num === bib);
 			if (p) {
 				name = `${p.user.first_name} ${p.user.last_name}`;
+				gender = p.user.gender ? p.user.gender : "N/A";
+				age = p.age ? p.age.toString() : "N/A";
+				city = p.user.address.city ? p.user.address.city : "N/A";
+				state = p.user.address.state ? p.user.address.state : "N/A";
 			}
 		}
 		
 		if (online) {
-			resultsString += `${bib},${GetClockTime(time)},${name}\n`;
+			resultsString += `${i+1},${bib},${name},${gender},${age},${city},${state},${GetClockTime(time)}\n`;
 		} else {
 			resultsString += `${bib},${GetClockTime(time)}\n`;
 		}
