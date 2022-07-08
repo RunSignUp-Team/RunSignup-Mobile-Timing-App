@@ -82,20 +82,24 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 
 	for (let i = 0; i < records.length; i++) {
 		const bib = records[i][0];
-		const time = new Date(records[i][1] + realStartTime);
+		let dateString = "";
+		if (!(records[i][1] < 0) && !(records[i][1] === Number.MAX_SAFE_INTEGER)) {
+			const time = new Date(records[i][1] + realStartTime);
 
-		const [year, month, day] = DateToDate(time);
-
-		const hour = AddLeadingZeros(time.getHours());
-		const minutes = AddLeadingZeros(time.getMinutes());
-		const seconds = AddLeadingZeros(time.getSeconds());
-		let milli = AddLeadingZeros(time.getMilliseconds());
-
-		while (milli.length < 3) {
-			milli += "0";
+			const [year, month, day] = DateToDate(time);
+	
+			const hour = AddLeadingZeros(time.getHours());
+			const minutes = AddLeadingZeros(time.getMinutes());
+			const seconds = AddLeadingZeros(time.getSeconds());
+			let milli = AddLeadingZeros(time.getMilliseconds());
+	
+			while (milli.length < 3) {
+				milli += "0";
+			}
+	
+			dateString = `${year}-${month}-${day} ${hour}:${minutes}:${seconds}.${milli}`;
 		}
-
-		const dateString = `${year}-${month}-${day} ${hour}:${minutes}:${seconds}.${milli}`;
+		
 		
 		timingString += `${bib}\t${dateString}\n`;
 	}

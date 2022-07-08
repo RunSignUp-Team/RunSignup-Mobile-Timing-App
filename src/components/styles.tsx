@@ -126,7 +126,6 @@ export const globalstyles = StyleSheet.create({
 	flatList: {
 		height: "50%",
 		flexGrow: 0,
-		marginBottom: 10,
 		borderBottomWidth: 1,
 		borderColor: DARK_GRAY_COLOR,
 		overflow: "hidden",
@@ -137,7 +136,6 @@ export const globalstyles = StyleSheet.create({
 	shortFlatList: {
 		height: "30%",
 		flexGrow: 0,
-		marginBottom: 10,
 		borderBottomWidth: 1,
 		borderColor: DARK_GRAY_COLOR,
 		overflow: "hidden",

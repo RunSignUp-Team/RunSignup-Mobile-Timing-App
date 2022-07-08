@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, TouchableOpacity, Text, Alert, FlatList, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Platform, BackHandler } from "react-native";
+import { KeyboardAvoidingView, View, TouchableOpacity, Text, Alert, FlatList, TextInput, TouchableWithoutFeedback, Keyboard, ActivityIndicator, Platform, BackHandler, Dimensions } from "react-native";
 import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
@@ -18,6 +18,10 @@ import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { Audio } from "expo-av";
+import { Sound } from "expo-av/build/Audio";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -27,6 +31,7 @@ type Props = {
 
 const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
+	const headerHeight = useHeaderHeight();
 
 	// Bib Input
 	const [bibText, setBibText] = useState("");
@@ -39,13 +44,45 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Alert
 	const [alertVisible, setAlertVisible] = useState(false);
-	const [alertIndex, setAlertIndex] = useState<number>();	
+	const [alertIndex, setAlertIndex] = useState<number>();
+
+	// Barcode Scanner
+	const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+	const [showScanner, setShowScanner] = useState(false);
+	const [paused, setPaused] = useState(false);
+	const scannedBibs = useRef<Record<string, number>>({});
+	const camWidth = Dimensions.get("screen").width;
+	const camHeight = Dimensions.get("window").height * 0.7 - TABLE_ITEM_HEIGHT - headerHeight;
+	const successSound = useRef<Sound>();
+	const errorSound = useRef<Sound>();
+	const alertShown = useRef(false);
 
 	// Other
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
 	const [loading, setLoading] = useState(true);
 
+	/** Play success beep */
+	const playSuccessSound = async (): Promise<void> => {
+		try {
+			await successSound.current?.unloadAsync();
+			successSound.current = (await Audio.Sound.createAsync(await require("../assets/success_beep.mp3"), { shouldPlay: true })).sound;
+			await successSound.current.playAsync();
+		} catch (error) {
+			Logger("No Success Sound", error, false);
+		}
+	};
+
+	/** Play error beep */
+	const playErrorSound = async (): Promise<void> => {
+		try {
+			await errorSound.current?.unloadAsync();
+			errorSound.current = (await Audio.Sound.createAsync(await require("../assets/error_beep.mp3"), { shouldPlay: true })).sound;
+			await errorSound.current.playAsync();
+		} catch (error) {
+			Logger("No Success Sound", error, false);
+		}
+	};
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
@@ -259,6 +296,35 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
+	// Record scanned bib
+	const recordScannedBib = async (bib: string): Promise<void> => {
+		// Only record if no alert shown
+		if (!alertShown.current) {
+			if (!isNaN(parseInt(bib)) && parseInt(bib).toString().length <= 6) {
+				await playSuccessSound();
+	
+				bibNumsRef.current.push(parseInt(bib));
+				updateBibNums([...bibNumsRef.current]);
+				setBibText("");
+	
+				const flatListRefCurrent = flatListRef.current;
+				if (flatListRefCurrent !== null) {
+					setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * bibNumsRef.current.length }); }, 100);
+				}
+			} else {
+				await playErrorSound();
+				if (!alertShown.current) {
+					alertShown.current = true;
+					Alert.alert(
+						"Invalid Bib Number", 
+						"You have scanned an invalid bib number. Please try again.",
+						[{ text: "OK", onPress: (): void => { alertShown.current = false; }}]
+					);
+				}
+			}
+		}
+	};
+
 	// Show Edit Alert
 	const showAlert = (index: number): void => {
 		setAlertIndex(index);
@@ -277,41 +343,96 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		/>
 	);
 
+	/** Show Barcode Scanner */
+	const showBarcodeScanner = useCallback(async (): Promise<void> => {
+		if (showScanner === false) {
+			const { status } = await BarCodeScanner.requestPermissionsAsync();
+			setHasPermission(status === "granted");
+			if (status === "granted") {
+				setPaused(false);
+				setShowScanner(true);
+				alertShown.current = true;
+				Alert.alert(
+					"Barcode Scanner", 
+					"Use the camera to scan bib number barcodes. They will appear in the list at the top of the screen.\nYou can pause the camera and/or edit a bib number at any time.",
+					[{ text: "OK", onPress: (): void => { alertShown.current = false; }}]
+				);
+			} else {
+				Alert.alert("Permission Denied", "Camera permissions have been denied on this device. Please enable them in your device's privacy settings.");
+			}
+		} else {
+			setShowScanner(false);
+		}
+
+		const flatListRefCurrent = flatListRef.current;
+		if (flatListRefCurrent !== null) {
+			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * bibNumsRef.current.length }); }, 500);
+		}
+	}, [showScanner]);
+
+	/** Check if barcode was scanned recently */
+	const wasScannedRecently = (barcode: string): boolean => {
+		if (!scannedBibs.current[barcode])
+			return false;
+		const now = new Date().getTime();
+		return (now - scannedBibs.current[barcode] < 4000);
+	};
+
+	/** Scan bar code */
+	const barCodeScanned = ({ type, data }: { type: string, data: string }): void => {
+		if (!wasScannedRecently(data)) {
+			scannedBibs.current[data] = new Date().getTime();
+			recordScannedBib(data);
+		}
+	};
+
 	// Display save button in header
 	useEffect(() => {
 		navigation.setOptions({
 			headerRight: () => (
-				<TouchableOpacity
-					onPress={checkEntries}
-				>
-					<Text style={globalstyles.headerButtonText}>Save</Text>
-				</TouchableOpacity>
+				<View style={{ flexDirection: "row", alignItems: "center" }}>
+					<TouchableOpacity style={{ marginRight: 15 }} onPress={showBarcodeScanner}>
+						<Icon
+							name={showScanner ? "list" : "camera"}
+							size={showScanner ? 22 : 24}
+							color={WHITE_COLOR}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={checkEntries}
+					>
+						<Text style={globalstyles.headerButtonText}>Save</Text>
+					</TouchableOpacity>
+				</View>
 			),
 		});
-	}, [checkEntries, navigation]);
+	}, [checkEntries, navigation, showBarcodeScanner, showScanner]);
 
 	return (
 		// Dismiss keyboard if user touches container
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView 
+			<KeyboardAvoidingView
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
 				keyboardVerticalOffset={70}>
 
-				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
-					<TextInput
-						ref={bibInputRef}
-						style={globalstyles.input}
-						onChangeText={setBibText}
-						value={bibText}
-						maxLength={6}
-						placeholder="Record Bib #"
-						placeholderTextColor={GRAY_COLOR}
-						keyboardType="number-pad"
-						onSubmitEditing={bibText !== "" ? recordBib : (): void => { return; }}
-						autoFocus={true}
-					/>
-				</View>
+				{showScanner && hasPermission ?
+					null :
+					<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
+						<TextInput
+							ref={bibInputRef}
+							style={globalstyles.input}
+							onChangeText={setBibText}
+							value={bibText}
+							maxLength={6}
+							placeholder="Record Bib #"
+							placeholderTextColor={GRAY_COLOR}
+							keyboardType="number-pad"
+							onSubmitEditing={bibText !== "" ? recordBib : (): void => { return; }}
+							autoFocus={true}
+						/>
+					</View>
+				}
 
 				{/* Header */}
 				<View style={globalstyles.tableHead}>
@@ -327,7 +448,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<>
 						<FlatList
 							showsVerticalScrollIndicator={false}
-							style={globalstyles.flatList}
+							style={showScanner && hasPermission ? globalstyles.shortFlatList : globalstyles.flatList}
 							ref={flatListRef}
 							data={bibNumsRef.current}
 							renderItem={renderItem}
@@ -340,13 +461,26 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							keyboardShouldPersistTaps="handled"
 						/>
 
-						<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
-							<MainButton onPress={recordBib} text={"Record"} />
-						</View>
+						{showScanner && hasPermission ?
+							<View style={{ flex: 1, backgroundColor: BLACK_COLOR }}>
+								<TouchableOpacity style={{ zIndex: 2, position: "absolute", marginLeft: (camWidth - 150) / 2, marginTop: (camHeight - 150) / 2 }} onPress={(): void => { setPaused(!paused); }}>
+									<Icon
+										name={paused ? "play3" : "pause"}
+										color={"rgba(255,255,255,0.7)"}
+										size={150}
+									/>
+								</TouchableOpacity>
+								{paused ? null : <BarCodeScanner type={"back"} onBarCodeScanned={barCodeScanned} style={{ flex: 1 }} />}
+							</View>
+							:
+							<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
+								<MainButton onPress={recordBib} text={"Record"} />
+							</View>
+						}
 					</>
 				}
 
-				{alertIndex !== undefined && 
+				{alertIndex !== undefined &&
 					<TextInputAlert
 						title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
 						message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}

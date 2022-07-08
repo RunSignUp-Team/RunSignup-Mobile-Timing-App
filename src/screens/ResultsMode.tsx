@@ -822,7 +822,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 					{/* RSU Results */}
 					{!editMode && !loading && context.online && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
-						<Icon name={"stats-bars2"} size={22} color={WHITE_COLOR} />
+						<Icon name={"stats-bars2"} size={24} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 					{/* Share Results */}
 					{!editMode && !loading && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={shareResults} >

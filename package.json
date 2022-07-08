@@ -48,7 +48,9 @@
     "react-native-splash-screen": "^3.3.0",
     "react-native-web": "0.17.7",
     "react-navigation": "^4.4.4",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "expo-barcode-scanner": "~11.2.0",
+    "expo-av": "~10.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",
