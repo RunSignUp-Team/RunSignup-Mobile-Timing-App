@@ -34,7 +34,7 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 		resultsString = "Bib,Finish Time\n";
 	}
 
-	let timingString = "Bib\tTime of Day\n";
+	let timingString = "";
 
 	// Results File
 	for (let i = 0; i < records.length; i++) {
