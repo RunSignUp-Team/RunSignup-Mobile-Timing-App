@@ -4,7 +4,7 @@ import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, UNIVERSAL_PADD
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getRaces } from "../helpers/APICalls";
-import { MemoRaceListItem } from "../components/RaceListRenderItem";
+import { MemoRacesListItem } from "../components/RacesListRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -192,7 +192,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 		navigationRef.current = navigation;
 
 		return (
-			<MemoRaceListItem
+			<MemoRacesListItem
 				index={index}
 				item={item}
 				setRaceID={setRaceID}

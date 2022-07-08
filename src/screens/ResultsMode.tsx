@@ -4,7 +4,7 @@ import { BLACK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLO
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/APICalls";
-import { MemoVerificationItem } from "../components/VerificationModeRenderItem";
+import { MemoResultsModeRenderItem } from "../components/ResultsModeRenderItem";
 import GetTimeInMils from "../helpers/GetTimeInMils";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
@@ -21,6 +21,8 @@ import GetClockTime from "../helpers/GetClockTime";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { DeleteFiles, WriteFiles } from "../helpers/FSHelper";
+import ShareResultsFile from "../helpers/ShareResultsFile";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -34,9 +36,9 @@ type VRecord = [
 	checkerBib: number
 ];
 
-type VRecords = Array<VRecord>;
+export type VRecords = Array<VRecord>;
 
-const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
+const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const insets = useSafeAreaInsets();
@@ -787,6 +789,20 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [context.online, saveResults, updateRecords]);
 
+	const shareResults = useCallback(async () => {
+		if (recordsRef.current.length > 0) {
+			await WriteFiles(context.raceID, context.eventID, recordsRef.current, participants, context.online, context.time);
+			try {
+				await ShareResultsFile(context.raceID, context.eventID, context.time, context.online);
+			} catch (error) {
+				Logger("Failed to Share Results", error, true);
+			}
+			await DeleteFiles(context.raceID, context.eventID, context.time, context.online);
+		} else {
+			Alert.alert("No Records", "There are no records to share!");
+		}
+	}, [context.eventID, context.online, context.raceID, context.time, participants]);
+
 	// Display edit / save button in header
 	useEffect(() => {
 		navigation.setOptions({
@@ -803,9 +819,14 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={addRecord} >
 						<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>}
+
 					{/* RSU Results */}
-					{!editMode && !loading && context.online && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
+					{!editMode && !loading && context.online && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
 						<Icon name={"stats-bars2"} size={22} color={WHITE_COLOR} />
+					</TouchableOpacity>}
+					{/* Share Results */}
+					{!editMode && !loading && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={shareResults} >
+						<Icon name={"file-upload2"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 
 					{/* Edit / Save */}
@@ -823,7 +844,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 				</View>
 			),
 		});
-	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords, context.online]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords, context.online, shareResults]);
 
 	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]): void => {
@@ -880,7 +901,7 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 		// When searching, the records do not update immediately when a record is deleted,
 		// So we show null here until they do
 		recordsRef.current[index] ?
-			<MemoVerificationItem
+			<MemoResultsModeRenderItem
 				// Passed down to trigger rerender when a bib is edited or a conflict is resolved
 				recordsRefSearchBib={recordsRef.current[index][0]}
 				searchRecordsSearchBib={searchRecords[index] !== undefined ? searchRecords[index][0] : -1}
@@ -984,4 +1005,4 @@ const VerificationModeScreen = ({ navigation }: Props): React.ReactElement => {
 	);
 };
 
-export default VerificationModeScreen;
+export default ResultsMode;

@@ -44,6 +44,10 @@ interface BibsResponse {
 	}>
 }
 
+interface StartTimeResponse {
+	start_time: string
+}
+
 interface TimesResponse {
 	finishing_times: Array<{
 		time: string
@@ -223,6 +227,11 @@ export const getRaces = async (): Promise<RaceResponse["races"]> => {
 export const getBibs = async (raceID: number, eventID: number): Promise<BibsResponse["bib_finishing_order"]> => {
 	const response = await handleGetCall<BibsResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/results/get-chute-data?format=json&event_id=${eventID}`);
 	return response.bib_finishing_order;
+};
+
+export const getStartTime = async (raceID: number, eventID: number): Promise<string> => {
+	const response = await handleGetCall<StartTimeResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/results/start-time?format=json&event_id=${eventID}`);
+	return response.start_time;
 };
 
 /** Get Finish Times from RSU API */

@@ -28,7 +28,7 @@ interface Props {
 }
 
 
-export default function VerificationModeRenderItem(props: Props): React.ReactElement {
+export default function ResultsModeRenderItem(props: Props): React.ReactElement {
 	const index = props.recordsRef.current.indexOf(props.record);
 	const conflictItem = ConflictBoolean(props.record[0], props.record[2]);
 
@@ -117,4 +117,4 @@ export default function VerificationModeRenderItem(props: Props): React.ReactEle
 	);
 }
 
-export const MemoVerificationItem = memo(VerificationModeRenderItem);
+export const MemoResultsModeRenderItem = memo(ResultsModeRenderItem);

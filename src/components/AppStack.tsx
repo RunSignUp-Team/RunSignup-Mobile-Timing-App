@@ -5,7 +5,7 @@ import EventsListScreen from "../screens/EventsList";
 import ModeScreen from "../screens/Modes";
 import FinishLineModeScreen from "../screens/FinishLineMode";
 import ChuteModeScreen from "../screens/ChuteMode";
-import VerificationModeScreen from "../screens/Results";
+import ResultsMode from "../screens/ResultsMode";
 import OfflineEventsListScreen from "../screens/OfflineEvents";
 import { BIG_FONT_SIZE, GREEN_COLOR, WHITE_COLOR, SMALL_FONT_SIZE, BLACK_COLOR } from "./styles";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -148,7 +148,7 @@ export default function StartNavigator(): React.ReactElement {
 					title: "Chute Mode",
 					gestureEnabled: false
 				}} />
-				<AppStack.Screen name="VerificationMode" component={VerificationModeScreen} options={{
+				<AppStack.Screen name="VerificationMode" component={ResultsMode} options={{
 					title: "Results",
 					gestureEnabled: false
 				}} />

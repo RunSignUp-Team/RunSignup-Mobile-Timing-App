@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { RootStackParamList } from "../components/AppStack";
+import { RootStackParamList } from "./AppStack";
 import MainButton from "./MainButton";
 import { Race } from "../models/Race";
 
@@ -15,7 +15,7 @@ interface Props {
 	setRaceID(race_id: number): void,
 }
 
-export default function RaceListRenderItem(props: Props): React.ReactElement {
+export default function RacesListRenderItem(props: Props): React.ReactElement {
 
 
 	return (
@@ -30,4 +30,4 @@ export default function RaceListRenderItem(props: Props): React.ReactElement {
 	);
 }
 
-export const MemoRaceListItem = memo(RaceListRenderItem);
+export const MemoRacesListItem = memo(RacesListRenderItem);
