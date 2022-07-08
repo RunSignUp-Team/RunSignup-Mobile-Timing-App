@@ -354,7 +354,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				alertShown.current = true;
 				Alert.alert(
 					"Barcode Scanner", 
-					"Use the camera to scan bib number barcodes. They will appear in the list at the top of the screen.\nYou can pause the camera and/or edit a bib number at any time.",
+					"Use the camera to scan bib number barcodes. They will appear in the list at the top of the screen.\nYou can pause the camera to avoid accidental scans by tapping the pause button, and edit any bib number by tapping the bib number in the list.",
 					[{ text: "OK", onPress: (): void => { alertShown.current = false; }}]
 				);
 			} else {
