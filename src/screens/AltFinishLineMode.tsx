@@ -343,7 +343,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 					<View style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-							{Date.now() - startTime.current > MAX_TIME ?  "Too Large" : GetClockTime(displayTime)}
+							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ?  "Too Large" : GetClockTime(displayTime)}
 						</Text>
 					</View>
 					<TouchableOpacity 
