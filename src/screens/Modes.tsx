@@ -323,8 +323,12 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
-	const getSupport = (): void => {
-		GetSupport(context.raceID, context.eventID, context.email);
+	const getSupport = async (): Promise<void> => {
+		try {
+			await GetSupport(context.raceID, context.eventID, context.email, context.online);
+		} catch (error) {
+			Logger("Failed to Open Mail", error, true);
+		}
 	};
 
 	return (
@@ -334,7 +338,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			<MainButton disabled={loading} color={noResults || loading ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
 			<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
 			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-			{context.online ? <MainButton text={"Get Support"} onPress={getSupport} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" /> : null}
+			<MainButton text={"Get Support"} onPress={getSupport} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 		</View>
 	);
 };

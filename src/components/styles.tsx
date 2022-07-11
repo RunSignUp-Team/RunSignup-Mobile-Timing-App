@@ -27,6 +27,8 @@ export const LONG_TABLE_ITEM_HEIGHT = 50;
 
 export const UNIVERSAL_PADDING = 15;
 
+export const MAX_TIME = 86399999;
+
 interface GenericTableText {
 	fontSize: number,
 	textAlign: "left" | "center" | "right",
@@ -134,11 +136,11 @@ export const globalstyles = StyleSheet.create({
 		overflow: "hidden",
 	},
 	shortFlatList: {
-		height: "30%",
-		flexGrow: 0,
 		borderBottomWidth: 1,
 		borderColor: DARK_GRAY_COLOR,
 		overflow: "hidden",
+		maxHeight: TABLE_ITEM_HEIGHT * 2,
+		minHeight: TABLE_ITEM_HEIGHT * 2
 	},
 
 	// Table Items

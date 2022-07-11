@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, WHITE_COLOR } from "../components/styles";
+import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, WHITE_COLOR, MAX_TIME } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -214,7 +214,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		// Race hasn't started yet
 		if (startTime.current === -1) {
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
-		} else if (Date.now() - startTime.current > 86399999) {
+		} else if (Date.now() - startTime.current > MAX_TIME) {
 			Alert.alert("Record Error", "You have recorded a time that is too large.");
 		} else {
 			finishTimesRef.current.push(Date.now() - startTime.current);
@@ -289,7 +289,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 					<View style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-							{GetClockTime(displayTime)}
+							{Date.now() - startTime.current > MAX_TIME ?  "Too Large" : GetClockTime(displayTime)}
 						</Text>
 					</View>
 					<TextInput

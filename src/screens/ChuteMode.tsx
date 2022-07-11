@@ -52,7 +52,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [paused, setPaused] = useState(false);
 	const scannedBibs = useRef<Record<string, number>>({});
 	const camWidth = Dimensions.get("screen").width;
-	const camHeight = Dimensions.get("window").height * 0.7 - TABLE_ITEM_HEIGHT - headerHeight;
+	const camHeight = Dimensions.get("window").height - (TABLE_ITEM_HEIGHT * 3) - headerHeight;
 	const successSound = useRef<Sound>();
 	const errorSound = useRef<Sound>();
 	const alertShown = useRef(false);

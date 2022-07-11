@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useCallback } from "react";
 import { View, FlatList, TouchableOpacity, Text, TextInput, Alert, ActivityIndicator, Platform, BackHandler, AlertButton, Linking } from "react-native";
-import { BLACK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, LONG_TABLE_ITEM_HEIGHT, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, LONG_TABLE_ITEM_HEIGHT, MAX_TIME, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants, ParticipantDetails, postBibs, postFinishTimes } from "../helpers/APICalls";
@@ -499,7 +499,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		const zeroBibIndex = recordsRef.current.findIndex((entry) => (entry[0].toString().substring(0, 1) === "0" && entry[0].toString().length > 1));
 		const blankTimeIndex = recordsRef.current.findIndex((entry) => entry[1] === Number.MAX_SAFE_INTEGER);
 		const badTimeIndex = recordsRef.current.findIndex((entry) => (entry[1] === -1));
-		const bigTimeIndex = recordsRef.current.findIndex((entry) => (entry[1] > 86399999 && entry[1] !== Number.MAX_SAFE_INTEGER));
+		const bigTimeIndex = recordsRef.current.findIndex((entry) => (entry[1] > MAX_TIME && entry[1] !== Number.MAX_SAFE_INTEGER));
 		const zeroTimeIndex = recordsRef.current.findIndex((entry) => entry[1] === 0);
 
 		if (blankBibIndex !== -1) {
@@ -723,7 +723,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	// Adds record to bottom of Flat List
 	const addRecord = useCallback(() => {
 		// Only increase time if we are not at 23:59:59:99
-		if (maxTime.current + 10 <= 86399999) {
+		if (maxTime.current + 10 <= MAX_TIME) {
 			recordsRef.current.push([0, maxTime.current + 10, 0]);
 			maxTime.current = maxTime.current + 10;
 		} else {
@@ -864,7 +864,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			} else if (GetTimeInMils(valArray[1]) === -1 && (recordsRef.current[alertIndex][1] !== Number.MAX_SAFE_INTEGER || valArray[1] !== "")) {
 				// Alert if incorrect finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is incorrectly typed. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH : MM : SS : MS\nHH : MM : SS . MS\nHH : MM : SS\nMM : SS . MS\nMM : SS\nSS . MS");
-			} else if (GetTimeInMils(valArray[1]) > 86399999 && GetTimeInMils(valArray[1]) !== Number.MAX_SAFE_INTEGER) {
+			} else if (GetTimeInMils(valArray[1]) > MAX_TIME && GetTimeInMils(valArray[1]) !== Number.MAX_SAFE_INTEGER) {
 				// Alert if too large finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is too large. Please correct the value.");
 			} else if (GetTimeInMils(valArray[1]) === 0) {
