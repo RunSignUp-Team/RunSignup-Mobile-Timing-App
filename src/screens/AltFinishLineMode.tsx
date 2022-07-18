@@ -290,7 +290,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 				</TouchableOpacity>
 			),
 		});
-	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn]);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs]);
 
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {

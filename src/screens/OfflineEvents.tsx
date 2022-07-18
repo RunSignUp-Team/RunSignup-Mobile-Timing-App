@@ -78,8 +78,31 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	// Delete old Bib Numbers and upload new Bib Numbers
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
 		const formData = new FormData();
+
+		let checkerBibSum = 0;
+		let bibSum = 0;
+
+		if (item.checker_bibs.length > 0) {
+			for (let i = 0; i < item.checker_bibs.length; i++) {
+				const checkerBib = item.checker_bibs[i];
+				if (checkerBib !== Number.MAX_SAFE_INTEGER && checkerBib >= 0 && checkerBibSum < 1) {
+					checkerBibSum += checkerBib;
+				}
+			}
+		}
+
+		if (item.bib_nums.length > 0) {
+			for (let i = 0; i < item.bib_nums.length; i++) {
+				const bib = item.bib_nums[i];
+				if (bib !== Number.MAX_SAFE_INTEGER && bib >= 0 && bibSum < 1) {
+					bibSum += bib;
+				}
+			}
+		}
+
 		// Post checker bibs if they exist
-		if (item.checker_bibs?.length > 0) {
+		// (we check the sum of the Checker Bibs to see if there are any that are more than 0)
+		if (checkerBibSum >= bibSum) {
 			await deleteBibs(context.raceID, context.eventID);
 
 			// Appending checker bib
@@ -131,19 +154,9 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		try {
 			setLoading(true);
 
-			// Finish Line Done
-			const flDone = await AsyncStorage.getItem(`finishLineDone:${context.time}`) === "true";
-			// Chute Done
-			const cDone = await AsyncStorage.getItem(`chuteDone:${context.time}`) === "true";
-
 			// Check status of offline event
-			if (
-				item.checker_bibs?.length < 1 ||
-				item.finish_times?.length < 1 ||
-				(item.bib_nums?.length > 0 && !cDone) ||
-				(item.checker_bibs?.length > 0 && !flDone) ||
-				(item.finish_times?.length > 0 && !flDone)
-			) {
+			// We currently allow users to upload data from an offline event while it is still in progress
+			if (item.checker_bibs?.length < 1 || item.finish_times?.length < 1) {
 				Alert.alert("Invalid Data", `${item.name} does not have saved data. Please make sure to save your data in ${item.name} Finish Line and Chute Modes and try again.`);
 				setLoading(false);
 				return;
@@ -183,7 +196,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		} finally {
 			setLoading(false);
 		}
-	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID, context.time]);
+	}, [assignBibNums, assignFinishTimes, context.eventID, context.raceID]);
 
 	// Save offline events to storage
 	useEffect(() => {

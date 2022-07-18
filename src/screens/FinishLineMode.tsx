@@ -164,7 +164,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	// Start the timer interval when user asks to record times
 	useEffect(() => {
-
 		// Timer hasn't started yet. Exit now
 		if (!timerOn) return;
 
@@ -217,7 +216,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		} else if (Date.now() - startTime.current > MAX_TIME) {
 			Alert.alert("Record Error", "You have recorded a time that is too large.");
 		} else {
-			finishTimesRef.current.push(Date.now() - startTime.current);
+			finishTimesRef.current.push(Date.now() - startTime.current);			
 			if (!bibText) {
 				checkerBibsRef.current.push(0);
 				updateCheckerBibs([...checkerBibsRef.current]);
@@ -247,7 +246,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				</TouchableOpacity>
 			),
 		});
-	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn]);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs]);
 
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {
