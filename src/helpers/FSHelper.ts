@@ -101,7 +101,7 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 		}
 		
 		
-		timingString += `${bib}\t${dateString}\n`;
+		timingString += `${bib},${dateString}\n`;
 	}
 
 	try {
