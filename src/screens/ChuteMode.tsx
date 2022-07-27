@@ -482,8 +482,8 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 				{alertIndex !== undefined &&
 					<TextInputAlert
-						title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
-						message={`Edit the bib number for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+						title={`Edit Bib for Place ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+						message={`Edit the bib number for Place ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
 						placeholder={"Enter Bib #"}
 						type={"text"}
 						initialValue={GetBibDisplay(bibNumsRef.current[alertIndex] !== undefined ? bibNumsRef.current[alertIndex] : -1)}

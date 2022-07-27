@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Dimensions, Keyboard, Modal, Platform, Text, TextInput, TouchableHighlight, TouchableOpacity, View, KeyboardTypeOptions } from "react-native";
+import { Dimensions, Keyboard, Modal, Platform, Text, TextInput, TouchableHighlight, TouchableOpacity, View, KeyboardTypeOptions, ActivityIndicator } from "react-native";
 import { APPLE_BLUE_COLOR, GRAY_COLOR, GREEN_COLOR, LIGHT_GRAY_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE, UNIVERSAL_PADDING, WHITE_COLOR } from "./styles";
 import TimeEntry from "./TimeEntry";
 
@@ -19,11 +19,16 @@ interface Props {
 	cancelOnPress: () => void,
 	/** onPress for Action Button, returns the Array of values (for the case that there are two TextInputs) */
 	actionOnPress: (values: Array<string>) => void,
+	/** onPress for Action 2 Button, returns the Array of values (for the case that there are two TextInputs) */
+	action2OnPress?: (values: Array<string>) => void,
 
 	/** Title of Cancel Button. Defaults to "Cancel". */
 	cancelButtonTitle?: string,
 	/** Title of Action Button. Defaults to "OK". */
 	actionButtonTitle?: string,
+
+	/** Update State */
+	updateState?: any
 }
 
 /** Text Input Alert */
@@ -32,6 +37,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 
 	const [textValue, setTextValue] = useState("");
 	const [timeValue, setTimeValue] = useState("");
+	const [showLoader, setShowLoader] = useState(false);
 
 	const droid = Platform.OS === "android";
 	const androidRadius = 5;
@@ -47,7 +53,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 		} else {
 			setTextValue("");
 		}
-	}, [props.initialValue, props.visible]);
+	}, [props.initialValue, props.visible, props.updateState]);
 
 	// Set text input textValue whenever initial textValue changes
 	useEffect(() => {
@@ -56,7 +62,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 		} else {
 			setTimeValue("");
 		}
-	}, [props.timeInitialValue, props.visible]);
+	}, [props.timeInitialValue, props.visible, props.updateState]);
 
 	// Focus on text input when modal becomes visible
 	useEffect(() => {
@@ -137,7 +143,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 					</TouchableOpacity>
 
 					{(props.type === "text" || props.type === "both") ? <View style={{ flexDirection: "row", justifyContent: droid ? "flex-start" : "center" }}>
-						{/* Text Input One */}
+						{/* Text Input */}
 						<TextInput
 							ref={textRef}
 							value={textValue}
@@ -167,12 +173,18 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 						/>
 					</View> : null}
 
+					{/* Time Entry */}
 					{(props.type === "time" || props.type === "both") ?
 						<View style={{ flexDirection: "row", height: droid ? 50 : 40, width: normalWidth, marginVertical: 5 }}>
-							<TimeEntry initialValue={props.timeInitialValue} setValue={setTimeValue} />
+							<TimeEntry initialValue={props.timeInitialValue} setValue={setTimeValue} updateState={props.updateState} />
 						</View>
 						: null
 					}
+
+					{/* Activity Indicator */}
+					<View style={{height: 25, alignItems: "center", justifyContent: "center"}}>
+						{showLoader ? <ActivityIndicator style={{ height: 25 }} color={droid ? GREEN_COLOR : GRAY_COLOR} /> : null}
+					</View>
 
 					{/* Top Border Line for Buttons */}
 					<View
@@ -198,7 +210,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 						{/* Cancel Button */}
 						<TouchableHighlight
 							underlayColor={underlayColor}
-							style={{ width: (Math.min(minWidth, maxWidth) - 4) / 2, borderBottomLeftRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
+							style={{ width: (Math.min(minWidth, maxWidth) - 4) / (props.action2OnPress ? 3 : 2), borderBottomLeftRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
 								props.cancelOnPress();
 							}}>
 							{/* Cancel Button Text */}
@@ -231,7 +243,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 						{/* Action Button */}
 						<TouchableHighlight
 							underlayColor={underlayColor}
-							style={{ width: (Math.min(minWidth, maxWidth) - 4) / 2, borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
+							style={{ width: (Math.min(minWidth, maxWidth) - 4) / (props.action2OnPress ? 3 : 2), borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
 								props.actionOnPress([textValue, timeValue]);
 							}}>
 							{/* Action Button Text */}
@@ -252,6 +264,51 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 								</Text>
 							</View>
 						</TouchableHighlight>
+						{/* Middle Border Line for Buttons */}
+						{props.action2OnPress ?
+							<View
+								style={{
+									width: 1,
+									backgroundColor: GRAY_COLOR,
+									opacity: 0.7,
+									height: "100%"
+								}}
+							/>
+							: null
+						}
+						{/* Action 2 Button */}
+						{props.action2OnPress ?
+							<TouchableHighlight
+								underlayColor={underlayColor}
+								style={{ width: (Math.min(minWidth, maxWidth) - 4) / 3, borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
+									if (props.action2OnPress) {
+										setShowLoader(true);
+										props.action2OnPress([textValue, timeValue]);
+										setTimeout(() => {
+											setShowLoader(false);
+										}, 750);
+									}
+								}}>
+								{/* Action 2 Button Text */}
+								<View
+									style={{
+										flex: 1,
+										justifyContent: "center"
+									}}>
+									<Text
+										style={{
+											color: droid ? GREEN_COLOR : APPLE_BLUE_COLOR,
+											textAlign: "center",
+											fontFamily: "RobotoBold",
+											fontSize: SMALL_FONT_SIZE
+										}}
+									>
+										{"Next"}
+									</Text>
+								</View>
+							</TouchableHighlight>
+							: null
+						}
 					</View>
 				</TouchableOpacity>
 			</TouchableOpacity>

@@ -5,17 +5,18 @@ import { globalstyles, GREEN_COLOR, LIGHT_GRAY_COLOR } from "./styles";
 
 interface Props {
 	initialValue?: string,
-	setValue: React.Dispatch<React.SetStateAction<string>>;
+	setValue: React.Dispatch<React.SetStateAction<string>>,
+	updateState: any,
 }
 
 type FocusLocation = "Previous" | "Next" | "Tap" | "None";
 
 /** Time Entry Component */
 export default function TimeEntry(props: Props): React.ReactElement {
-	const [hours, setHours] = useState(props.initialValue ? props.initialValue.substring(0, 2) : "00");
-	const [minutes, setMinutes] = useState(props.initialValue ? props.initialValue.substring(3, 5) : "00");
-	const [seconds, setSeconds] = useState(props.initialValue ? props.initialValue.substring(6, 8) : "00");
-	const [milli, setMilli] = useState(props.initialValue ? props.initialValue.substring(9, 11) : "00");
+	const [hours, setHours] = useState("");
+	const [minutes, setMinutes] = useState("");
+	const [seconds, setSeconds] = useState("");
+	const [milli, setMilli] = useState("");
 
 	const [flipFlop, setFlipFlop] = useState(true);
 
@@ -31,6 +32,17 @@ export default function TimeEntry(props: Props): React.ReactElement {
 			return "";
 		}
 	}, [hours, milli, minutes, seconds]);
+
+	useEffect(() => {
+		setHours(props.initialValue ? props.initialValue.substring(0, 2) : "00");
+		setMinutes(props.initialValue ? props.initialValue.substring(3, 5) : "00");
+		setSeconds(props.initialValue ? props.initialValue.substring(6, 8) : "00");
+		setMilli(props.initialValue ? props.initialValue.substring(9, 11) : "00");
+		hoursRef.current?.blur();
+		minutesRef.current?.blur();
+		secondsRef.current?.blur();
+		milliRef.current?.blur();
+	}, [props.initialValue, props.updateState]);
 
 	useEffect(() => {
 		props.setValue(createClockTime());

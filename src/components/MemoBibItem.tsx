@@ -19,7 +19,7 @@ const BibRenderItem = (props: Props): React.ReactElement => {
 					if (props.alreadyEntered) {
 						Alert.alert(
 							"Already Entered",
-							`You have already entered bib ${props.bib} at row ${props.checkerBibsRef.current.indexOf(props.bib) + 1}. Are you sure you want to enter bib ${props.bib} again? This will clear the previous bib entry at row ${props.checkerBibsRef.current.indexOf(props.bib) + 1}.`,
+							`You have already entered bib ${props.bib} at place ${props.checkerBibsRef.current.indexOf(props.bib) + 1}. Are you sure you want to enter bib ${props.bib} again? This will clear the previous bib entry at place ${props.checkerBibsRef.current.indexOf(props.bib) + 1}.`,
 							[
 								{
 									text: "Cancel",

@@ -412,7 +412,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 
 				{alertIndex !== undefined &&
 					<TextInputAlert
-						title={`Edit Bib for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+						title={`Edit Bib for Place ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
 						message={`Edit the bib number for time ${alertIndex !== undefined ? GetClockTime(finishTimesRef.current[alertIndex]) : ""}.`}
 						placeholder={"Enter Bib #"}
 						type={"text"}

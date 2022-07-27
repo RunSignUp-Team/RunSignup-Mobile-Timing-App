@@ -504,31 +504,31 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 		if (blankBibIndex !== -1) {
 			// Alert if blank bib entry
-			Alert.alert("Incorrect Bib Entry", `There is a blank bib number at row ${blankBibIndex + 1}. Please correct the value.`);
+			Alert.alert("Incorrect Bib Entry", `There is a blank bib number at place ${blankBibIndex + 1}. Please correct the value.`);
 			setLoading(false);
 		} else if (badBibIndex !== -1) {
 			// Alert if non number
-			Alert.alert("Incorrect Bib Entry", `There is a non-numeric bib number at row ${badBibIndex + 1}. Please correct the value.`);
+			Alert.alert("Incorrect Bib Entry", `There is a non-numeric bib number at place ${badBibIndex + 1}. Please correct the value.`);
 			setLoading(false);
 		} else if (zeroBibIndex !== -1) {
 			// Alert if starts with 0
-			Alert.alert("Incorrect Bib Entry", `There is a bib number that starts with 0 at row ${zeroBibIndex + 1}. Please fill in the correct value.`);
+			Alert.alert("Incorrect Bib Entry", `There is a bib number that starts with 0 at place ${zeroBibIndex + 1}. Please fill in the correct value.`);
 			setLoading(false);
 		} else if (blankTimeIndex !== -1 && blankTimes) {
 			// Alert if blank finish time
-			Alert.alert("Incorrect Finish Time Entry", `There is a blank finish time at row ${blankTimeIndex + 1}. Please fill in the correct value.`);
+			Alert.alert("Incorrect Finish Time Entry", `There is a blank finish time at place ${blankTimeIndex + 1}. Please fill in the correct value.`);
 			setLoading(false);
 		} else if (badTimeIndex !== -1) {
 			// Alert if incorrect finish time
-			Alert.alert("Incorrect Finish Time Entry", `There is an incorrectly typed finish time at row ${badTimeIndex + 1}. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH : MM : SS : MS\nHH : MM: SS . MS\nHH : MM : SS\nMM : SS . MS\nMM : SS\nSS . MS`);
+			Alert.alert("Incorrect Finish Time Entry", `There is an incorrectly typed finish time at place ${badTimeIndex + 1}. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH : MM : SS : MS\nHH : MM: SS . MS\nHH : MM : SS\nMM : SS . MS\nMM : SS\nSS . MS`);
 			setLoading(false);
 		} else if (bigTimeIndex !== -1) {
 			// Alert if too large finish time
-			Alert.alert("Incorrect Finish Time Entry", `There is a finish time that is too large at row ${bigTimeIndex + 1}. Please correct the value.`);
+			Alert.alert("Incorrect Finish Time Entry", `There is a finish time that is too large at place ${bigTimeIndex + 1}. Please correct the value.`);
 			setLoading(false);
 		} else if (zeroTimeIndex !== -1) {
 			// Alert if zero finish time
-			Alert.alert("Incorrect Finish Time Entry", `There is a finish time that is zero at row ${zeroTimeIndex}. Please correct the value.`);
+			Alert.alert("Incorrect Finish Time Entry", `There is a finish time that is zero at place ${zeroTimeIndex}. Please correct the value.`);
 			setLoading(false);
 		} else {
 			saveResults();
@@ -576,14 +576,13 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					alertMsg,
 					[
 						{ text: "Resolve" },
-						// Batch Conflict Resolution
+						// Batch Conflict Resolution Cloud
 						{
-							text: "Clear Local",
-							style: "destructive",
+							text: "Use Cloud",
 							onPress: (): void => {
 								Alert.alert(
 									"Confirm Clear",
-									"Are you sure you want to clear your local conflicting data? This cannot be undone.",
+									"Are you sure you want to use cloud data and clear your local conflicting data? All your RunSignup data will override your local data. This cannot be undone.",
 									[
 										{ text: "Cancel" },
 										{
@@ -593,6 +592,32 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 												for (let i = 0; i < recordsRef.current.length; i++) {
 													if (ConflictBoolean(recordsRef.current[i][0], recordsRef.current[i][2])) {
 														recordsRef.current[i][2] = recordsRef.current[i][0];
+														conflictResolved(i);
+														updateRecords([...recordsRef.current]);
+													}
+												}
+											}
+										}
+									]
+								);
+							}
+						},
+						// Batch Conflict Resolution Local
+						{
+							text: "Use Local",
+							onPress: (): void => {
+								Alert.alert(
+									"Confirm Clear",
+									"Are you sure you want to use local data and clear your cloud conflicting data? All your local data will override the data at RunSignup. This cannot be undone.",
+									[
+										{ text: "Cancel" },
+										{
+											text: "Clear Cloud",
+											style: "destructive",
+											onPress: (): void => {
+												for (let i = 0; i < recordsRef.current.length; i++) {
+													if (ConflictBoolean(recordsRef.current[i][0], recordsRef.current[i][2])) {
+														recordsRef.current[i][0] = recordsRef.current[i][2];
 														conflictResolved(i);
 														updateRecords([...recordsRef.current]);
 													}
@@ -853,7 +878,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		setAlertVisible(true);
 	};
 
-	const onAlertSave = (valArray: Array<string>): void => {
+	const onAlertSave = (valArray: Array<string>, next: boolean): void => {
 		if (alertIndex !== undefined && alertRecord) {
 			if (!valArray[0]) {
 				// Alert if blank bib entry
@@ -889,11 +914,17 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					}
 				}
 				updateRecords([...recordsRef.current]);
-				setAlertVisible(false);
+				if (next && alertIndex !== undefined && alertIndex < recordsRef.current.length - 1) { 
+					setAlertIndex(alertIndex + 1);
+					setAlertRecord(recordsRef.current[alertIndex + 1]);
+				} else {
+					setAlertVisible(false);
+				}
 			}
 		} else {
 			setAlertVisible(false);
 		}
+		
 	};
 
 	// Renders item on screen
@@ -987,8 +1018,8 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 			{alertIndex !== undefined && alertRecord !== undefined &&
 				<TextInputAlert
-					title={`Edit Row ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
-					message={`Edit the bib number or finish time for Row ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
+					title={`Edit Place ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
+					message={`Edit the bib number or finish time for Place ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
 					placeholder={"Enter Bib #"}
 					type={"both"}
 					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
@@ -996,10 +1027,13 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					keyboardType={"number-pad"}
 					maxLength={6}
 					visible={alertVisible}
-					actionOnPress={onAlertSave}
+					actionOnPress={(values): void => { onAlertSave(values, false); }}
 					cancelOnPress={(): void => {
 						setAlertVisible(false);
-					}} />
+					}} 
+					action2OnPress={(values): void => { onAlertSave(values, true); }}
+					updateState={alertRecord}
+				/>
 			}
 		</View>
 	);
