@@ -15,6 +15,7 @@ import { Race } from "../models/Race";
 import { Event } from "../models/Event";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import ToggleSync from "../helpers/ToggleSync";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -31,6 +32,16 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 	const [refreshing, setRefreshing] = useState(false);
 	const navigationRef = useRef(navigation);
 	const isFocused = useIsFocused();
+	const [syncEnabled, setSyncEnabled] = useState(true);
+
+	useFocusEffect(useCallback(() => {
+		const getSyncFromStorage = async (): Promise<void> => {
+			// Check if Sync Enabled
+			const sEnabled = !(await AsyncStorage.getItem("syncEnabled") === "false");
+			setSyncEnabled(sEnabled);
+		};
+		getSyncFromStorage();
+	}, []));
 
 	useEffect(() => {
 		setSearch("");
@@ -80,12 +91,17 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				<HeaderBackButton onPress={goToHomeScreen} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 			headerRight: () => (
-				<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-					<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-				</TouchableOpacity>
+				<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between" }}>
+					<TouchableOpacity onPress={(): void => { ToggleSync(syncEnabled, setSyncEnabled); }} style={globalstyles.headerButtonText}>
+						<Icon name={syncEnabled ? "blocked" : "loop3"} size={22} color={WHITE_COLOR}></Icon>
+					</TouchableOpacity>
+					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+					</TouchableOpacity>
+				</View>
 			)
 		});
-	}, [goToHomeScreen, handleLogOut, navigation]);
+	}, [goToHomeScreen, handleLogOut, navigation, syncEnabled]);
 
 	// Get Race List data from API
 	const fetchRaces = async (reload: boolean): Promise<void> => {

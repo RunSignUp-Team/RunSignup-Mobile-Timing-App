@@ -14,6 +14,8 @@ import * as Linking from "expo-linking";
 import * as Network from "expo-network";
 import { NetworkErrorBool } from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import ToggleSync from "../helpers/ToggleSync";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -37,6 +39,16 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const [loading, setLoading] = useState(false);
 	const [loggedIn, setLoggedIn] = useState(false);
+	const [syncEnabled, setSyncEnabled] = useState(true);
+
+	useFocusEffect(useCallback(() => {
+		const getSyncFromStorage = async (): Promise<void> => {
+			// Check if Sync Enabled
+			const sEnabled = !(await AsyncStorage.getItem("syncEnabled") === "false");
+			setSyncEnabled(sEnabled);
+		};
+		getSyncFromStorage();
+	}, []));
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(() => {
@@ -58,20 +70,19 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	}, []);
 
 	useEffect(() => {
-		if (loggedIn) {
-			navigation.setOptions({
-				headerRight: () => (
-					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+		navigation.setOptions({
+			headerRight: () => (
+				<View style={{ flexDirection: "row", width: 75, justifyContent: loggedIn ? "space-between" : "flex-end" }}>
+					<TouchableOpacity onPress={(): void => { ToggleSync(syncEnabled, setSyncEnabled); }} style={globalstyles.headerButtonText}>
+						<Icon name={syncEnabled ? "blocked" : "loop3"} size={22} color={WHITE_COLOR}></Icon>
 					</TouchableOpacity>
-				)
-			});
-		} else {
-			navigation.setOptions({
-				headerRight: () => (null)
-			});
-		}
-	}, [handleLogOut, loggedIn, navigation]);
+					{loggedIn ? <TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+					</TouchableOpacity> : null}
+				</View>
+			)
+		});
+	}, [handleLogOut, loggedIn, navigation, syncEnabled]);
 
 	useFocusEffect(
 		useCallback(() => {

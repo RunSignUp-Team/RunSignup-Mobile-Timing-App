@@ -12,8 +12,9 @@ import Logger from "../helpers/Logger";
 import { Event } from "../models/Event";
 import { Race } from "../models/Race";
 import CreateAPIError from "../helpers/CreateAPIError";
-import { useIsFocused } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import Icon from "../components/IcoMoon";
+import ToggleSync from "../helpers/ToggleSync";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -29,6 +30,16 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	const [loading, setLoading] = useState(false);
 	const navigationRef = useRef<ScreenNavigationProp>(navigation);
 	const isFocused = useIsFocused();
+	const [syncEnabled, setSyncEnabled] = useState(true);
+
+	useFocusEffect(useCallback(() => {
+		const getSyncFromStorage = async (): Promise<void> => {
+			// Check if Sync Enabled
+			const sEnabled = !(await AsyncStorage.getItem("syncEnabled") === "false");
+			setSyncEnabled(sEnabled);
+		};
+		getSyncFromStorage();
+	}, []));
 
 	useEffect(() => {
 		setSearch("");
@@ -71,15 +82,20 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
-					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-					</TouchableOpacity>
+					<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between" }}>
+						<TouchableOpacity onPress={(): void => { ToggleSync(syncEnabled, setSyncEnabled); }} style={globalstyles.headerButtonText}>
+							<Icon name={syncEnabled ? "blocked" : "loop3"} size={22} color={WHITE_COLOR}></Icon>
+						</TouchableOpacity>
+						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+						</TouchableOpacity>
+					</View>
 				),
 				headerTitle: raceName ? raceName : "Events"
 			});
 		};
 		setNavigation();
-	}, [context.eventID, context.raceID, handleLogOut, navigation]);
+	}, [context.eventID, context.raceID, handleLogOut, navigation, syncEnabled]);
 
 	// Get Race data from the API
 	const fetchEvents = useCallback(async (): Promise<void> => {

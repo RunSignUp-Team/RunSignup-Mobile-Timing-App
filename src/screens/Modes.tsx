@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Alert, ActivityIndicator, Platform } from "reac
 import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
-import { getBibs, getFinishTimes } from "../helpers/APICalls";
+import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, postBibs, postFinishTimes } from "../helpers/APICalls";
 import { HeaderBackButton } from "@react-navigation/elements";
 import { OfflineEvent } from "./OfflineEvents";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -17,6 +17,7 @@ import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
 import GetSupport from "../helpers/GetSupport";
+import ToggleSync from "../helpers/ToggleSync";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -38,6 +39,21 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [chuteDone, setChuteDone] = useState(false);
 	const [chuteProgress, setChuteProgress] = useState(false);
 	const [resultsUploaded, setResultsUploaded] = useState(false);
+
+	const [syncEnabled, setSyncEnabled] = useState(true);
+
+	useFocusEffect(useCallback(() => {
+		const getSyncFromStorage = async (): Promise<void> => {
+			// Check if Sync Enabled
+			const sEnabled = !(await AsyncStorage.getItem("syncEnabled") === "false");
+			setSyncEnabled(sEnabled);
+
+			if (!sEnabled) {
+				setResultsUploaded(true);
+			}
+		};
+		getSyncFromStorage();
+	}, []));
 
 	const noFinishLine = finishLineDone || chuteDone || chuteProgress;
 	const noChute = chuteDone || finishLineProgress || (!context.online && !finishLineDone);
@@ -74,21 +90,23 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 		if (context.online) {
 			// Get latest RSU data
-			try {
-				const times = await getFinishTimes(context.raceID, context.eventID);
-				const bibs = await getBibs(context.raceID, context.eventID);
-
-				if (times.length < 1) {
-					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "false");
-					flDone = false;
-				} else {
-					flDone = true;
+			if (syncEnabled) {
+				try {
+					const times = await getFinishTimes(context.raceID, context.eventID);
+					const bibs = await getBibs(context.raceID, context.eventID);
+	
+					if (times.length < 1) {
+						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "false");
+						flDone = false;
+					} else {
+						flDone = true;
+					}
+					if (bibs.length < 1) {
+						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "false");
+					}
+				} catch (error) {
+					CreateAPIError("Modes RSU", error, true);
 				}
-				if (bibs.length < 1) {
-					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "false");
-				}
-			} catch (error) {
-				CreateAPIError("Modes RSU", error, true);
 			}
 
 			// Finish Line Done
@@ -127,7 +145,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setChuteDone(cDone);
 
 		setLoading(false);
-	}, [context.eventID, context.online, context.raceID, context.time]);
+	}, [context.eventID, context.online, context.raceID, context.time, syncEnabled]);
 
 	// Get button colors on focus
 	useFocusEffect(useCallback(() => {
@@ -150,23 +168,27 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			}
 
-
 			navigation.setOptions({
 				headerLeft: () => (
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
 					context.online ?
-						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-						</TouchableOpacity> :
-						null
+						<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between" }}>
+							<TouchableOpacity onPress={(): void => { ToggleSync(syncEnabled, setSyncEnabled); }} style={globalstyles.headerButtonText}>
+								<Icon name={syncEnabled ? "blocked" : "loop3"} size={22} color={WHITE_COLOR}></Icon>
+							</TouchableOpacity>
+							<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+								<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+							</TouchableOpacity>
+						</View>
+						: null
 				),
 				headerTitle: eventName ? eventName : "Modes"
 			});
 		};
 		setNavigation();
-	}, [context.eventID, context.online, context.raceID, context.time, handleLogOut, navigation]);
+	}, [context.eventID, context.online, context.raceID, context.time, handleLogOut, navigation, syncEnabled]);
 
 	// Finish Line Mode tapped
 	const finishLineTapped = async (): Promise<void> => {
@@ -177,23 +199,27 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			);
 		} else {
 			// Check if Finish Times have already been recorded for this event
-			try {
-				setLoading(true);
-				const finishTimes = await getFinishTimes(context.raceID, context.eventID);
-				if (finishTimes && finishTimes.length > 0) {
-					Alert.alert(
-						"Already Entered",
-						"RunSignup already has a record of finish times for this event.\nSee Results for more details."
-					);
-					setResultsUploaded(true);
-				} else {
+			if (syncEnabled) {
+				try {
+					setLoading(true);
+					const finishTimes = await getFinishTimes(context.raceID, context.eventID);
+					if (finishTimes && finishTimes.length > 0) {
+						Alert.alert(
+							"Already Entered",
+							"RunSignup already has a record of finish times for this event.\nSee Results for more details."
+						);
+						setResultsUploaded(true);
+					} else {
+						navigation.navigate("FinishLineMode");
+					}
+				} catch (err) {
+					CreateAPIError("Finish Times Check", err, true);
 					navigation.navigate("FinishLineMode");
+				} finally {
+					setLoading(false);
 				}
-			} catch (err) {
-				CreateAPIError("Finish Times Check", err, true);
+			} else {
 				navigation.navigate("FinishLineMode");
-			} finally {
-				setLoading(false);
 			}
 		}
 	};
@@ -235,8 +261,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
-	// Verification Mode tapped
-	const verificationTapped = async (): Promise<void> => {
+	// Results Mode tapped
+	const resultsTapped = async (): Promise<void> => {
 		try {
 			// Check for local edits
 			if (noResults) {
@@ -252,8 +278,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
-	// Verification Mode tapped (offline)
-	const verificationTappedOffline = async (): Promise<void> => {
+	// Results Mode tapped (offline)
+	const resultsTappedOffline = async (): Promise<void> => {
 		try {
 			if (noResults) {
 				Alert.alert(
@@ -323,6 +349,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
+	/** Get Support */
 	const getSupport = async (): Promise<void> => {
 		try {
 			await GetSupport(context.raceID, context.eventID, context.email, context.online);
@@ -331,13 +358,53 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
+	/** Force Sync */
+	const forceSync = async (): Promise<void> => {
+		Alert.alert(
+			"Are You Sure?",
+			"Are you sure you want to force sync this event? This will delete all current results on RunSignup and replace them with the results stored locally on your device.",
+			[
+				{ text: "Cancel" },
+				{
+					text: "Force Sync",
+					style: "destructive",
+					onPress: async (): Promise<void> => {
+						try {
+							await deleteBibs(context.raceID, context.eventID);
+							await deleteFinishTimes(context.raceID, context.eventID);
+							GetLocalRaceEvent(context.raceID, context.eventID).then(async ([raceList, raceIndex, eventIndex]) => {
+								if (raceIndex !== null && eventIndex !== null) {
+									// Online Funtionality
+									// Form Data
+									const formDataBibs = new FormData();
+									formDataBibs.append(
+										"request",
+										JSON.stringify({
+											last_finishing_place: 0,
+											bib_nums: raceList[raceIndex].events[eventIndex].bib_nums
+										})
+									);
+									await postBibs(context.raceID, context.eventID, formDataBibs);
+									await postFinishTimes(context.raceID, context.eventID, raceList[raceIndex].events[eventIndex].finish_times.filter(entry => entry !== Number.MAX_SAFE_INTEGER));
+								}
+							});
+						} catch (error) {
+
+						}
+					}
+				}
+			]
+		);
+	};
+
 	return (
 		<View style={globalstyles.container}>
-			<MainButton disabled={loading} color={noFinishLine || loading ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
-			<MainButton disabled={loading} color={noChute || loading ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
-			<MainButton disabled={loading} color={noResults || loading ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
-			<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
-			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
+			<MainButton disabled={loading} color={noFinishLine || loading ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress && syncEnabled ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
+			<MainButton disabled={loading} color={noChute || loading ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={`${chuteProgress && syncEnabled ? "Continue: " : ""}Chute Mode`} />
+			<MainButton disabled={loading} color={loading ? "Disabled" : "Green"} onPress={context.online === false ? resultsTappedOffline : resultsTapped} text={"Results"} />
+			{syncEnabled ? <MainButton disabled={loading} onPress={forceSync} text={"Force Sync"} color={loading ?  "Disabled" : "Gray"} buttonStyle={{marginTop: 40}} /> : null}
+			<MainButton disabled={loading} onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
+			{loading ? <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} /> : null}
 			<MainButton text={"Get Support"} onPress={getSupport} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 		</View>
 	);

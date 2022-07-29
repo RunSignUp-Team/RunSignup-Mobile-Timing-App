@@ -15,7 +15,8 @@ export const CheckEntries = (
 	finishTimesRef: React.MutableRefObject<Array<number>>,
 	checkerBibsRef: React.MutableRefObject<Array<number>>, 
 	setLoading: (value: React.SetStateAction<boolean>) => void,
-	navigation: ScreenNavigationProp
+	navigation: ScreenNavigationProp,
+	syncEnabled: boolean
 ): void => {
 	// If no results posted
 	if (checkerBibsRef.current.length < 1) {
@@ -31,7 +32,7 @@ export const CheckEntries = (
 		// Filter bib numbers that start with 0
 		Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
 	} else {
-		if (online) {
+		if (online && syncEnabled) {
 			Alert.alert(
 				"Save Results",
 				"Are you sure you want to save to the cloud and quit?",
@@ -49,7 +50,8 @@ export const CheckEntries = (
 								finishTimesRef, 
 								checkerBibsRef, 
 								setLoading,
-								navigation
+								navigation,
+								syncEnabled
 							);
 						},
 						style: "destructive",
@@ -78,7 +80,8 @@ export const CheckEntries = (
 									checkerBibsRef.current,
 									true,
 									setLoading,
-									navigation
+									navigation,
+									syncEnabled
 								);
 							}
 						},

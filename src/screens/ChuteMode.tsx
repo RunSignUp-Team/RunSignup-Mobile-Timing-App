@@ -110,38 +110,41 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					raceList[raceIndex].events[eventIndex].bib_nums = bibNumsParam;
 					await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 
+					const syncEnabled = await AsyncStorage.getItem("syncEnabled") !== "false";
+
 					if (final) {
 						try {
-							const bibs = await getBibs(context.raceID, context.eventID);
+							if (syncEnabled) {
+								const bibs = await getBibs(context.raceID, context.eventID);
 
-							if (bibs !== null && bibs.length > 0) {
-								// If there are already bibs saved from Finish Line Mode, navigate to Verification Mode
-								setLoading(false);
-								navigation.navigate("ModeScreen");
-								navigation.navigate("VerificationMode");
+								if (bibs !== null && bibs.length > 0) {
+									// If there are already bibs saved from Finish Line Mode, navigate to Verification Mode
+									navigation.navigate("ModeScreen");
+									navigation.navigate("VerificationMode");
+								} else {
+									// Otherwise push bibs
+									const formData = new FormData();
+									formData.append(
+										"request",
+										JSON.stringify({
+											last_finishing_place: 0,
+											bib_nums: bibNumsParam
+										})
+									);
+	
+									await postBibs(context.raceID, context.eventID, formData);
+	
+									// Clear local data upon successful upload
+									GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+										if (raceIndex !== null && eventIndex !== null) {
+											raceList[raceIndex].events[eventIndex].bib_nums = [];
+											AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+										}
+									});
+	
+									navigation.navigate("ModeScreen");
+								}
 							} else {
-								// Otherwise push bibs
-								const formData = new FormData();
-								formData.append(
-									"request",
-									JSON.stringify({
-										last_finishing_place: 0,
-										bib_nums: bibNumsParam
-									})
-								);
-
-								await postBibs(context.raceID, context.eventID, formData);
-
-								// Clear local data upon successful upload
-								GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-									if (raceIndex !== null && eventIndex !== null) {
-										raceList[raceIndex].events[eventIndex].bib_nums = [];
-										AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-									}
-								});
-
-								// Don't allow further changes
-								setLoading(false);
 								navigation.navigate("ModeScreen");
 							}
 
@@ -150,6 +153,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 						} catch (error) {
 							CreateAPIError("Chute", error);
+						} finally {
 							setLoading(false);
 						}
 					}

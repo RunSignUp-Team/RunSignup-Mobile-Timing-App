@@ -54,6 +54,16 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const [loading, setLoading] = useState(true);
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
+	const [syncEnabled, setSyncEnabled] = useState(true);
+
+	useFocusEffect(useCallback(() => {
+		const getSyncFromStorage = async (): Promise<void> => {
+			// Check if Sync Enabled
+			const sEnabled = !(await AsyncStorage.getItem("syncEnabled") === "false");
+			setSyncEnabled(sEnabled);
+		};
+		getSyncFromStorage();
+	}, []));
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
@@ -77,15 +87,15 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const updateFinishTimes = useCallback((newFinishTimes: Array<number>) => {
 		finishTimesRef.current = newFinishTimes;
 		setFinishTimes(finishTimesRef.current);
-		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation, syncEnabled);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation, syncEnabled]);
 
 	/** Updates Checker Bibs without re-rendering entire list */
 	const updateCheckerBibs = useCallback((newBibs: Array<number>) => {
 		checkerBibsRef.current = newBibs;
 		setCheckerBibs(checkerBibsRef.current);
-		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation, syncEnabled);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation, syncEnabled]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -240,13 +250,13 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		nav?.setOptions({
 			headerRight: () => (
 				timerOn && <TouchableOpacity onPress={(): void => {
-					CheckEntries(context.raceID, context.eventID, context.online, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
+					CheckEntries(context.raceID, context.eventID, context.online, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation, syncEnabled);
 				}}>
 					<Text style={globalstyles.headerButtonText}>Save</Text>
 				</TouchableOpacity>
 			),
 		});
-	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs]);
+	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs, syncEnabled]);
 
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {

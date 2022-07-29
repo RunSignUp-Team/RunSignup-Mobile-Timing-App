@@ -132,10 +132,18 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		}
 
 		try {
-			// Get bibs from API
-			const bibs = await getBibs(context.raceID, context.eventID);
-			// Get finish times from API
-			const finishTimes = await getFinishTimes(context.raceID, context.eventID);
+			const syncEnabled = await AsyncStorage.getItem("syncEnabled") !== "false";
+
+			let bibs: Array<{bib_num: string}> = [];
+			let finishTimes: Array<{time: string}> = [];
+
+			if (syncEnabled) {
+				// Get bibs from API
+				bibs = await getBibs(context.raceID, context.eventID);
+				// Get finish times from API
+				finishTimes = await getFinishTimes(context.raceID, context.eventID);
+			}
+
 			// Get participants from API
 			const participantList = await getParticipants(context.raceID, context.eventID);
 
@@ -210,16 +218,34 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			}
 
 			// Finish Times
-			for (let i = 0; i < finishTimes.length; i++) {
-				if (i > recordsRef.current.length - 1) {
-					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+			if (syncEnabled) {
+				for (let i = 0; i < finishTimes.length; i++) {
+					if (i > recordsRef.current.length - 1) {
+						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+					}
+					const time = GetTimeInMils(finishTimes[i].time);
+					recordsRef.current[i][1] = time;
+	
+					// Get Max Time for Adding New Records
+					if (time > maxTime.current) {
+						maxTime.current = time;
+					}
 				}
-				const time = GetTimeInMils(finishTimes[i].time);
-				recordsRef.current[i][1] = time;
+			} else {
+				if (raceIndex !== null && eventIndex !== null) {
+					const localTimes = raceList[raceIndex].events[eventIndex].finish_times;
+					for (let i = 0; i < localTimes.length; i++) {
+						if (i > recordsRef.current.length - 1) {
+							recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+						}
+						const time = localTimes[i];
+						recordsRef.current[i][1] = time;
 
-				// Get Max Time for Adding New Records
-				if (time > maxTime.current) {
-					maxTime.current = time;
+						// Get Max Time for Adding New Records
+						if (time > maxTime.current) {
+							maxTime.current = time;
+						}
+					}
 				}
 			}
 
@@ -337,61 +363,100 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 	const clearAndPush = useCallback(async () => {
 		if (context.online) {
-			try {
-				// Clear old bib data
-				await deleteBibs(context.raceID, context.eventID);
-				// Post new bib data if the user hasn't deleted all records
-				const bibNums = recordsRef.current.map(entry => entry[0]);
-				if (bibNums.length > 0) {
-					// Online Funtionality
-					// Form Data
-					const formDataBibs = new FormData();
-					formDataBibs.append(
-						"request",
-						JSON.stringify({
-							last_finishing_place: 0,
-							bib_nums: bibNums
-						})
-					);
-
-					await postBibs(context.raceID, context.eventID, formDataBibs);
-					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-				}
-
-				// Clear old finish time data
-				await deleteFinishTimes(context.raceID, context.eventID);
-				// Post new finish time data if the user hasn't deleted all records
-				const finishTimes = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
-				if (finishTimes.length > 0) {
-					await postFinishTimes(context.raceID, context.eventID, finishTimes);
-					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-				}
-
-				// Clear local data upon successful upload
-				GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-					if (raceIndex !== null && eventIndex !== null) {
-						raceList[raceIndex].events[eventIndex].checker_bibs = [];
-						raceList[raceIndex].events[eventIndex].bib_nums = [];
-						raceList[raceIndex].events[eventIndex].finish_times = [];
-						raceList[raceIndex].events[eventIndex].real_start_time = -1;
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+			const syncEnabled = await AsyncStorage.getItem("syncEnabled") !== "false";
+			if (syncEnabled) {
+				try {
+					// Clear old bib data
+					await deleteBibs(context.raceID, context.eventID);
+					// Post new bib data if the user hasn't deleted all records
+					const bibNums = recordsRef.current.map(entry => entry[0]);
+					if (bibNums.length > 0) {
+						// Online Funtionality
+						// Form Data
+						const formDataBibs = new FormData();
+						formDataBibs.append(
+							"request",
+							JSON.stringify({
+								last_finishing_place: 0,
+								bib_nums: bibNums
+							})
+						);
+	
+						await postBibs(context.raceID, context.eventID, formDataBibs);
+						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
 					}
-				});
-
-
-				setEditMode(false);
-				setLoading(false);
-
-				if (recordsRef.current.length > 0) {
-					Alert.alert("Success", "Results successfully uploaded to Runsignup!");
-				} else {
-					Alert.alert("Success", "Results successfully deleted from Runsignup!");
-					navigation.goBack();
+	
+					// Clear old finish time data
+					await deleteFinishTimes(context.raceID, context.eventID);
+					// Post new finish time data if the user hasn't deleted all records
+					const finishTimes = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+					if (finishTimes.length > 0) {
+						await postFinishTimes(context.raceID, context.eventID, finishTimes);
+						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+					}
+	
+					// Clear local data upon successful upload
+					GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+						if (raceIndex !== null && eventIndex !== null) {
+							raceList[raceIndex].events[eventIndex].checker_bibs = [];
+							raceList[raceIndex].events[eventIndex].bib_nums = [];
+							raceList[raceIndex].events[eventIndex].finish_times = [];
+							raceList[raceIndex].events[eventIndex].real_start_time = -1;
+							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+						}
+					});
+	
+	
+					setEditMode(false);
+					setLoading(false);
+	
+					if (recordsRef.current.length > 0) {
+						Alert.alert("Success", "Results successfully uploaded to Runsignup!");
+					} else {
+						Alert.alert("Success", "Results successfully deleted from Runsignup!");
+						navigation.goBack();
+					}
+				} catch (error) {
+					CreateAPIError("confirm all bibs & finish times are formatted correctly", error);
+	
+					if (!isUnmountedRef.current) {
+						setLoading(false);
+					}
 				}
-			} catch (error) {
-				CreateAPIError("confirm all bibs & finish times are formatted correctly", error);
-
-				if (!isUnmountedRef.current) {
+			} else {
+				try {
+					// Offline Functionality
+					if (recordsRef.current.length > 0) {
+						GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+							if (raceList.length > 0 && raceIndex >= 0 && eventIndex >= 0) {
+								raceList[raceIndex].events[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
+								raceList[raceIndex].events[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+								raceList[raceIndex].events[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
+							}
+							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
+							Alert.alert("Success", "Results successfully saved to your local device!");
+						});
+					} else {
+						GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+							if (raceList.length > 0 && raceIndex >= 0 && eventIndex >= 0) {
+								raceList[raceIndex].events[eventIndex].bib_nums = [];
+								raceList[raceIndex].events[eventIndex].finish_times = [];
+								raceList[raceIndex].events[eventIndex].checker_bibs = [];
+								raceList[raceIndex].events[eventIndex].real_start_time = -1;
+							}
+							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "false");
+							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "false");
+							Alert.alert("Success", "Results successfully deleted from your local device!");
+						});
+					}
+	
+					setEditMode(false);
+				} catch (error) {
+					Logger("Unknown Error (Offline: confirm all bibs & finish times are formatted correctly)", error, true);
+				} finally {
 					setLoading(false);
 				}
 			}
@@ -428,7 +493,6 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			} finally {
 				setLoading(false);
 			}
-
 		}
 		setRStartLength(recordsRef.current.length);
 	}, [context.eventID, context.online, context.raceID, context.time, navigation]);

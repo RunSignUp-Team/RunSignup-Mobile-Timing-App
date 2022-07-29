@@ -19,7 +19,8 @@ export const AddToStorage = async (
 	checkerBibsParam: Array<number>,
 	final: boolean, 
 	setLoading: (value: React.SetStateAction<boolean>) => void,
-	navigation: ScreenNavigationProp
+	navigation: ScreenNavigationProp,
+	syncEnabled: boolean
 ): Promise<void> => {
 	if (online) {
 		// Set start time locally
@@ -35,39 +36,41 @@ export const AddToStorage = async (
 
 		if (final) {
 			try {
-				const bibs = await getBibs(raceID, eventID);
+				if (syncEnabled) {
+					const bibs = await getBibs(raceID, eventID);
 
-				if (bibs && bibs.length > 0) {
-					// If there are already bibs saved from Chute Mode, navigate to Verification Mode
-					AsyncStorage.setItem(`chuteDone:${raceID}:${eventID}`, "true");
-					setLoading(false);
-					navigation.navigate("ModeScreen");
-					navigation.navigate("VerificationMode");
+					if (bibs && bibs.length > 0) {
+						// If there are already bibs saved from Chute Mode, navigate to Verification Mode
+						AsyncStorage.setItem(`chuteDone:${raceID}:${eventID}`, "true");
+						navigation.navigate("ModeScreen");
+						navigation.navigate("VerificationMode");
+					} else {
+						// Otherwise push bibs
+						// Formatting and appending bib numbers
+						const formData = new FormData();
+						formData.append(
+							"request",
+							JSON.stringify({
+								last_finishing_place: 0,
+								bib_nums: checkerBibsParam
+							})
+						);
+	
+						await postBibs(raceID, eventID, formData);
+	
+						// Clear local data upon successful upload
+						GetLocalRaceEvent(raceID, eventID).then(([raceList, raceIndex, eventIndex]) => {
+							if (raceIndex !== null && eventIndex !== null) {
+								raceList[raceIndex].events[eventIndex].checker_bibs = [];
+								raceList[raceIndex].events[eventIndex].finish_times = [];
+								raceList[raceIndex].events[eventIndex].real_start_time = -1;
+								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+							}
+						});
+	
+						navigation.navigate("ModeScreen");
+					}
 				} else {
-					// Otherwise push bibs
-					// Formatting and appending bib numbers
-					const formData = new FormData();
-					formData.append(
-						"request",
-						JSON.stringify({
-							last_finishing_place: 0,
-							bib_nums: checkerBibsParam
-						})
-					);
-
-					await postBibs(raceID, eventID, formData);
-
-					// Clear local data upon successful upload
-					GetLocalRaceEvent(raceID, eventID).then(([raceList, raceIndex, eventIndex]) => {
-						if (raceIndex !== null && eventIndex !== null) {
-							raceList[raceIndex].events[eventIndex].checker_bibs = [];
-							raceList[raceIndex].events[eventIndex].finish_times = [];
-							raceList[raceIndex].events[eventIndex].real_start_time = -1;
-							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-						}
-					});
-
-					setLoading(false);
 					navigation.navigate("ModeScreen");
 				}
 
@@ -76,9 +79,9 @@ export const AddToStorage = async (
 				// And then want to add the bibs at the end of the race in Chute Mode,
 				// So we leave that option open to them
 				AsyncStorage.setItem(`finishLineDone:${raceID}:${eventID}`, "true");
-
 			} catch (error) {
 				CreateAPIError("Post Bibs", error);
+			} finally {
 				setLoading(false);
 			}
 		}
