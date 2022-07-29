@@ -236,7 +236,7 @@ export async function deleteTokenInfo(noAlert?: boolean): Promise<void> {
 	if (!(await canUseSecureStore())) return;
 	SecureStore.deleteItemAsync(TOKEN_INFO_KEY);
 	if (noAlert) return;
-	Alert.alert("Logged Out", "You have successfully logged out of the RaceDay Mobile Timing app. Note: Your RunSignup credentials may still be saved in your browser.");
+	Alert.alert("Logged Out", "You have successfully logged out of the RaceDay Mobile Timing app. Note: Your RunSignup credentials may still be saved in your browser. You can manage your RunSignup profile at www.runsignup.com/profile.");
 }
 
 /** 
