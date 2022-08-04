@@ -12,5 +12,18 @@
   },
   "cli": {
     "version": ">= 0.47.0"
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./api-6684906004737153543-829376-2edbb4ed3e01.json",
+        "track": "internal"
+      },
+      "ios": {
+        "appleId": "james@runsignup.com",
+        "ascAppId": "1627516370",
+        "appleTeamId": "6F9VY62Y7J"
+      }
+    }
   }
 }
