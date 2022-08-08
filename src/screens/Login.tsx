@@ -14,7 +14,6 @@ import * as Linking from "expo-linking";
 import * as Network from "expo-network";
 import { NetworkErrorBool } from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -39,16 +38,6 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const [loading, setLoading] = useState(false);
 	const [loggedIn, setLoggedIn] = useState(false);
-	const [syncEnabled, setSyncEnabled] = useState(true);
-
-	useFocusEffect(useCallback(() => {
-		const getSyncFromStorage = async (): Promise<void> => {
-			// Check if Sync Enabled
-			const sEnabled = !(await AsyncStorage.getItem("syncEnabled") === "false");
-			setSyncEnabled(sEnabled);
-		};
-		getSyncFromStorage();
-	}, []));
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(() => {
@@ -79,7 +68,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				</View>
 			)
 		});
-	}, [handleLogOut, loggedIn, navigation, syncEnabled]);
+	}, [handleLogOut, loggedIn, navigation]);
 
 	useFocusEffect(
 		useCallback(() => {

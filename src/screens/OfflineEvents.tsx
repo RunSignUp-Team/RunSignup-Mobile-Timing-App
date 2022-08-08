@@ -11,7 +11,6 @@ import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
-import addLeadingZeros from "../helpers/AddLeadingZeros";
 import { ItemLayout } from "../models/ItemLayout";
 import TextInputAlert from "../components/TextInputAlert";
 import MainButton from "../components/MainButton";
@@ -133,18 +132,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Delete old Finish Times and upload new Finish Times
 	const assignFinishTimes = useCallback(async (item: OfflineEvent) => {
-		const formatStartTime = new Date(item.real_start_time);
-		const formDataStartTime = new FormData();
-
-		// Append request to API
-		formDataStartTime.append(
-			"request",
-			JSON.stringify({
-				start_time: `${formatStartTime.getFullYear()}-${addLeadingZeros(formatStartTime.getMonth() + 1)}-${addLeadingZeros(formatStartTime.getDate())} ${addLeadingZeros(formatStartTime.getHours())}:${addLeadingZeros(formatStartTime.getMinutes())}:${addLeadingZeros(formatStartTime.getSeconds())}`
-			})
-		);
-
-		await postStartTime(context.raceID, context.eventID, formDataStartTime);
+		await postStartTime(context.raceID, context.eventID, item.real_start_time);
 		await deleteFinishTimes(context.raceID, context.eventID);
 		await postFinishTimes(context.raceID, context.eventID, item.finish_times);
 	}, [context.eventID, context.raceID]);

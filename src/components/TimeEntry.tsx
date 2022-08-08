@@ -1,22 +1,28 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { KeyboardTypeOptions, Platform, Text, TextInput, View } from "react-native";
+import { KeyboardTypeOptions, Platform, Text, TextInput, TouchableOpacity, View } from "react-native";
 import addLeadingZeros from "../helpers/AddLeadingZeros";
+import GetTimeInMils from "../helpers/GetTimeInMils";
 import { globalstyles, GREEN_COLOR, LIGHT_GRAY_COLOR } from "./styles";
 
 interface Props {
-	initialValue?: string,
-	setValue: React.Dispatch<React.SetStateAction<string>>,
-	updateState: any,
+	/** Date */
+	initialValue?: number,
+	setValue: (value: number) => void,
+	/** True if the value is a time of day, not an absolute time */
+	timeOfDay?: boolean
 }
 
 type FocusLocation = "Previous" | "Next" | "Tap" | "None";
+type AMPM = "AM" | "PM" | "";
 
 /** Time Entry Component */
-export default function TimeEntry(props: Props): React.ReactElement {
+export default function TimeOfDayEntry(props: Props): React.ReactElement {
+	const [extraDateInfo, setExtraDateInfo] = useState("");
 	const [hours, setHours] = useState("");
 	const [minutes, setMinutes] = useState("");
 	const [seconds, setSeconds] = useState("");
 	const [milli, setMilli] = useState("");
+	const [ampm, setAmpm] = useState<AMPM>("");
 
 	const [flipFlop, setFlipFlop] = useState(true);
 
@@ -25,28 +31,70 @@ export default function TimeEntry(props: Props): React.ReactElement {
 	const secondsRef = useRef<TextInput>(null);
 	const milliRef = useRef<TextInput>(null);
 
-	const createClockTime = useCallback((): string => {
-		if (hours || minutes || seconds || milli) {
-			return addLeadingZeros(Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
+	const getHours = (hours: string, ampm: AMPM): number => {
+		const hourNum = Number(hours);
+		if (ampm === "PM") {
+			if (hourNum % 12 !== 0) {
+				return hourNum + 12;
+			} else {
+				return hourNum;
+			}
 		} else {
-			return "";
+			if (hourNum % 12 === 0) {
+				return 0;
+			} else {
+				return hourNum;
+			}
 		}
-	}, [hours, milli, minutes, seconds]);
+	};
+
+	const createClockTime = useCallback((): number => {
+		if (Number(hours) <= 12) { 
+			let clockTime = "";
+			if (hours || minutes || seconds || milli) {
+				clockTime = addLeadingZeros(props.timeOfDay ? getHours(hours, ampm) : Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
+			} else {
+				clockTime = "";
+			}
+
+			if (props.timeOfDay) {
+				return parseInt(extraDateInfo) + GetTimeInMils(clockTime);
+			} else {
+				return GetTimeInMils(clockTime);
+			}
+		} else {
+			return -1;
+		}
+	}, [ampm, extraDateInfo, hours, milli, minutes, props.timeOfDay, seconds]);
 
 	useEffect(() => {
-		setHours(props.initialValue ? props.initialValue.substring(0, 2) : "00");
-		setMinutes(props.initialValue ? props.initialValue.substring(3, 5) : "00");
-		setSeconds(props.initialValue ? props.initialValue.substring(6, 8) : "00");
-		setMilli(props.initialValue ? props.initialValue.substring(9, 11) : "00");
-		hoursRef.current?.blur();
-		minutesRef.current?.blur();
-		secondsRef.current?.blur();
-		milliRef.current?.blur();
-	}, [props.initialValue, props.updateState]);
+		if (props.initialValue) {
+			const date = new Date(props.initialValue);
+			if (props.timeOfDay) {
+				setExtraDateInfo(new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime().toString());
+				setAmpm(date.getHours() >= 12 ? "PM" : "AM");
+			}
 
+			// We want to respect timezone if we are dealing with time of day
+			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12) : addLeadingZeros(date.getUTCHours()));
+			setMinutes(props.timeOfDay ? addLeadingZeros(date.getMinutes()) : addLeadingZeros(date.getUTCMinutes()));
+			setSeconds(props.timeOfDay ? addLeadingZeros(date.getSeconds()) : addLeadingZeros(date.getUTCSeconds()));
+			setMilli(props.timeOfDay ? addLeadingZeros(date.getMilliseconds()) : addLeadingZeros(date.getUTCMilliseconds()));
+
+			hoursRef.current?.blur();
+			minutesRef.current?.blur();
+			secondsRef.current?.blur();
+			milliRef.current?.blur();
+		}
+	}, [props.initialValue, props.timeOfDay]);
+
+	/** We do this so that we are not depending on props, but rather props.setValue */
 	useEffect(() => {
-		props.setValue(createClockTime());
-	}, [props, createClockTime]);
+		const setValue = props.setValue;
+		if (typeof setValue === "function") {
+			setValue(createClockTime());
+		}
+	}, [ampm, createClockTime, props.setValue]);
 
 	const reset = useRef(true);
 	// Keep track of where focus came from
@@ -56,7 +104,6 @@ export default function TimeEntry(props: Props): React.ReactElement {
 
 	return (
 		<View style={globalstyles.timeInput}>
-
 			{/* Hours */}
 			<View style={[globalstyles.timeInputButton, { borderBottomColor: hoursRef.current?.isFocused() ? GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 				<TextInput
@@ -95,10 +142,10 @@ export default function TimeEntry(props: Props): React.ReactElement {
 						}
 					}}
 				/>
-				<Text 
-					style={globalstyles.timeInputText} 
+				<Text
+					style={globalstyles.timeInputText}
 					onPress={(): void => {
-						hoursRef.current?.focus(); 
+						hoursRef.current?.focus();
 					}}
 				>
 					{hours}
@@ -147,10 +194,10 @@ export default function TimeEntry(props: Props): React.ReactElement {
 						}
 					}}
 				/>
-				<Text 
-					style={globalstyles.timeInputText} 
+				<Text
+					style={globalstyles.timeInputText}
 					onPress={(): void => {
-						minutesRef.current?.focus(); 
+						minutesRef.current?.focus();
 						reset.current = true;
 					}}
 				>
@@ -200,10 +247,10 @@ export default function TimeEntry(props: Props): React.ReactElement {
 						}
 					}}
 				/>
-				<Text 
-					style={globalstyles.timeInputText} 
+				<Text
+					style={globalstyles.timeInputText}
 					onPress={(): void => {
-						secondsRef.current?.focus(); 
+						secondsRef.current?.focus();
 					}}
 				>
 					{seconds}
@@ -250,15 +297,32 @@ export default function TimeEntry(props: Props): React.ReactElement {
 						}
 					}}
 				/>
-				<Text 
-					style={globalstyles.timeInputText} 
+				<Text
+					style={globalstyles.timeInputText}
 					onPress={(): void => {
-						milliRef.current?.focus(); 
+						milliRef.current?.focus();
 					}}
 				>
 					{milli}
 				</Text>
 			</View>
+			{props.timeOfDay && ampm ?
+				<TouchableOpacity
+					onPress={(): void => {
+						if (ampm === "AM") {
+							setAmpm("PM");
+						} else {
+							setAmpm("AM");
+						}
+					}}
+					style={[globalstyles.timeInputButton, { borderBottomWidth: 0 }]}>
+					<Text
+						style={[globalstyles.timeInputText, { paddingTop: 0, color: GREEN_COLOR, fontFamily: "RobotoBold" }]}>
+						{ampm}
+					</Text>
+				</TouchableOpacity>
+				: null
+			}
 		</View>
 	);
 }

@@ -1,7 +1,6 @@
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Alert } from "react-native";
 import { TabParamList } from "../components/AppStack";
-import addLeadingZeros from "./AddLeadingZeros";
 import { postStartTime, postFinishTimes } from "./APICalls";
 import CreateAPIError from "./CreateAPIError";
 import { AddToStorage } from "./FLAddToStorage";
@@ -11,33 +10,21 @@ type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
 // Post Times to API
 export const SaveResults = async (
-	raceID: number, 
-	eventID: number, 
+	raceID: number,
+	eventID: number,
 	online: boolean,
 	time: number,
 	finishTimesRef: React.MutableRefObject<Array<number>>,
-	checkerBibsRef: React.MutableRefObject<Array<number>>, 
+	checkerBibsRef: React.MutableRefObject<Array<number>>,
 	setLoading: (value: React.SetStateAction<boolean>) => void,
 	navigation: ScreenNavigationProp
 ): Promise<void> => {
-	const formDataStartTime = new FormData();
-
 	const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
 	if (raceIndex === -1 || eventIndex === -1) return;
 
-	const formatStartTime = new Date(raceList[raceIndex].events[eventIndex].real_start_time);
-
-	// Append request to API
-	formDataStartTime.append(
-		"request",
-		JSON.stringify({
-			start_time: `${formatStartTime.getFullYear()}-${addLeadingZeros(formatStartTime.getMonth() + 1)}-${addLeadingZeros(formatStartTime.getDate())} ${addLeadingZeros(formatStartTime.getHours())}:${addLeadingZeros(formatStartTime.getMinutes())}:${addLeadingZeros(formatStartTime.getSeconds())}`
-		})
-	);
-
 	// Post start time
 	try {
-		await postStartTime(raceID, eventID, formDataStartTime);
+		await postStartTime(raceID, eventID, raceList[raceIndex].events[eventIndex].real_start_time);
 
 		// Post Finish Times data
 		if (finishTimesRef.current.length < 1) {

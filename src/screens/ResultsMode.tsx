@@ -17,7 +17,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
-import GetClockTime from "../helpers/GetClockTime";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -880,19 +879,22 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 	const onAlertSave = (valArray: Array<string>, next: boolean): void => {
 		if (alertIndex !== undefined && alertRecord) {
-			if (!valArray[0]) {
+			const bib = valArray[0];
+			const time = parseInt(valArray[1]);
+
+			if (!bib) {
 				// Alert if blank bib entry
 				Alert.alert("Incorrect Bib Entry", "The bib number you have entered is blank. Please correct the value.");
-			} else if (!(/^(\d)+$/gm.test(valArray[0]))) {
+			} else if (!(/^(\d)+$/gm.test(bib))) {
 				// Alert if non number
 				Alert.alert("Incorrect Bib Entry", "The bib number you have entered is not a number. Please correct the value.");
-			} else if (GetTimeInMils(valArray[1]) === -1 && (recordsRef.current[alertIndex][1] !== Number.MAX_SAFE_INTEGER || valArray[1] !== "")) {
+			} else if (time === -1 && (recordsRef.current[alertIndex][1] !== Number.MAX_SAFE_INTEGER)) {
 				// Alert if incorrect finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is incorrectly typed. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH : MM : SS : MS\nHH : MM : SS . MS\nHH : MM : SS\nMM : SS . MS\nMM : SS\nSS . MS");
-			} else if (GetTimeInMils(valArray[1]) > MAX_TIME && GetTimeInMils(valArray[1]) !== Number.MAX_SAFE_INTEGER) {
+			} else if (time > MAX_TIME && time !== Number.MAX_SAFE_INTEGER) {
 				// Alert if too large finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is too large. Please correct the value.");
-			} else if (GetTimeInMils(valArray[1]) === 0) {
+			} else if (time === 0) {
 				// Alert if zero finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is zero. Please correct the value.");
 			} else {
@@ -902,17 +904,17 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				}
 
 				// Valid Bib
-				recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
-				recordsRef.current[alertIndex][2] = parseInt(valArray[0]);
-				// Valid Time
-				if (valArray[1] !== "") {
-					recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
+				recordsRef.current[alertIndex][0] = parseInt(bib);
+				recordsRef.current[alertIndex][2] = parseInt(bib);
 
-					// Update Max Time
-					if (GetTimeInMils(valArray[1]) > maxTime.current) {
-						maxTime.current = GetTimeInMils(valArray[1]);
-					}
+				// Valid Time
+				recordsRef.current[alertIndex][1] = time;
+
+				// Update Max Time
+				if (time > maxTime.current) {
+					maxTime.current = time;
 				}
+
 				updateRecords([...recordsRef.current]);
 				if (next && alertIndex !== undefined && alertIndex < recordsRef.current.length - 1) { 
 					setAlertIndex(alertIndex + 1);
@@ -1021,9 +1023,9 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					title={`Edit Place ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
 					message={`Edit the bib number or finish time for Place ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
 					placeholder={"Enter Bib #"}
-					type={"both"}
+					type={"text&time"}
 					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
-					timeInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
+					timeInitialValue={(alertRecord ? alertRecord[1] : -1)}
 					keyboardType={"number-pad"}
 					maxLength={6}
 					visible={alertVisible}
@@ -1032,7 +1034,6 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						setAlertVisible(false);
 					}} 
 					action2OnPress={(values): void => { onAlertSave(values, true); }}
-					updateState={alertRecord}
 				/>
 			}
 		</View>

@@ -18,6 +18,8 @@ import GetBibDisplay from "../helpers/GetBibDisplay";
 import Icon from "../components/IcoMoon";
 import { AddToStorage } from "../helpers/FLAddToStorage";
 import { CheckEntries } from "../helpers/FLCheckEntries";
+import { postStartTime } from "../helpers/APICalls";
+import Logger from "../helpers/Logger";
 
 type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
@@ -46,9 +48,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const checkerBibsRef = useRef(checkerBibs);
 
-	// Alert
+	// Alerts
 	const [alertVisible, setAlertVisible] = useState(false);
 	const [alertIndex, setAlertIndex] = useState<number>();
+	const [startTimeAlertVisible, setStartTimeAlertVisible] = useState(false);
 
 	// Other
 	const [loading, setLoading] = useState(true);
@@ -87,6 +90,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
 	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
 
+	/** Back Button */
 	useFocusEffect(
 		useCallback(() => {
 			const onBackPress = (): boolean => {
@@ -263,6 +267,37 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		setInputWasFocused(!!bibInputRef.current?.isFocused());
 	};
 
+	// Update start time
+	const updateStartTime = useCallback(async (timeOfDay: number): Promise<void> => {
+		try {
+			// Post to RSU
+			if (context.online) {
+				await postStartTime(context.raceID, context.eventID, timeOfDay);
+			}
+
+			// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
+			if (context.online) {
+				// Online Functionality
+				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+				if (raceIndex !== -1 && eventIndex !== -1) {
+					raceList[raceIndex].events[eventIndex].real_start_time = timeOfDay;
+					await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				}
+			} else {
+				// Offline Functionality
+				const [eventList, eventIndex] = await GetLocalOfflineEvent(context.time);
+				if (eventIndex !== -1) {
+					eventList[eventIndex].real_start_time = timeOfDay;
+					await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+				}
+			}
+
+			startTime.current = timeOfDay;
+		} catch (error) {
+			Logger("Failed to Update Start Time", error, true);
+		}
+	}, [context.eventID, context.online, context.raceID, context.time]);
+
 	// Renders item on screen
 	const renderItem = useCallback(({ item, index }) => (
 		<MemoFinishLineItem
@@ -284,13 +319,20 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
 				keyboardVerticalOffset={70}>
-	
+
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
-					<View style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
+					<TouchableOpacity 
+						onPress={(): void => {
+							if (startTime.current !== -1 && finishTimesRef.current.length < 1) {
+								setStartTimeAlertVisible(true);
+							}
+						}}
+						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 ? 1 : 0.5}
+						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
 							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ?  "Too Large" : GetClockTime(displayTime)}
 						</Text>
-					</View>
+					</TouchableOpacity>
 					<TextInput
 						ref={bibInputRef}
 						onChangeText={setBibText}
@@ -345,6 +387,38 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					</>
 				}
 
+				{/* Change Start Time Alert */}
+				<TextInputAlert
+					title={"Change Start Time"}
+					message={"Change the start time for this event. Tap AM / PM to toggle between day and night."}
+					type={"timeofday"}
+					keyboardType={"number-pad"}
+					visible={startTimeAlertVisible}
+					timeInitialValue={startTime.current}
+					actionOnPress={(valArray): void => {
+						// Get Min Finish Time
+						let minTime = Number.MAX_SAFE_INTEGER;
+						for (let i = 0; i < finishTimesRef.current.length; i++) {
+							const time = finishTimesRef.current[i];
+							if (time < minTime) {
+								minTime = time;
+							}
+						}
+
+						const timeOfDay = parseInt(valArray[1]);
+						
+						if (!isNaN(timeOfDay) && new Date(timeOfDay) <= new Date() && timeOfDay < minTime) {
+							updateStartTime(timeOfDay);
+							setStartTimeAlertVisible(false);
+						} else {
+							Alert.alert("You cannot select a start time in the future or a start time greater than an existing finish time.");
+						}
+					}} cancelOnPress={(): void => {
+						setStartTimeAlertVisible(false);
+					}}
+				/>
+
+				{/* Bib Edit Alert */}
 				{alertIndex !== undefined &&
 					<TextInputAlert
 						title={`Edit Bib for Place ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
