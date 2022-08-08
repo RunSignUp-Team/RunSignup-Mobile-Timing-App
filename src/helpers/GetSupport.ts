@@ -1,8 +1,9 @@
 import * as Mailer from "expo-mail-composer";
+import { AppMode } from "../components/AppContext";
 import GetLocalRaceEvent from "./GetLocalRaceEvent";
 
 /** Get support via mail */
-export default async function GetSupport(raceID: number, eventID: number, email: string, online: boolean): Promise<Mailer.MailComposerResult> {
+export default async function GetSupport(raceID: number, eventID: number, email: string, appMode: AppMode): Promise<Mailer.MailComposerResult> {
 	let raceName = "";
 	let eventName = "";
 
@@ -13,7 +14,7 @@ export default async function GetSupport(raceID: number, eventID: number, email:
 
 	-------`;
 
-	if (online) {
+	if (appMode === "Online" || appMode === "TimeKeeper") {
 		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
 		if (raceList && raceList.length > 0 && raceList[raceIndex]?.events[eventIndex]?.name) {
 			raceName = raceList[raceIndex].name;

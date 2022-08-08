@@ -134,7 +134,7 @@ export default function StartNavigator(): React.ReactElement {
 				}} />
 				<AppStack.Screen name="EventsList" component={EventsListScreen} />
 				<AppStack.Screen name="ModeScreen" component={ModeScreen} />
-				{context.online ?
+				{context.appMode === "Online" || context.appMode === "TimeKeeper" ?
 					<AppStack.Screen name="FinishLineMode" component={FinishTimeNavigator} options={{
 						title: "Finish Line Mode",
 						gestureEnabled: false,

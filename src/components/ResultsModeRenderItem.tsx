@@ -6,6 +6,7 @@ import GetClockTime from "../helpers/GetClockTime";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 import Icon from "./IcoMoon";
+import { AppMode } from "./AppContext";
 
 interface Props {
 	record: [number, number, number],
@@ -15,7 +16,7 @@ interface Props {
 	selectedID: number,
 	editMode: boolean,
 	maxTime: number,
-	online: boolean,
+	appMode: AppMode,
 	recordsRefSearchBib: number,
 	searchRecordsSearchBib: number,
 	conflictBoolean: boolean,
@@ -85,11 +86,11 @@ export default function ResultsModeRenderItem(props: Props): React.ReactElement 
 					{GetClockTime(props.record[1])}</Text>}
 
 				{/* No Conflict Participant */}
-				{!conflictItem && props.online &&
+				{!conflictItem && (props.appMode === "Online" || props.appMode === "TimeKeeper") &&
 					<Text style={[globalstyles.nameTableText, { flexWrap: "wrap" }]}>{props.findParticipant(props.record[0])}</Text>}
 
 				{/* Conflict Participant */}
-				{conflictItem && props.online &&
+				{conflictItem && (props.appMode === "Online" || props.appMode === "TimeKeeper") &&
 					<Text style={[globalstyles.nameTableText, { flexWrap: "wrap" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
 				{/* Delete Button */}

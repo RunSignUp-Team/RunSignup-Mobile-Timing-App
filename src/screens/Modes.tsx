@@ -17,6 +17,7 @@ import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
 import GetSupport from "../helpers/GetSupport";
+import { SyncAnimation } from "../components/SyncAnimation";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -28,8 +29,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
 	const msgHeader = "Permission Denied";
-	const FinishLineModeMsg = `You may not enter Finish Line Mode data: \n1) multiple times on the same device, ${!context.online ? "or " : ""}2) after creating/editing results${context.online ? ", 3) after recording Chute Mode data, or 4) with unsaved Chute Mode data stored on your device." : "."}\nIf you have completed all data entry, go to Results to view or edit results.`;
-	const ChuteModeMsg = `You may not enter Chute Mode data: \n1) multiple times on the same device, 2) after creating/editing results, or 3) ${context.online ? "with unsaved Finish Line Mode data stored on your device." : "before saving Finish Line Mode data."}\nIf you have completed all data entry, go to Results to view or edit results.`;
+	const FinishLineModeMsg = `You may not enter Finish Line Mode data: \n1) multiple times on the same device, ${!(context.appMode === "Online" || context.appMode === "TimeKeeper") ? "or " : ""}2) after creating/editing results${context.appMode === "Online" || context.appMode === "TimeKeeper" ? ", 3) after recording Chute Mode data, or 4) with unsaved Chute Mode data stored on your device." : "."}\nIf you have completed all data entry, go to Results to view or edit results.`;
+	const ChuteModeMsg = `You may not enter Chute Mode data: \n1) multiple times on the same device, 2) after creating/editing results, or 3) ${context.appMode === "Online" || context.appMode === "TimeKeeper" ? "with unsaved Finish Line Mode data stored on your device." : "before saving Finish Line Mode data."}\nIf you have completed all data entry, go to Results to view or edit results.`;
 
 	const [loading, setLoading] = useState(false);
 
@@ -40,7 +41,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [resultsUploaded, setResultsUploaded] = useState(false);
 
 	const noFinishLine = finishLineDone || chuteDone || chuteProgress;
-	const noChute = chuteDone || finishLineProgress || (!context.online && !finishLineDone);
+	const noChute = chuteDone || finishLineProgress || (!(context.appMode === "Online" || context.appMode === "TimeKeeper") && !finishLineDone);
 	const noResults = (chuteProgress || finishLineProgress) && !resultsUploaded;
 
 	// Handle log out. Delete local tokens
@@ -72,7 +73,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 		setLoading(true);
 
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			// Get latest RSU data
 			try {
 				const times = await getFinishTimes(context.raceID, context.eventID);
@@ -127,7 +128,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		setChuteDone(cDone);
 
 		setLoading(false);
-	}, [context.eventID, context.online, context.raceID, context.time]);
+	}, [context.eventID, context.appMode, context.raceID, context.time]);
 
 	// Get button colors on focus
 	useFocusEffect(useCallback(() => {
@@ -138,7 +139,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		let eventName = "";
 		const setNavigation = async (): Promise<void> => {
-			if (context.online) {
+			if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 				if (raceList && raceList.length > 0 && raceList[raceIndex]?.events[eventIndex]?.name) {
 					eventName = raceList[raceIndex].events[eventIndex].name;
@@ -156,17 +157,20 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
-					context.online ?
-						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-						</TouchableOpacity> :
-						null
+					(context.appMode === "Online" || context.appMode === "TimeKeeper") ?
+						<View style={{ flexDirection: "row", width: 70, justifyContent: "space-between", alignItems: "center" }}>
+							<SyncAnimation disabled={context.appMode === "TimeKeeper"} />
+							<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+								<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+							</TouchableOpacity>
+						</View> 
+						: null
 				),
 				headerTitle: eventName ? eventName : "Modes"
 			});
 		};
 		setNavigation();
-	}, [context.eventID, context.online, context.raceID, context.time, handleLogOut, navigation]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, handleLogOut, navigation]);
 
 	// Finish Line Mode tapped
 	const finishLineTapped = async (): Promise<void> => {
@@ -325,7 +329,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	const getSupport = async (): Promise<void> => {
 		try {
-			await GetSupport(context.raceID, context.eventID, context.email, context.online);
+			await GetSupport(context.raceID, context.eventID, context.email, context.appMode);
 		} catch (error) {
 			Logger("Failed to Open Mail", error, true);
 		}
@@ -333,10 +337,10 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			<MainButton disabled={loading} color={noFinishLine || loading ? "Disabled" : "Green"} onPress={context.online === false ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
-			<MainButton disabled={loading} color={noChute || loading ? "Disabled" : "Green"} onPress={context.online === false ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
-			<MainButton disabled={loading} color={noResults || loading ? "Disabled" : "Green"} onPress={context.online === false ? verificationTappedOffline : verificationTapped} text={"Results"} />
-			<MainButton onPress={context.online ? assignEvent : deleteEvent} text={context.online ? "Assign Offline Event" : "Delete Offline Event"} color={context.online ? "Gray" : "Red"} />
+			<MainButton disabled={loading} color={noFinishLine || loading ? "Disabled" : "Green"} onPress={context.appMode === "Offline" ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
+			<MainButton disabled={loading} color={noChute || loading ? "Disabled" : "Green"} onPress={context.appMode === "Offline" ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
+			<MainButton disabled={loading} color={noResults || loading ? "Disabled" : "Green"} onPress={context.appMode === "Offline" ? verificationTappedOffline : verificationTapped} text={"Results"} />
+			<MainButton onPress={context.appMode === "Online" || context.appMode === "TimeKeeper" ? assignEvent : deleteEvent} text={context.appMode === "Online" || context.appMode === "TimeKeeper" ? "Assign Offline Event" : "Delete Offline Event"} color={context.appMode ? "Gray" : "Red"} />
 			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 			<MainButton text={"Get Support"} onPress={getSupport} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 		</View>

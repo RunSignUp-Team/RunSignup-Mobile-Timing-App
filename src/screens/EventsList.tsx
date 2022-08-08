@@ -14,6 +14,7 @@ import { Race } from "../models/Race";
 import CreateAPIError from "../helpers/CreateAPIError";
 import { useIsFocused } from "@react-navigation/native";
 import Icon from "../components/IcoMoon";
+import { SyncAnimation } from "../components/SyncAnimation";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -71,15 +72,18 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
-					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-					</TouchableOpacity>
+					<View style={{ flexDirection: "row", width: 70, justifyContent: "space-between", alignItems: "center" }}>
+						<SyncAnimation disabled={context.appMode === "TimeKeeper"} />
+						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+						</TouchableOpacity>
+					</View>
 				),
 				headerTitle: raceName ? raceName : "Events"
 			});
 		};
 		setNavigation();
-	}, [context.eventID, context.raceID, handleLogOut, navigation]);
+	}, [context.appMode, context.eventID, context.raceID, handleLogOut, navigation]);
 
 	// Get Race data from the API
 	const fetchEvents = useCallback(async (): Promise<void> => {

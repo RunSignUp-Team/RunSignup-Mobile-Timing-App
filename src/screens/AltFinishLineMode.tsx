@@ -80,15 +80,15 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 	const updateFinishTimes = useCallback((newFinishTimes: Array<number>) => {
 		finishTimesRef.current = newFinishTimes;
 		setFinishTimes(finishTimesRef.current);
-		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+		AddToStorage(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
 	/** Updates Checker Bibs without re-rendering entire list */
 	const updateCheckerBibs = useCallback((newBibs: Array<number>) => {
 		checkerBibsRef.current = newBibs;
 		setCheckerBibs(checkerBibsRef.current);
-		AddToStorage(context.raceID, context.eventID, context.online, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+		AddToStorage(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
 	/** Updates Alt Bibs without re-rendering entire list */
 	const updateAltBibs = useCallback((newBibs: Array<number>) => {
@@ -158,7 +158,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 			)
 		});
 
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			// Online mode
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -208,7 +208,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		return () => {
 			isUnmounted.current = true;
 		};
-	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]));
+	}, [backTapped, context.eventID, context.appMode, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]));
 
 	// Start the timer interval when user asks to record times
 	useEffect(() => {
@@ -221,7 +221,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		}
 
 		// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -250,7 +250,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 			clearInterval(interval);
 		};
 
-	}, [context.eventID, context.online, context.raceID, context.time, timerOn]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, timerOn]);
 
 	const startTimer = useCallback(() => {
 		setTimerOn(true);
@@ -289,13 +289,13 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		navigation.getParent()?.setOptions({
 			headerRight: () => (
 				timerOn && <TouchableOpacity onPress={(): void => {
-					CheckEntries(context.raceID, context.eventID, context.online, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
+					CheckEntries(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
 				}}>
 					<Text style={globalstyles.headerButtonText}>Save</Text>
 				</TouchableOpacity>
 			),
 		});
-	}, [context.eventID, context.online, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs]);
 
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {
@@ -315,12 +315,12 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 	const updateStartTime = useCallback(async (timeOfDay: number): Promise<void> => {
 		try {
 			// Post to RSU
-			if (context.online) {
+			if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 				await postStartTime(context.raceID, context.eventID, timeOfDay);
 			}
 
 			// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
-			if (context.online) {
+			if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 				// Online Functionality
 				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -340,7 +340,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		} catch (error) {
 			Logger("Failed to Update Start Time", error, true);
 		}
-	}, [context.eventID, context.online, context.raceID, context.time]);
+	}, [context.eventID, context.appMode, context.raceID, context.time]);
 
 
 	// Renders item on screen

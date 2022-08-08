@@ -103,7 +103,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [navigation]);
 
 	const addToStorage = useCallback(async (final, bibNumsParam) => {
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(async ([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -188,7 +188,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 			});
 		}
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
 	/** Updates Bib Numbers without re-rendering entire list */
 	const updateBibNums = useCallback((newBibNums: Array<number>) => {
@@ -219,7 +219,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		});
 
 		// Get local storage if any
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
@@ -244,7 +244,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		return () => {
 			isUnmounted.current = true;
 		};
-	}, [backTapped, context.eventID, context.online, context.raceID, context.time, navigation, updateBibNums]);
+	}, [backTapped, context.eventID, context.appMode, context.raceID, context.time, navigation, updateBibNums]);
 
 	// Check entries for errors
 	const checkEntries = useCallback(async () => {
@@ -264,7 +264,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			Alert.alert(
 				"Save Results",
-				`Are you sure you want to save ${context.online ? "to the cloud" : "results"} and quit?`,
+				`Are you sure you want to save ${context.appMode === "Online" || context.appMode === "TimeKeeper" ? "to the cloud" : "results"} and quit?`,
 				[
 					{ text: "Cancel" },
 					{
@@ -278,7 +278,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				]
 			);
 		}
-	}, [addToStorage, context.online]);
+	}, [addToStorage, context.appMode]);
 
 	// Record button
 	const recordBib = (): void => {

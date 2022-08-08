@@ -1,4 +1,5 @@
 import * as FileSystem from "expo-file-system";
+import { AppMode } from "../components/AppContext";
 import { VRecords } from "../screens/ResultsMode";
 import AddLeadingZeros from "./AddLeadingZeros";
 import { getStartTime, ParticipantDetails } from "./APICalls";
@@ -8,8 +9,8 @@ import GetLocalOfflineEvent from "./GetLocalOfflineEvent";
 import Logger from "./Logger";
 
 /** Get file path for specific event results */
-export const GetResultsFilePath = (raceID: number, eventID: number, time: number, online: boolean): string => {
-	if (online) {
+export const GetResultsFilePath = (raceID: number, eventID: number, time: number, appMode: AppMode): string => {
+	if (appMode === "Online" || appMode === "TimeKeeper") {
 		return FileSystem.documentDirectory + `results_${raceID}_${eventID}.csv`;
 	} else {
 		return FileSystem.documentDirectory + `results_${time}.csv`;
@@ -17,8 +18,8 @@ export const GetResultsFilePath = (raceID: number, eventID: number, time: number
 };
 
 /** Get file path for specific event timing data */
-export const GetTimingFilePath = (raceID: number, eventID: number, time: number, online: boolean): string => {
-	if (online) {
+export const GetTimingFilePath = (raceID: number, eventID: number, time: number, appMode: AppMode): string => {
+	if (appMode === "Online" || appMode === "TimeKeeper") {
 		return FileSystem.documentDirectory + `timing_${raceID}_${eventID}.txt`;
 	} else {
 		return FileSystem.documentDirectory + `timing_${time}.txt`;
@@ -26,9 +27,9 @@ export const GetTimingFilePath = (raceID: number, eventID: number, time: number,
 };
 
 /** Write files to local storage */
-export const WriteFiles = async (raceID: number, eventID: number, records: VRecords, participants: Array<ParticipantDetails>, online: boolean, time: number): Promise<void> => {
+export const WriteFiles = async (raceID: number, eventID: number, records: VRecords, participants: Array<ParticipantDetails>, appMode: AppMode, time: number): Promise<void> => {
 	let resultsString = "";
-	if (online) {
+	if (appMode === "Online" || appMode === "TimeKeeper") {
 		resultsString = "Place,Bib,Name,Gender,Age,City,State,Finish Time\n";
 	} else {
 		resultsString = "Bib,Finish Time\n";
@@ -46,7 +47,7 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 		let age = "N/A";
 		let city = "N/A";
 		let state = "N/A";
-		if (online && bib > 0) {
+		if (appMode === "Online" || appMode === "TimeKeeper" && bib > 0) {
 			const p = participants.find((participant) => participant.bib_num === bib);
 			if (p) {
 				name = `${p.user.first_name} ${p.user.last_name}`;
@@ -57,7 +58,7 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 			}
 		}
 		
-		if (online) {
+		if (appMode === "Online" || appMode === "TimeKeeper") {
 			resultsString += `${i+1},${bib},${name},${gender},${age},${city},${state},${GetClockTime(time)}\n`;
 		} else {
 			resultsString += `${bib},${GetClockTime(time)}\n`;
@@ -66,7 +67,7 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 
 	// Timing Data File
 	let realStartTime = 0;
-	if (online) {
+	if (appMode === "Online" || appMode === "TimeKeeper") {
 		const startTime = await getStartTime(raceID, eventID);
 		const startTimeDate = new Date(startTime.replace(" ","T"));
 		if (startTime) {
@@ -105,18 +106,18 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 	}
 
 	try {
-		await FileSystem.writeAsStringAsync(GetResultsFilePath(raceID, eventID, time, online), resultsString);
-		await FileSystem.writeAsStringAsync(GetTimingFilePath(raceID, eventID, time, online), timingString);
+		await FileSystem.writeAsStringAsync(GetResultsFilePath(raceID, eventID, time, appMode), resultsString);
+		await FileSystem.writeAsStringAsync(GetTimingFilePath(raceID, eventID, time, appMode), timingString);
 	} catch (error) {
 		Logger("Failed to write results.", error, true);
 	}
 };
 
 /** Delete files from local storage */
-export const DeleteFiles = async (raceID: number, eventID: number, time: number, online: boolean): Promise<void> => {
+export const DeleteFiles = async (raceID: number, eventID: number, time: number, appMode: AppMode): Promise<void> => {
 	try {
-		await FileSystem.deleteAsync(GetResultsFilePath(raceID, eventID, time, online));
-		await FileSystem.deleteAsync(GetTimingFilePath(raceID, eventID, time, online));
+		await FileSystem.deleteAsync(GetResultsFilePath(raceID, eventID, time, appMode));
+		await FileSystem.deleteAsync(GetTimingFilePath(raceID, eventID, time, appMode));
 	} catch (error) {
 		Logger("Failed to remove results.", error, true);
 	}

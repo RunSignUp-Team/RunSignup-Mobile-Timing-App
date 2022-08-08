@@ -1,5 +1,6 @@
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Alert } from "react-native";
+import { AppMode } from "../components/AppContext";
 import { TabParamList } from "../components/AppStack";
 import { AddToStorage } from "./FLAddToStorage";
 import { SaveResults } from "./FLSaveResults";
@@ -10,7 +11,7 @@ type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 export const CheckEntries = (
 	raceID: number,
 	eventID: number,
-	online: boolean, 
+	appMode: AppMode, 
 	time: number,
 	finishTimesRef: React.MutableRefObject<Array<number>>,
 	checkerBibsRef: React.MutableRefObject<Array<number>>, 
@@ -31,7 +32,7 @@ export const CheckEntries = (
 		// Filter bib numbers that start with 0
 		Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
 	} else {
-		if (online) {
+		if (appMode === "Online" || appMode === "TimeKeeper") {
 			Alert.alert(
 				"Save Results",
 				"Are you sure you want to save to the cloud and quit?",
@@ -44,7 +45,7 @@ export const CheckEntries = (
 							SaveResults(
 								raceID, 
 								eventID, 
-								online,
+								appMode,
 								time,
 								finishTimesRef, 
 								checkerBibsRef, 
@@ -72,7 +73,7 @@ export const CheckEntries = (
 								AddToStorage(
 									raceID,
 									eventID,
-									online,
+									appMode,
 									time,
 									finishTimesRef.current, 
 									checkerBibsRef.current,

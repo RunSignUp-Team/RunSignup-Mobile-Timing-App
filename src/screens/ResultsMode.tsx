@@ -249,7 +249,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		if (firstRun.current) {
 			firstRun.current = false;
-			if (context.online) {
+			if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 				getRecords(false);
 			} else {
 				setLoading(true);
@@ -310,7 +310,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		return () => {
 			isUnmountedRef.current = true;
 		};
-	}, [context.online, context.time, getRecords, updateRecords]);
+	}, [context.appMode, context.time, getRecords, updateRecords]);
 
 	// Only show delete alert if there were previously records saved for the event
 	const secondRun = useRef(1);
@@ -335,7 +335,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	}, [records]);
 
 	const clearAndPush = useCallback(async () => {
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			try {
 				// Clear old bib data
 				await deleteBibs(context.raceID, context.eventID);
@@ -430,7 +430,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 		}
 		setRStartLength(recordsRef.current.length);
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
 	const saveResults = useCallback((skipAlert?: boolean) => {
 		if (recordsRef.current.length < 1 && rStartLength !== 0) {
@@ -541,7 +541,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			checkEntries();
 		}
 
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== null && eventIndex !== null) {
@@ -560,7 +560,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				}
 			});
 		}
-	}, [checkEntries, conflicts, context.eventID, context.online, context.raceID, context.time]);
+	}, [checkEntries, conflicts, context.eventID, context.appMode, context.raceID, context.time]);
 
 	// Check conflicts
 	const prevConflicts = useRef(0);
@@ -669,7 +669,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 	// Returns participant with bib number of index if found
 	const findParticipant = useCallback((bib: number) => {
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
 			try {
 				const p = participants.find((participant) => participant.bib_num === bib);
 				return p !== undefined ? `${p.user.first_name} ${p.user.last_name}` : "No Name";
@@ -679,7 +679,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			return "";
 		}
-	}, [context.online, participants]);
+	}, [context.appMode, participants]);
 
 	// Search records
 	const searchList = useCallback(() => {
@@ -792,7 +792,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					{ text: "Delete All", onPress: (): void => { 
 						Alert.alert(
 							"Confirm Delete?",
-							`Please confirm that you want to delete all records for this event. All data will be lost forever${context.online ? ", both on RunSignup and your device" : ""}.`,
+							`Please confirm that you want to delete all records for this event. All data will be lost forever${context.appMode === "Online" || context.appMode === "TimeKeeper" ? ", both on RunSignup and your device" : ""}.`,
 							[
 								{ text: "Cancel" },
 								{
@@ -811,21 +811,21 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			Alert.alert("No Records", "There are no records to delete!");
 		}
-	}, [context.online, saveResults, updateRecords]);
+	}, [context.appMode, saveResults, updateRecords]);
 
 	const shareResults = useCallback(async () => {
 		if (recordsRef.current.length > 0) {
-			await WriteFiles(context.raceID, context.eventID, recordsRef.current, participants, context.online, context.time);
+			await WriteFiles(context.raceID, context.eventID, recordsRef.current, participants, context.appMode, context.time);
 			try {
-				await ShareResultsFile(context.raceID, context.eventID, context.time, context.online);
+				await ShareResultsFile(context.raceID, context.eventID, context.time, context.appMode);
 			} catch (error) {
 				Logger("Failed to Share Results", error, true);
 			}
-			await DeleteFiles(context.raceID, context.eventID, context.time, context.online);
+			await DeleteFiles(context.raceID, context.eventID, context.time, context.appMode);
 		} else {
 			Alert.alert("No Records", "There are no records to share!");
 		}
-	}, [context.eventID, context.online, context.raceID, context.time, participants]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, participants]);
 
 	// Display edit / save button in header
 	useEffect(() => {
@@ -845,7 +845,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					</TouchableOpacity>}
 
 					{/* RSU Results */}
-					{!editMode && !loading && context.online && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
+					{!editMode && !loading && context.appMode && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
 						<Icon name={"stats-bars2"} size={24} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 					{/* Share Results */}
@@ -868,7 +868,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				</View>
 			),
 		});
-	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords, context.online, shareResults]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords, context.appMode, shareResults]);
 
 	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]): void => {
@@ -951,7 +951,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				swapEntries={swapEntries}
 				showAlert={showAlert}
 				findParticipant={findParticipant}
-				online={context.online}
+				appMode={context.appMode}
 			/> : null
 	);
 
@@ -972,7 +972,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						style={[globalstyles.input, { borderWidth: 0 }]}
 						onChangeText={setSearch}
 						value={search}
-						placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
+						placeholder={context.appMode ? "Search by Bib # or Name" : "Search by Bib #"}
 						placeholderTextColor={GRAY_COLOR}
 					/>
 				</View>
@@ -984,7 +984,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					<Text style={globalstyles.placeTableHeadText}>#</Text>
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 					<Text style={globalstyles.timeTableHeadText}>Time</Text>
-					{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
+					{(context.appMode === "Online" || context.appMode === "TimeKeeper") ? <Text style={globalstyles.nameTableHeadText}>Name</Text> : null}
 					{editMode &&
 						<View style={globalstyles.tableDeleteButton}>
 							<Icon name="minus2" color={BLACK_COLOR} size={10} />
@@ -1001,7 +1001,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
 						ref={flatListRef}
-						onRefresh={(context.online && !editMode) ? (): void => { getRecords(true); } : undefined}
+						onRefresh={((context.appMode === "Online" || context.appMode === "TimeKeeper") && !editMode) ? (): void => { getRecords(true); } : undefined}
 						refreshing={refreshing}
 						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
 						extraData={selectedID}

@@ -54,7 +54,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 		});
-	}, [context.eventID, context.online, context.raceID, navigation]);
+	}, [context.eventID, context.appMode, context.raceID, navigation]);
 
 	// Get offline events from local storage, and run again when deleting an offline event
 	useEffect(() => {
@@ -188,13 +188,13 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Save offline events to storage
 	useEffect(() => {
-		if (doneInitialLoad && isFocused && !context.online) {
+		if (doneInitialLoad && isFocused && context.appMode === "Offline") {
 			const saveOfflineEvents = async (): Promise<void> => {
 				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 			};
 			saveOfflineEvents();
 		}
-	}, [context.online, doneInitialLoad, eventList, isFocused]);
+	}, [context.appMode, doneInitialLoad, eventList, isFocused]);
 
 	// Create Offline Event
 	const createEvent = async (eventName: string): Promise<void> => {
@@ -238,7 +238,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				index={index}
 				setEventTitle={setEventTitle}
 				setTime={setTime}
-				online={context.online}
+				appMode={context.appMode}
 				eventTitle={context.eventTitle}
 				assignBibNums={assignBibNums}
 				assignFinishTimes={assignFinishTimes}
@@ -277,7 +277,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 				{!loading &&
 					<FlatList
-						ListHeaderComponent={(context.online || (data.length < 1 && eventList.length > 0)) ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
+						ListHeaderComponent={(context.appMode === "Online" || context.appMode === "TimeKeeper" || (data.length < 1 && eventList.length > 0)) ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
 						showsVerticalScrollIndicator={false}
 						data={data}
 						renderItem={renderItem}

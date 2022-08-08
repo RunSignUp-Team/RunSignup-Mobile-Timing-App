@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { AppMode } from "../components/AppContext";
 import { TabParamList } from "../components/AppStack";
 import { getBibs, postBibs } from "./APICalls";
 import CreateAPIError from "./CreateAPIError";
@@ -13,7 +14,7 @@ type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 export const AddToStorage = async (
 	raceID: number,
 	eventID: number,
-	online: boolean,
+	appMode: AppMode,
 	time: number,
 	finishTimesParam: Array<number>, 
 	checkerBibsParam: Array<number>,
@@ -21,7 +22,7 @@ export const AddToStorage = async (
 	setLoading: (value: React.SetStateAction<boolean>) => void,
 	navigation: ScreenNavigationProp
 ): Promise<void> => {
-	if (online) {
+	if (appMode === "Online" || appMode === "TimeKeeper") {
 		// Set start time locally
 		GetLocalRaceEvent(raceID, eventID).then(([raceList, raceIndex, eventIndex]) => {
 			if (raceIndex !== -1 && eventIndex !== -1) {

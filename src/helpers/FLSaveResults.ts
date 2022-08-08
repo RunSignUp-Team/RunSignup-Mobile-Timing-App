@@ -1,5 +1,6 @@
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Alert } from "react-native";
+import { AppMode } from "../components/AppContext";
 import { TabParamList } from "../components/AppStack";
 import { postStartTime, postFinishTimes } from "./APICalls";
 import CreateAPIError from "./CreateAPIError";
@@ -12,7 +13,7 @@ type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 export const SaveResults = async (
 	raceID: number,
 	eventID: number,
-	online: boolean,
+	appMode: AppMode,
 	time: number,
 	finishTimesRef: React.MutableRefObject<Array<number>>,
 	checkerBibsRef: React.MutableRefObject<Array<number>>,
@@ -36,7 +37,7 @@ export const SaveResults = async (
 				AddToStorage(
 					raceID,
 					eventID,
-					online,
+					appMode,
 					time,
 					finishTimesRef.current,
 					checkerBibsRef.current,

@@ -327,7 +327,7 @@ export const postFinishTimes = async (raceID: number, eventID: number, times: Ar
 			finishing_times: timeString
 		})
 	);
-
+	
 	const response = await handlePostCall(
 		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/finishing-times?format=json&event_id=${eventID}&request_format=json`,
 		formData

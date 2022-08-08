@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect } from "react";
 import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, TouchableOpacity, Text } from "react-native";
 import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
-import { AppContext } from "../components/AppContext";
+import { AppContext, AppMode } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
@@ -93,7 +93,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	);
 
 	/** Handle user wanting to record online races */
-	const handleRecordOnlineClick = async (): Promise<void> => {
+	const onlineOrTimekeeperTapped = async (appMode: AppMode): Promise<void> => {
 		setLoading(true);
 		try {
 			const accessToken = await oAuthLogin(false);
@@ -117,7 +117,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 
 				// Go to the race list if connected to internet
-				context.setOnline(true);
+				context.setAppMode(appMode);
 				if ((await Network.getNetworkStateAsync()).isInternetReachable) {
 					navigation.push("RaceList");
 				} else {
@@ -132,13 +132,13 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	};
 
 	/** Handle user wanting to record offline races */
-	const handleRecordOfflineClick = (): void => {
-		context.setOnline(false);
+	const offlineTapped = (): void => {
+		context.setAppMode("Offline");
 		navigation.navigate("OfflineEventsList");
 	};
 
 	/** Handle start guide link */
-	const handleStartGuideClick = async (): Promise<void> => {
+	const startGuideTapped = async (): Promise<void> => {
 		const url = "https://help.runsignup.com/support/solutions/articles/17000125950-mobile-timing-app";
 		if (await Linking.canOpenURL(url)) {
 			Linking.openURL(url);
@@ -156,12 +156,13 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 					style={[globalstyles.image, { marginTop: 10 }]}
 					source={require("../assets/logo.png")}
 				/>
-				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
-				<MainButton text={"Offline Events"} onPress={handleRecordOfflineClick} />
+				<MainButton text={"Online Races"} onPress={(): void => { onlineOrTimekeeperTapped("Online"); }} buttonStyle={{ marginTop: 50 }} />
+				<MainButton text={"Time Keeper"} onPress={(): void => { onlineOrTimekeeperTapped("TimeKeeper"); }}  />
+				<MainButton text={"Local Events"} onPress={offlineTapped} />
 				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				<View style={{ position: "absolute", bottom: 20, width: "100%" }}>
 					{version ? <Text style={globalstyles.modalHeader}>{`Version ${version}`}</Text> : null}
-					<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ minHeight: 50 }} color="Gray" />
+					<MainButton text={"Start Guide"} onPress={startGuideTapped} buttonStyle={{ minHeight: 50 }} color="Gray" />
 				</View>
 			</View>
 

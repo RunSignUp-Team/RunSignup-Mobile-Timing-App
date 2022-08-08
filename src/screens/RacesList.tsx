@@ -15,6 +15,7 @@ import { Race } from "../models/Race";
 import { Event } from "../models/Event";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import { SyncAnimation } from "../components/SyncAnimation";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -38,8 +39,9 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Log out with alert
 	const goToHomeScreen = useCallback(() => {
+		context.setAppMode("Offline");
 		navigation.navigate("Login");
-	}, [navigation]);
+	}, [context, navigation]);
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(() => {
@@ -80,12 +82,15 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				<HeaderBackButton onPress={goToHomeScreen} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 			headerRight: () => (
-				<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-					<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-				</TouchableOpacity>
+				<View style={{ flexDirection: "row", width: 70, justifyContent: "space-between", alignItems: "center" }}>
+					<SyncAnimation disabled={context.appMode === "TimeKeeper"}/>
+					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+					</TouchableOpacity>
+				</View>
 			)
 		});
-	}, [goToHomeScreen, handleLogOut, navigation]);
+	}, [context.appMode, goToHomeScreen, handleLogOut, navigation]);
 
 	// Get Race List data from API
 	const fetchRaces = async (reload: boolean): Promise<void> => {
