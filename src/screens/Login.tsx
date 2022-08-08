@@ -1,5 +1,5 @@
 import React, { useContext, useCallback, useState, useEffect } from "react";
-import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, TouchableOpacity } from "react-native";
+import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, TouchableOpacity, Text } from "react-native";
 import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
 import { AppContext } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
@@ -16,6 +16,7 @@ import { NetworkErrorBool } from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ToggleSync from "../helpers/ToggleSync";
+import Constants from "expo-constants";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -161,6 +162,8 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
+	const version = Constants.manifest?.version;
+
 	return (
 		<View style={globalstyles.container}>
 			<View style={{ flexDirection: "column", flex: 1 }}>
@@ -171,7 +174,10 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
 				<MainButton text={"Offline Events"} onPress={handleRecordOfflineClick} />
 				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-				<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
+				<View style={{ position: "absolute", bottom: 20, width: "100%" }}>
+					{version ? <Text style={globalstyles.modalHeader}>{`Version ${version}`}</Text> : null}
+					<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ minHeight: 50 }} color="Gray" />
+				</View>
 			</View>
 
 		</View>
