@@ -4,7 +4,7 @@ import { AppMode } from "../components/AppContext";
 import { TabParamList } from "../components/AppStack";
 import { getBibs, postBibs } from "./APICalls";
 import CreateAPIError from "./CreateAPIError";
-import GetLocalOfflineEvent from "./GetLocalOfflineEvent";
+import GetOfflineEvent from "./GetOfflineEvent";
 import GetLocalRaceEvent from "./GetLocalRaceEvent";
 import Logger from "./Logger";
 
@@ -22,7 +22,7 @@ export const AddToStorage = async (
 	setLoading: (value: React.SetStateAction<boolean>) => void,
 	navigation: ScreenNavigationProp
 ): Promise<void> => {
-	if (appMode === "Online" || appMode === "TimeKeeper") {
+	if (appMode === "Online" || appMode === "Backup") {
 		// Set start time locally
 		GetLocalRaceEvent(raceID, eventID).then(([raceList, raceIndex, eventIndex]) => {
 			if (raceIndex !== -1 && eventIndex !== -1) {
@@ -92,7 +92,7 @@ export const AddToStorage = async (
 			}
 		}
 	} else {
-		GetLocalOfflineEvent(time).then(([eventList, eventIndex]) => {
+		GetOfflineEvent(time).then(([eventList, eventIndex]) => {
 			if (eventIndex !== -1) {
 				eventList[eventIndex].finish_times = finishTimesParam;
 				eventList[eventIndex].checker_bibs = checkerBibsParam;

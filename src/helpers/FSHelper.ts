@@ -5,12 +5,12 @@ import AddLeadingZeros from "./AddLeadingZeros";
 import { getStartTime, ParticipantDetails } from "./APICalls";
 import DateToDate from "./DateToDate";
 import GetClockTime from "./GetClockTime";
-import GetLocalOfflineEvent from "./GetLocalOfflineEvent";
+import GetOfflineEvent from "./GetOfflineEvent";
 import Logger from "./Logger";
 
 /** Get file path for specific event results */
 export const GetResultsFilePath = (raceID: number, eventID: number, time: number, appMode: AppMode): string => {
-	if (appMode === "Online" || appMode === "TimeKeeper") {
+	if (appMode === "Online" || appMode === "Backup") {
 		return FileSystem.documentDirectory + `results_${raceID}_${eventID}.csv`;
 	} else {
 		return FileSystem.documentDirectory + `results_${time}.csv`;
@@ -19,7 +19,7 @@ export const GetResultsFilePath = (raceID: number, eventID: number, time: number
 
 /** Get file path for specific event timing data */
 export const GetTimingFilePath = (raceID: number, eventID: number, time: number, appMode: AppMode): string => {
-	if (appMode === "Online" || appMode === "TimeKeeper") {
+	if (appMode === "Online" || appMode === "Backup") {
 		return FileSystem.documentDirectory + `timing_${raceID}_${eventID}.txt`;
 	} else {
 		return FileSystem.documentDirectory + `timing_${time}.txt`;
@@ -29,7 +29,7 @@ export const GetTimingFilePath = (raceID: number, eventID: number, time: number,
 /** Write files to local storage */
 export const WriteFiles = async (raceID: number, eventID: number, records: VRecords, participants: Array<ParticipantDetails>, appMode: AppMode, time: number): Promise<void> => {
 	let resultsString = "";
-	if (appMode === "Online" || appMode === "TimeKeeper") {
+	if (appMode === "Online" || appMode === "Backup") {
 		resultsString = "Place,Bib,Name,Gender,Age,City,State,Finish Time\n";
 	} else {
 		resultsString = "Bib,Finish Time\n";
@@ -47,7 +47,7 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 		let age = "N/A";
 		let city = "N/A";
 		let state = "N/A";
-		if (appMode === "Online" || appMode === "TimeKeeper" && bib > 0) {
+		if (appMode === "Online" || appMode === "Backup" && bib > 0) {
 			const p = participants.find((participant) => participant.bib_num === bib);
 			if (p) {
 				name = `${p.user.first_name} ${p.user.last_name}`;
@@ -58,7 +58,7 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 			}
 		}
 		
-		if (appMode === "Online" || appMode === "TimeKeeper") {
+		if (appMode === "Online" || appMode === "Backup") {
 			resultsString += `${i+1},${bib},${name},${gender},${age},${city},${state},${GetClockTime(time)}\n`;
 		} else {
 			resultsString += `${bib},${GetClockTime(time)}\n`;
@@ -67,14 +67,14 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 
 	// Timing Data File
 	let realStartTime = 0;
-	if (appMode === "Online" || appMode === "TimeKeeper") {
+	if (appMode === "Online" || appMode === "Backup") {
 		const startTime = await getStartTime(raceID, eventID);
 		const startTimeDate = new Date(startTime.replace(" ","T"));
 		if (startTime) {
 			realStartTime = startTimeDate.getTime();
 		}
 	} else {
-		const [eventList, eventIndex] = await GetLocalOfflineEvent(time);
+		const [eventList, eventIndex] = await GetOfflineEvent(time);
 		const event = eventList[eventIndex];
 		if (event?.real_start_time > 0) {
 			realStartTime = event.real_start_time;

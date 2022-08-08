@@ -7,7 +7,7 @@ import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
 import GetClockTime from "../helpers/GetClockTime";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
-import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
+import GetOfflineEvent from "../helpers/GetOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { TabParamList } from "../components/AppStack";
@@ -114,7 +114,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			)
 		});
 
-		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
+		if (context.appMode === "Online" || context.appMode === "Backup") {
 			// Online mode
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -135,7 +135,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		}
 		else {
 			// Offline mode
-			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
+			GetOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 				if (eventIndex !== -1) {
 					// Check if they previously started recording
 					const prevStart = eventList[eventIndex].real_start_time;
@@ -177,7 +177,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		}
 
 		// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
-		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
+		if (context.appMode === "Online" || context.appMode === "Backup") {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -192,7 +192,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 		} else {
 			// Offline Functionality
-			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
+			GetOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 				if (eventIndex !== -1) {
 					eventList[eventIndex].real_start_time = startTime.current;
 					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
@@ -280,7 +280,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			}
 
 			// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
-			if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
+			if (context.appMode === "Online" || context.appMode === "Backup") {
 				// Online Functionality
 				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -293,7 +293,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				}
 			} else {
 				// Offline Functionality
-				const [eventList, eventIndex] = await GetLocalOfflineEvent(context.time);
+				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
 				if (eventIndex !== -1) {
 					eventList[eventIndex].real_start_time = timeOfDay;
 					await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));

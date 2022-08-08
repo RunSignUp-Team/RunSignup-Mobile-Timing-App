@@ -312,7 +312,6 @@ export const postStartTime = async (raceID: number, eventID: number, startTime: 
 
 /** Post Finish Times to RSU API */
 export const postFinishTimes = async (raceID: number, eventID: number, times: Array<number>): Promise<FormData> => {
-
 	const timeString = [];
 
 	for (let i = 0; i < times.length; i++) {

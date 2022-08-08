@@ -32,7 +32,7 @@ export const CheckEntries = (
 		// Filter bib numbers that start with 0
 		Alert.alert("Incorrect Bib Entry", "There is a bib entry that starts with 0 in the list. Please fill in the correct value.");
 	} else {
-		if (appMode === "Online" || appMode === "TimeKeeper") {
+		if (appMode === "Online" || appMode === "Backup") {
 			Alert.alert(
 				"Save Results",
 				"Are you sure you want to save to the cloud and quit?",

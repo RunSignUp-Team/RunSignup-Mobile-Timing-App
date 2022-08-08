@@ -7,7 +7,7 @@ import { getBibs, postBibs } from "../helpers/APICalls";
 import { MemoChuteItem } from "../components/ChuteModeRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
-import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
+import GetOfflineEvent from "../helpers/GetOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
@@ -103,7 +103,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [navigation]);
 
 	const addToStorage = useCallback(async (final, bibNumsParam) => {
-		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
+		if (context.appMode === "Online" || context.appMode === "Backup") {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(async ([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
@@ -168,7 +168,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			});
 		} else {
 			// Offline Functionality
-			GetLocalOfflineEvent(context.time).then(async ([eventList, eventIndex]) => {
+			GetOfflineEvent(context.time).then(async ([eventList, eventIndex]) => {
 				if (eventIndex !== -1) {
 					eventList[eventIndex].bib_nums = bibNumsParam;
 
@@ -227,7 +227,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		});
 
 		// Get local storage if any
-		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
+		if (context.appMode === "Online" || context.appMode === "Backup") {
 			// Online Functionality
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
@@ -238,7 +238,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			});
 		} else {
 			// Offline Functionality
-			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
+			GetOfflineEvent(context.time).then(([eventList, eventIndex]) => {
 				updateBibNums(eventList[eventIndex].bib_nums);
 				if (eventList[eventIndex].bib_nums.length > 0) {
 					// Alert user of data recovery
@@ -272,7 +272,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			Alert.alert(
 				"Save Results",
-				`Are you sure you want to save ${context.appMode === "Online" || context.appMode === "TimeKeeper" ? "to the cloud" : "results"} and quit?`,
+				`Are you sure you want to save ${context.appMode === "Online" || context.appMode === "Backup" ? "to the cloud" : "results"} and quit?`,
 				[
 					{ text: "Cancel" },
 					{

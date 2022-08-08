@@ -157,8 +157,8 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 					source={require("../assets/logo.png")}
 				/>
 				<MainButton text={"Online Races"} onPress={(): void => { onlineOrTimekeeperTapped("Online"); }} buttonStyle={{ marginTop: 50 }} />
-				<MainButton text={"Time Keeper"} onPress={(): void => { onlineOrTimekeeperTapped("TimeKeeper"); }}  />
-				<MainButton text={"Local Events"} onPress={offlineTapped} />
+				<MainButton text={"Backup Races"} onPress={(): void => { onlineOrTimekeeperTapped("Backup"); }}  />
+				<MainButton text={"Offline Events"} onPress={offlineTapped} />
 				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				<View style={{ position: "absolute", bottom: 20, width: "100%" }}>
 					{version ? <Text style={globalstyles.modalHeader}>{`Version ${version}`}</Text> : null}

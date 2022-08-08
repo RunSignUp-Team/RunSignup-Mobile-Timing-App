@@ -4,7 +4,7 @@ import { OfflineEvent } from "../screens/OfflineEvents";
 /**
  * Get the local event list and event index if possible
  */
-export default async function GetLocalOfflineEvent(time: number): Promise<[Array<OfflineEvent>, number]> {
+export default async function GetOfflineEvent(time: number): Promise<[Array<OfflineEvent>, number]> {
 	const response = await AsyncStorage.getItem("offlineEvents");
 	if (response !== null) {
 		const eventList = JSON.parse(response);

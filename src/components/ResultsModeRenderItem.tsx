@@ -86,11 +86,11 @@ export default function ResultsModeRenderItem(props: Props): React.ReactElement 
 					{GetClockTime(props.record[1])}</Text>}
 
 				{/* No Conflict Participant */}
-				{!conflictItem && (props.appMode === "Online" || props.appMode === "TimeKeeper") &&
+				{!conflictItem && (props.appMode === "Online" || props.appMode === "Backup") &&
 					<Text style={[globalstyles.nameTableText, { flexWrap: "wrap" }]}>{props.findParticipant(props.record[0])}</Text>}
 
 				{/* Conflict Participant */}
-				{conflictItem && (props.appMode === "Online" || props.appMode === "TimeKeeper") &&
+				{conflictItem && (props.appMode === "Online" || props.appMode === "Backup") &&
 					<Text style={[globalstyles.nameTableText, { flexWrap: "wrap" }]}>{`${props.findParticipant(props.record[0])} /\n${props.findParticipant(props.record[2])}`}</Text>}
 
 				{/* Delete Button */}

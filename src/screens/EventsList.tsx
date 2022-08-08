@@ -62,7 +62,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 			if (context.appMode === "Online") {
 				response = await AsyncStorage.getItem("onlineRaces");
 			} 
-			if (context.appMode === "TimeKeeper") {
+			if (context.appMode === "Backup") {
 				response = await AsyncStorage.getItem("backupRaces");
 			}
 			if (response) {
@@ -79,7 +79,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				),
 				headerRight: () => (
 					<View style={{ flexDirection: "row", width: 70, justifyContent: "space-between", alignItems: "center" }}>
-						<SyncAnimation disabled={context.appMode === "TimeKeeper"} />
+						<SyncAnimation disabled={context.appMode === "Backup"} />
 						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
 							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
 						</TouchableOpacity>

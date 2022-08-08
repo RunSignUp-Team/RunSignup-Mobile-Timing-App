@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import BugsnagHelper from "../helpers/BugsnagHelper";
 
-export type AppMode = "Online" | "Offline" | "TimeKeeper";
+export type AppMode = "Online" | "Offline" | "Backup";
 
 export interface Context {
 	appMode: AppMode;
