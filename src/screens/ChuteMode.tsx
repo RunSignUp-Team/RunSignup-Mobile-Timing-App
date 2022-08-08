@@ -108,7 +108,11 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			GetLocalRaceEvent(context.raceID, context.eventID).then(async ([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
 					raceList[raceIndex].events[eventIndex].bib_nums = bibNumsParam;
-					await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					if (context.appMode === "Online") {
+						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					} else {
+						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+					}
 
 					if (final) {
 						try {
@@ -136,7 +140,11 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 									if (raceIndex !== null && eventIndex !== null) {
 										raceList[raceIndex].events[eventIndex].bib_nums = [];
-										AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+										if (context.appMode === "Online") {
+											AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+										} else {
+											AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+										}
 									}
 								});
 

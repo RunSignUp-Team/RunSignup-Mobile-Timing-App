@@ -226,7 +226,11 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
 				if (raceIndex !== -1 && eventIndex !== -1) {
 					raceList[raceIndex].events[eventIndex].real_start_time = startTime.current;
-					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					if (context.appMode === "Online") {
+						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					} else {
+						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+					}
 				}
 			});
 
@@ -325,7 +329,11 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 				if (raceIndex !== -1 && eventIndex !== -1) {
 					raceList[raceIndex].events[eventIndex].real_start_time = timeOfDay;
-					await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					if (context.appMode === "Online") {
+						await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					} else {
+						await AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+					}
 				}
 			} else {
 				// Offline Functionality

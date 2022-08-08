@@ -335,7 +335,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	}, [records]);
 
 	const clearAndPush = useCallback(async () => {
-		if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
+		if (context.appMode === "Online") {
 			try {
 				// Clear old bib data
 				await deleteBibs(context.raceID, context.eventID);
@@ -547,7 +547,11 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				if (raceIndex !== null && eventIndex !== null) {
 					raceList[raceIndex].events[eventIndex].bib_nums[index] = recordsRef.current[index][0];
 					raceList[raceIndex].events[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
-					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					if (context.appMode === "Online") {
+						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					} else {
+						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+					}
 				}
 			});
 		} else {

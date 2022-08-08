@@ -58,7 +58,13 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		const setNavigation = async (): Promise<void> => {
 			let raceName = "";
-			const response = await AsyncStorage.getItem("onlineRaces");
+			let response: string | null = null;
+			if (context.appMode === "Online") {
+				response = await AsyncStorage.getItem("onlineRaces");
+			} 
+			if (context.appMode === "TimeKeeper") {
+				response = await AsyncStorage.getItem("backupRaces");
+			}
 			if (response) {
 				const races = JSON.parse(response) as Array<Race>;
 				const race = races.find(foundRace => foundRace.race_id === context.raceID);
@@ -89,9 +95,14 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	const fetchEvents = useCallback(async (): Promise<void> => {
 		try {
 			setLoading(true);
-
+			
 			// Get events
-			const response = await AsyncStorage.getItem("onlineRaces");
+			let response: string | null = null;
+			if (context.appMode === "Online") {
+				response = await AsyncStorage.getItem("onlineRaces");
+			} else {
+				response = await AsyncStorage.getItem("backupRaces");
+			}
 			const localRaceList: Array<Race> = response !== null ? JSON.parse(response) : [];
 			const race = localRaceList.find((race) => race.race_id === context.raceID);
 
@@ -105,7 +116,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 			CreateAPIError("Events", error);
 			setLoading(false);
 		}
-	}, [context.raceID]);
+	}, [context.appMode, context.raceID]);
 
 	const firstRun = useRef(true);
 	useEffect(() => {

@@ -93,7 +93,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [context.appMode, goToHomeScreen, handleLogOut, navigation]);
 
 	// Get Race List data from API
-	const fetchRaces = async (reload: boolean): Promise<void> => {
+	const fetchRaces = useCallback(async (reload: boolean): Promise<void> => {
 		try {
 			if (reload) {
 				setRefreshing(true);
@@ -102,7 +102,13 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 
 			const races = await getRaces();
-			const response = await AsyncStorage.getItem("onlineRaces");
+			let response: string | null = null;
+			if (context.appMode === "Online") {
+				response = await AsyncStorage.getItem("onlineRaces");
+			} else {
+				response = await AsyncStorage.getItem("backupRaces");
+			}
+
 			const localRaceList: Array<Race> = response !== null ? JSON.parse(response) : [];
 			const combinedRaceList: Array<Race> = [];
 
@@ -165,7 +171,12 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 			// Update race list and local storage
 			setFinalRaceList([...combinedRaceList]);
-			AsyncStorage.setItem("onlineRaces", JSON.stringify(combinedRaceList));
+			
+			if (context.appMode === "Online") {
+				AsyncStorage.setItem("onlineRaces", JSON.stringify(combinedRaceList));
+			} else {
+				AsyncStorage.setItem("backupRaces", JSON.stringify(combinedRaceList));
+			}
 
 			if (reload) {
 				setRefreshing(false);
@@ -181,7 +192,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				setLoading(false);
 			}
 		}
-	};
+	}, [context.appMode]);
 
 	const firstRun = useRef(true);
 	useEffect(() => {
@@ -189,7 +200,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			firstRun.current = false;
 			fetchRaces(false);
 		}
-	}, [context.eventID, context.eventTitle, context.raceID]);
+	}, [context.eventID, context.eventTitle, context.raceID, fetchRaces]);
 
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: Race, index: number }): React.ReactElement => {

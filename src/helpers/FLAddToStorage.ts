@@ -28,7 +28,11 @@ export const AddToStorage = async (
 			if (raceIndex !== -1 && eventIndex !== -1) {
 				raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
 				raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
-				AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				if (appMode === "Online") {
+					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				} else {
+					AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+				}
 			} else {
 				Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex], true);
 			}
@@ -64,7 +68,11 @@ export const AddToStorage = async (
 							raceList[raceIndex].events[eventIndex].checker_bibs = [];
 							raceList[raceIndex].events[eventIndex].finish_times = [];
 							raceList[raceIndex].events[eventIndex].real_start_time = -1;
-							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+							if (appMode === "Online") {
+								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+							} else {
+								AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+							}
 						}
 					});
 
