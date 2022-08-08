@@ -271,7 +271,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const updateStartTime = useCallback(async (timeOfDay: number): Promise<void> => {
 		try {
 			// Post to RSU
-			if (context.appMode === "Online" || context.appMode === "TimeKeeper") {
+			if (context.appMode === "Online") {
 				await postStartTime(context.raceID, context.eventID, timeOfDay);
 			}
 

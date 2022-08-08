@@ -25,7 +25,9 @@ export const SaveResults = async (
 
 	// Post start time
 	try {
-		await postStartTime(raceID, eventID, raceList[raceIndex].events[eventIndex].real_start_time);
+		if (appMode === "Online") {
+			await postStartTime(raceID, eventID, raceList[raceIndex].events[eventIndex].real_start_time);
+		}
 
 		// Post Finish Times data
 		if (finishTimesRef.current.length < 1) {
@@ -33,7 +35,10 @@ export const SaveResults = async (
 			Alert.alert("No Results", "You have not recorded any results. Please try again.");
 		} else {
 			try {
-				await postFinishTimes(raceID, eventID, finishTimesRef.current);
+				if (appMode === "Online") {
+					await postFinishTimes(raceID, eventID, finishTimesRef.current);
+				}
+				
 				AddToStorage(
 					raceID,
 					eventID,
