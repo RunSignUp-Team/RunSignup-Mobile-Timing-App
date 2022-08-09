@@ -228,7 +228,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				}
 			}
 
-			// Participants
+			// Get Participants
 			if (participantList.participants !== undefined) {
 				const parsedTicipants = [];
 				for (let i = 0; i < participantList.participants.length; i++) {
@@ -251,8 +251,86 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		}
 	}, [context.appMode, context.eventID, context.raceID, hasAPIData, updateRecords]);
 
+	// Backup Functionality
+	const getBackupRecords = useCallback(async (): Promise<void> => {
+		setLoading(true);
+
+		// Get participants from API
+		try {
+			const participantList = await getParticipants(context.raceID, context.eventID);
+		
+			const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+	
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				const event = raceList[raceIndex].events[eventIndex];
+				// Get Bibs
+				for (let i = 0; i < event.bib_nums.length; i++) {
+					if (i > recordsRef.current.length - 1) {
+						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+					}
+					recordsRef.current[i][0] = event.bib_nums[i];
+				}
+	
+				// Get Finish Times
+				const finishTimes = event.finish_times;
+				for (let i = 0; i < finishTimes.length; i++) {
+					const finishTime = finishTimes[i];
+					if (i > recordsRef.current.length - 1) {
+						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+					}
+					recordsRef.current[i][1] = finishTime;
+	
+					// Get Max Time for Adding New Records
+					if (finishTime > maxTime.current) {
+						maxTime.current = finishTime;
+					}
+				}
+	
+				// Get Checker Bibs
+				for (let i = 0; i < event.checker_bibs.length; i++) {
+					if (i > recordsRef.current.length - 1) {
+						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+					}
+					recordsRef.current[i][2] = event.checker_bibs[i];
+	
+					// Get best bib data available into records[0]
+					if (!recordsRef.current[i][0]) {
+						if (recordsRef.current[i][2]) {
+							recordsRef.current[i][0] = recordsRef.current[i][2];
+						} else {
+							recordsRef.current[i][0] = 0;
+						}
+					}
+				}
+	
+				// Get Participants
+				if (participantList.participants !== undefined) {
+					const parsedTicipants = [];
+					for (let i = 0; i < participantList.participants.length; i++) {
+						parsedTicipants.push(participantList.participants[i]);
+					}
+					setParticipants([...parsedTicipants]);
+				} else if (!__DEV__) {
+					Logger("No Participant Data Found", "No data from Runsignup", true);
+				}
+	
+				updateRecords([...recordsRef.current]);
+				// Toggle searchID useEffect
+				setSearch("");
+			}
+		} catch (error) {
+			CreateAPIError("Get Participants", error, true);
+		}
+
+		if (!isUnmountedRef.current) {
+			setLoading(false);
+		}
+	}, [context.eventID, context.raceID, updateRecords]);
+
 	// Offline Functionality
 	const getOfflineRecords = useCallback(async (): Promise<void> => {
+		setLoading(true);
+
 		const [eventList, eventIndex] = await GetOfflineEvent(context.time);
 
 		if (eventIndex >= 0) {
@@ -288,7 +366,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 				// Get best bib data available into records[0]
 				if (!recordsRef.current[i][0]) {
-					if (recordsRef.current[i][2] !== undefined && recordsRef.current[i][2] !== null && recordsRef.current[i][2] !== 0) {
+					if (recordsRef.current[i][2]) {
 						recordsRef.current[i][0] = recordsRef.current[i][2];
 					} else {
 						recordsRef.current[i][0] = 0;
@@ -311,10 +389,13 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		if (firstRun.current) {
 			firstRun.current = false;
-			if (context.appMode === "Online" || context.appMode === "Backup") {
+			if (context.appMode === "Online") {
+				// Online Functionality
 				getOnlineRecords(false);
+			} else if (context.appMode === "Backup") {
+				// Backup Functionality
+				getBackupRecords();
 			} else {
-				setLoading(true);
 				// Offline Functionality
 				getOfflineRecords();
 			}
@@ -323,7 +404,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		return () => {
 			isUnmountedRef.current = true;
 		};
-	}, [context.appMode, getOfflineRecords, getOnlineRecords]);
+	}, [context.appMode, getBackupRecords, getOfflineRecords, getOnlineRecords]);
 
 	// Only show delete alert if there were previously records saved for the event
 	const secondRun = useRef(1);
@@ -593,34 +674,39 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	}, [saveResults, updateRecords]);
 
 	// Update local storage to reflect conflict resolved
-	const conflictResolved = useCallback((index) => {
+	const conflictResolved = useCallback(async (index) => {
 		// Save results when all conflicts are resolved
 		if (conflicts === 1) {
 			checkEntries();
 		}
 
-		if (context.appMode === "Online" || context.appMode === "Backup") {
+		if (context.appMode === "Online") {
 			// Online Functionality
-			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-				if (raceIndex !== null && eventIndex !== null) {
-					raceList[raceIndex].events[eventIndex].bib_nums[index] = recordsRef.current[index][0];
-					raceList[raceIndex].events[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
-					if (context.appMode === "Online") {
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-					} else {
-						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-					}
-				}
-			});
+			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].bib_nums[index] = recordsRef.current[index][0];
+				raceList[raceIndex].events[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
+				AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+			}
+		} else if (context.appMode === "Backup") {
+			// Backup Functionality
+			const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].bib_nums[index] = recordsRef.current[index][0];
+				raceList[raceIndex].events[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
+				AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+			}
 		} else {
 			// Offline Functionality
-			GetOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-				if (eventIndex !== null) {
-					eventList[eventIndex].bib_nums[index] = recordsRef.current[index][0];
-					eventList[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
-					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-				}
-			});
+			const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+
+			if (eventIndex >= 0) {
+				eventList[eventIndex].bib_nums[index] = recordsRef.current[index][0];
+				eventList[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
+				AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+			}
 		}
 	}, [checkEntries, conflicts, context.eventID, context.appMode, context.raceID, context.time]);
 
@@ -907,7 +993,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					</TouchableOpacity>}
 
 					{/* RSU Results */}
-					{!editMode && !loading && context.appMode && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
+					{!editMode && !loading && context.appMode === "Online" && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
 						<Icon name={"stats-bars2"} size={24} color={WHITE_COLOR} />
 					</TouchableOpacity>}
 					{/* Share Results */}
@@ -1063,7 +1149,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
 						ref={flatListRef}
-						onRefresh={((context.appMode === "Online" || context.appMode === "Backup") && !editMode) ? (): void => { getOnlineRecords(true); } : undefined}
+						onRefresh={((context.appMode === "Online") && !editMode) ? (): void => { getOnlineRecords(true); } : undefined}
 						refreshing={refreshing}
 						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
 						extraData={selectedID}

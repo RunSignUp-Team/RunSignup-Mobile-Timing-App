@@ -28,7 +28,7 @@ export type RootStackParamList = {
 	FinishLineMode: undefined,
 	AltFinishLineMode: undefined,
 	ChuteMode: undefined,
-	VerificationMode: undefined,
+	ResultsMode: undefined,
 	ListView: undefined
 };
 
@@ -148,7 +148,7 @@ export default function StartNavigator(): React.ReactElement {
 					title: "Chute Mode",
 					gestureEnabled: false
 				}} />
-				<AppStack.Screen name="VerificationMode" component={ResultsMode} options={{
+				<AppStack.Screen name="ResultsMode" component={ResultsMode} options={{
 					title: "Results",
 					gestureEnabled: false
 				}} />

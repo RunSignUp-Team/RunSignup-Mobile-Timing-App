@@ -120,11 +120,11 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			cDone = await AsyncStorage.getItem(`chuteDone:backup:${context.raceID}:${context.eventID}`) === "true";
 
 			// Check if Finish Line / Chute in progress
-			const [localEventList, eventIndex] = await GetOfflineEvent(context.time);
-			if (!flDone && localEventList[eventIndex].real_start_time >= 0) {
+			const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+			if (!flDone && raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].real_start_time >= 0) {
 				flProgress = true;
 			}
-			if (!cDone && localEventList[eventIndex].bib_nums.length > 0) {
+			if (!cDone && raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 				cProgress = true;
 			}
 		} else {
@@ -134,11 +134,11 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			cDone = await AsyncStorage.getItem(`chuteDone:${context.time}`) === "true";
 
 			// Check if Finish Line / Chute in progress
-			const [localEventList, eventIndex] = await GetOfflineEvent(context.time);
-			if (!flDone && localEventList[eventIndex].real_start_time >= 0) {
+			const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+			if (!flDone && eventIndex >= 0 && eventList[eventIndex].real_start_time >= 0) {
 				flProgress = true;
 			}
-			if (!cDone && localEventList[eventIndex].bib_nums.length > 0) {
+			if (!cDone && eventIndex >= 0 && eventList[eventIndex].bib_nums.length > 0) {
 				cProgress = true;
 			}
 		}
@@ -267,8 +267,8 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
-	// Verification Mode tapped
-	const verificationTapped = async (): Promise<void> => {
+	// Results Mode tapped
+	const resultsTapped = async (): Promise<void> => {
 		try {
 			// Check for local edits
 			if (noResults) {
@@ -277,15 +277,15 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					"There is local data on your device that has not been saved & uploaded to RunSignup. Please save that data and try again."
 				);
 			} else {
-				navigation.navigate("VerificationMode");
+				navigation.navigate("ResultsMode");
 			}
 		} catch (error) {
 			CreateAPIError("Modes", error);
 		}
 	};
 
-	// Verification Mode tapped (offline)
-	const verificationTappedOffline = async (): Promise<void> => {
+	// Results Mode tapped (offline)
+	const resultsTappedOffline = async (): Promise<void> => {
 		try {
 			if (noResults) {
 				Alert.alert(
@@ -293,7 +293,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					"There is local data on your device that has not been saved. Please save that data and try again."
 				);
 			} else {
-				navigation.navigate("VerificationMode");
+				navigation.navigate("ResultsMode");
 			}
 		} catch (error) {
 			Logger("Unknown Error (Offline Modes)", error, true);
@@ -365,9 +365,9 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			<MainButton disabled={loading} color={noFinishLine || loading ? "Disabled" : "Green"} onPress={context.appMode === "Offline" ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
-			<MainButton disabled={loading} color={noChute || loading ? "Disabled" : "Green"} onPress={context.appMode === "Offline" ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
-			<MainButton disabled={loading} color={noResults || loading ? "Disabled" : "Green"} onPress={context.appMode === "Offline" ? verificationTappedOffline : verificationTapped} text={"Results"} />
+			<MainButton disabled={loading} color={noFinishLine || loading ? "Disabled" : "Green"} onPress={context.appMode !== "Online" ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
+			<MainButton disabled={loading} color={noChute || loading ? "Disabled" : "Green"} onPress={context.appMode !== "Online" ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
+			<MainButton disabled={loading} color={noResults || loading ? "Disabled" : "Green"} onPress={context.appMode !== "Online" ? resultsTappedOffline : resultsTapped} text={"Results"} />
 			{context.appMode !== "Backup" ? <MainButton onPress={context.appMode === "Online" ? assignEvent : deleteEvent} text={context.appMode === "Online" ? "Assign Offline Event" : "Delete Offline Event"} color={context.appMode ? "Gray" : "Red"} /> : null}
 			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 			<MainButton text={"Get Support"} onPress={getSupport} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />

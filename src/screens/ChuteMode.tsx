@@ -117,10 +117,10 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 						const bibs = await getBibs(context.raceID, context.eventID);
 
 						if (bibs !== null && bibs.length > 0) {
-							// If there are already bibs saved from Finish Line Mode, navigate to Verification Mode
+							// If there are already bibs saved from Finish Line Mode, navigate to Results Mode
 							setLoading(false);
 							navigation.navigate("ModeScreen");
-							navigation.navigate("VerificationMode");
+							navigation.navigate("ResultsMode");
 						} else {
 							// Otherwise push bibs
 							const formData = new FormData();
@@ -170,7 +170,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					navigation.navigate("ModeScreen");
 					await AsyncStorage.getItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, (_err, result) => {
 						if (result === "true") {
-							navigation.navigate("VerificationMode");
+							navigation.navigate("ResultsMode");
 						} else {
 							AsyncStorage.setItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, "true");
 						}
@@ -194,7 +194,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					navigation.navigate("ModeScreen");
 					await AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
 						if (result === "true") {
-							navigation.navigate("VerificationMode");
+							navigation.navigate("ResultsMode");
 						} else {
 							AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
 						}

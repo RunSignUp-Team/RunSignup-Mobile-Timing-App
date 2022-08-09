@@ -39,11 +39,11 @@ export const AddToStorage = async (
 				const bibs = await getBibs(raceID, eventID);
 
 				if (bibs && bibs.length > 0) {
-					// If there are already bibs saved from Chute Mode, navigate to Verification Mode
+					// If there are already bibs saved from Chute Mode, navigate to Results Mode
 					AsyncStorage.setItem(`chuteDone:${raceID}:${eventID}`, "true");
 					setLoading(false);
 					navigation.navigate("ModeScreen");
-					navigation.navigate("VerificationMode");
+					navigation.navigate("ResultsMode");
 				} else {
 					// Otherwise push bibs
 					// Formatting and appending bib numbers
@@ -88,6 +88,19 @@ export const AddToStorage = async (
 		} else {
 			Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex, appMode], true);
 		}
+
+		if (final) {
+			// Navigate away
+			AsyncStorage.setItem(`finishLineDone:backup:${raceID}:${eventID}`, "true");
+			setLoading(false);
+	
+			navigation.navigate("ModeScreen");
+			await AsyncStorage.getItem(`chuteDone:backup:${raceID}:${eventID}`, (_err, result) => {
+				if (result === "true") {
+					navigation.navigate("ResultsMode");
+				}
+			});
+		}
 	} else {
 		const [eventList, eventIndex] = await GetOfflineEvent(time);
 
@@ -98,18 +111,20 @@ export const AddToStorage = async (
 		} else {
 			Logger("Local Storage Error (Finish Line)", [eventList, eventIndex, appMode], true);
 		}
+
+		if (final) {
+			// Navigate away
+			AsyncStorage.setItem(`finishLineDone:${time}`, "true");
+			setLoading(false);
+	
+			navigation.navigate("ModeScreen");
+			await AsyncStorage.getItem(`chuteDone:${time}`, (_err, result) => {
+				if (result === "true") {
+					navigation.navigate("ResultsMode");
+				}
+			});
+		}
 	}
 
-	if (final) {
-		// Navigate away
-		AsyncStorage.setItem(`finishLineDone:${time}`, "true");
-		setLoading(false);
-
-		navigation.navigate("ModeScreen");
-		await AsyncStorage.getItem(`chuteDone:${time}`, (_err, result) => {
-			if (result === "true") {
-				navigation.navigate("VerificationMode");
-			}
-		});
-	}
+	
 };
