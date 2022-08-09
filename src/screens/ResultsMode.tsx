@@ -1160,7 +1160,9 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			{!loading && recordsRef.current.length > 0 ?
 				<>
 					<FlatList
-						showsVerticalScrollIndicator={false}
+						showsVerticalScrollIndicator={true}
+						scrollIndicatorInsets={{ right: 1 }}
+						indicatorStyle={"black"}
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
 						ref={flatListRef}

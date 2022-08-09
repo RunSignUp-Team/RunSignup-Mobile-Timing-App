@@ -118,6 +118,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		setBibObjects(bibObjectsRef.current);
 	}, []);
 
+	/** Load RSU Bibs */
 	const loadRSUBibs = useCallback(async (alert: boolean, errorAlert: boolean): Promise<void> => {
 		if (context.appMode === "Offline") {
 			return;
@@ -220,6 +221,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		});
 
 		const getOldData = async (): Promise<void> => {
+			setLoading(true);
 			if (context.appMode === "Online" || context.appMode === "Backup") {
 				// Online modes
 				let [raceList, raceIndex, eventIndex] = DefaultEventData;
@@ -262,17 +264,18 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					}
 				}
 			}
+
+			// Done with initial loading
+			setLoading(false);
+
+			const flatListRefCurrent = flatListRef.current;
+			if (flatListRefCurrent !== null) {
+				console.log("hi");
+				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
+			}
 		};
 
 		getOldData();
-
-		const flatListRefCurrent = flatListRef.current;
-		if (flatListRefCurrent !== null) {
-			setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
-		}
-
-		// Done with initial loading
-		setLoading(false);
 
 		return () => {
 			isUnmounted.current = true;
@@ -603,7 +606,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				{!loading &&
 					<>
 						<FlatList
-							showsVerticalScrollIndicator={false}
+							showsVerticalScrollIndicator={true}
+							scrollIndicatorInsets={{ right: -2 }}
+							indicatorStyle={"black"}
 							style={gridView ? globalstyles.shortFlatList : globalstyles.flatList}
 							ref={flatListRef}
 							data={finishTimesRef.current}
@@ -631,7 +636,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									style={[globalstyles.gridFlatList, {	
 										height: Dimensions.get("window").height - TABLE_ITEM_HEIGHT * 3 - TABLE_HEADER_HEIGHT * 2 - headerHeight - 100
 									}]}
-									showsVerticalScrollIndicator={false}
+									showsVerticalScrollIndicator={true}
+									scrollIndicatorInsets={{ right: -2 }}
+									indicatorStyle={"black"}
 									renderItem={bibRenderItem}
 									keyExtractor={(_item, index): string => {
 										return "bibObject_" + _item + index;

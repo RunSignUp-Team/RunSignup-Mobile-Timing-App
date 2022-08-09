@@ -281,7 +281,9 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				{!loading &&
 					<FlatList
 						ListHeaderComponent={(context.appMode === "Online" || context.appMode === "Backup" || (data.length < 1 && eventList.length > 0)) ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
-						showsVerticalScrollIndicator={false}
+						showsVerticalScrollIndicator={true}
+						scrollIndicatorInsets={{ right: -2 }}
+						indicatorStyle={"black"}
 						data={data}
 						renderItem={renderItem}
 						ref={flatListRef}

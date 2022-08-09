@@ -177,7 +177,7 @@ export const globalstyles = StyleSheet.create({
 	tableHead: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
-		borderTopWidth: 3,
+		borderTopWidth: 2,
 		borderBottomColor: GRAY_COLOR,
 		borderTopColor: GRAY_COLOR,
 		paddingHorizontal: UNIVERSAL_PADDING,
@@ -185,7 +185,12 @@ export const globalstyles = StyleSheet.create({
 		height: TABLE_HEADER_HEIGHT,
 		backgroundColor: LIGHT_GRAY_COLOR,
 		alignItems: "center",
-		justifyContent: "center"
+		justifyContent: "center",
+		shadowColor: DARK_GREEN_COLOR,
+		shadowOffset: { width: 0, height: 3 },
+		shadowOpacity: 0.6,
+		shadowRadius: 3,
+		elevation: 10,
 	},
 
 	// Table Text

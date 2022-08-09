@@ -176,7 +176,9 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 				{!loading &&
 					<FlatList
-						showsVerticalScrollIndicator={false}
+						showsVerticalScrollIndicator={true}
+						scrollIndicatorInsets={{ right: -2 }}
+						indicatorStyle={"black"}
 						data={data}
 						renderItem={renderItem}
 						keyExtractor={(_item, index): string => (index + 1).toString()}

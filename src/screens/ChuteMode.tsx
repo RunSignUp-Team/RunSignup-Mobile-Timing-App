@@ -483,7 +483,9 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				{!loading &&
 					<>
 						<FlatList
-							showsVerticalScrollIndicator={false}
+							showsVerticalScrollIndicator={true}
+							scrollIndicatorInsets={{ right: -2 }}
+							indicatorStyle={"black"}
 							style={showScanner && hasPermission ? globalstyles.shortFlatList : globalstyles.flatList}
 							ref={flatListRef}
 							data={bibNumsRef.current}
