@@ -362,6 +362,6 @@ export const globalstyles = StyleSheet.create({
 	altTimeText: {
 		color: WHITE_COLOR, 
 		fontFamily: "RobotoMono", 
-		fontSize: 12.5
+		fontSize: TABLE_FONT_SIZE
 	}
 });

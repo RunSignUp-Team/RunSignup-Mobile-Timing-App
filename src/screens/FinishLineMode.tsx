@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, WHITE_COLOR, MAX_TIME, DARK_GRAY_COLOR, BIG_FONT_SIZE } from "../components/styles";
+import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, Alert, FlatList, ActivityIndicator, Platform, BackHandler, Dimensions, TextInput } from "react-native";
+import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, BLACK_COLOR, WHITE_COLOR, DARK_GRAY_COLOR, MAX_TIME, BIG_FONT_SIZE, TABLE_FONT_SIZE, UNIVERSAL_PADDING, TABLE_HEADER_HEIGHT } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
+import { getParticipants, ParticipantResponse } from "../helpers/APICalls";
 import GetClockTime from "../helpers/GetClockTime";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent, { DefaultEventData } from "../helpers/GetLocalRaceEvent";
@@ -11,16 +12,18 @@ import GetOfflineEvent from "../helpers/GetOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { TabParamList } from "../components/AppStack";
-import MainButton from "../components/MainButton";
 import { ItemLayout } from "../models/ItemLayout";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
 import Icon from "../components/IcoMoon";
+import { MemoBibItem } from "../components/MemoBibItem";
 import { AddToStorage } from "../helpers/FLAddToStorage";
 import { CheckEntries } from "../helpers/FLCheckEntries";
 import { postStartTime } from "../helpers/APICalls";
 import Logger from "../helpers/Logger";
 import GetBackupEvent from "../helpers/GetBackupEvent";
+import MainButton from "../components/MainButton";
+import { useHeaderHeight } from "@react-navigation/elements";
 
 type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
@@ -28,8 +31,19 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
+export type BibObject = {
+	bib: number,
+	name: string,
+	age: number | null,
+	gender: string | null
+}
+
+const TimeRefreshRate = 150;
+const BibRefreshRate = 60000;
+
 export default function FinishLineModeScreen({ navigation }: Props): React.ReactElement {
 	const context = useContext(AppContext);
+	const headerHeight = useHeaderHeight();
 
 	// Bib Input
 	const [bibText, setBibText] = useState("");
@@ -40,7 +54,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const [timerOn, setTimerOn] = useState(false);
 	const [displayTime, setDisplayTime] = useState(0);
 	const startTime = useRef<number>(-1);
-	const interval = useRef<NodeJS.Timer>();
+	const timerInterval = useRef<NodeJS.Timer>();
 
 	// Finish Times
 	const [finishTimes, setFinishTimes] = useState<Array<number>>([]);
@@ -49,6 +63,12 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	// Checker Bibs
 	const [checkerBibs, setCheckerBibs] = useState<Array<number>>([]);
 	const checkerBibsRef = useRef(checkerBibs);
+
+	// Grid View
+	const [gridView, setGridView] = useState(false);
+	const [rsuBibs, setRSUBibs] = useState<Array<BibObject>>([]);
+	const rsuBibsRef = useRef<Array<BibObject>>(rsuBibs);
+	const bibsInterval = useRef<NodeJS.Timer>();
 
 	// Alerts
 	const [alertVisible, setAlertVisible] = useState(false);
@@ -92,6 +112,90 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		AddToStorage(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
 	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
+	/** Updates Alt Bibs without re-rendering entire list */
+	const updateAltBibs = useCallback((newBibs: Array<BibObject>) => {
+		rsuBibsRef.current = newBibs;
+		setRSUBibs(rsuBibsRef.current);
+	}, []);
+
+	const loadRSUBibs = useCallback(async (alert: boolean, errorAlert: boolean): Promise<void> => {
+		if (context.appMode === "Offline") {
+			return;
+		}
+		
+		if (alert || errorAlert) {
+			setLoading(true);
+		}
+		let participants: ParticipantResponse[0] | undefined;
+		try {
+			// Get participants
+			participants = await getParticipants(context.raceID, context.eventID);
+			// Remove null bibs
+			let filteredParticipants = participants.participants?.filter(participant => participant.bib_num !== null);
+			// Remove duplicate bibs
+			filteredParticipants = filteredParticipants.filter((c, index) => filteredParticipants.map(fParticipant => fParticipant.bib_num).indexOf(c.bib_num) === index);
+			// Sort by bibs ascending
+			filteredParticipants = filteredParticipants.sort((a, b) => (a.bib_num - b.bib_num));
+
+			// Create Bib Objects
+			const bibObjects: Array<BibObject> = [];
+			for (let i = 0; i < filteredParticipants.length; i++) {
+				const fParticipant = filteredParticipants[i];
+				bibObjects.push({
+					bib: fParticipant.bib_num,
+					name: fParticipant.user.first_name + " " + fParticipant.user.last_name,
+					age: fParticipant.age,
+					gender: fParticipant.user.gender
+				});
+			}
+			if (participants.participants && bibObjects.length > 0) {
+				updateAltBibs(bibObjects);
+				if (context.appMode === "Online") {
+					AsyncStorage.setItem(`bibObjects:${context.raceID}:${context.eventID}`, JSON.stringify(bibObjects));
+				} else {
+					AsyncStorage.setItem(`bibObjects:backup:${context.raceID}:${context.eventID}`, JSON.stringify(bibObjects));
+				}
+
+				if (alert)
+					Alert.alert("Bibs Refreshed", "Bib numbers were successfully refreshed from RunSignup.");
+			} else {
+				throw Error("No Participants or Bibs");
+			}
+		} catch {
+			let storedBibsString: string | null = null;
+			if (context.appMode === "Online") {
+				storedBibsString = await AsyncStorage.getItem(`bibsObjects:${context.raceID}:${context.eventID}`);
+			} else {
+				storedBibsString = await AsyncStorage.getItem(`bibObjects:backup:${context.raceID}:${context.eventID}`);
+			}
+			if (storedBibsString) {
+				updateAltBibs(JSON.parse(storedBibsString));
+			} else if (errorAlert) {
+				Alert.alert(
+					"No Bibs Found",
+					"No bib numbers were found for this event at RunSignup. Grid View only works when participants have been assigned bib numbers beforehand. Please try again.",
+					[
+						{
+							text: "Go To List View",
+							onPress: (): void => {
+								setGridView(false);
+							}
+						}
+					]
+				);
+			}
+		}
+
+		if (alert || errorAlert) {
+			setLoading(false);
+		}	
+	}, [context.appMode, context.eventID, context.raceID, updateAltBibs]);
+
+	/** Load RSU Bibs */
+	useFocusEffect(useCallback(() => {
+		loadRSUBibs(false, false);
+	}, [loadRSUBibs]));
+
 	/** Back Button */
 	useFocusEffect(
 		useCallback(() => {
@@ -109,8 +213,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	/** Get old data in case screen closed before saving */
 	useFocusEffect(useCallback(() => {
-		const nav = navigation.getParent() ? navigation.getParent() : navigation;
-		nav?.setOptions({
+		navigation.setOptions({
 			headerLeft: () => (
 				<HeaderBackButton onPress={backTapped} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			)
@@ -118,7 +221,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 		const getOldData = async (): Promise<void> => {
 			if (context.appMode === "Online" || context.appMode === "Backup") {
-				// Online mode
+				// Online modes
 				let [raceList, raceIndex, eventIndex] = DefaultEventData;
 				if (context.appMode === "Online") {
 					[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
@@ -144,7 +247,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			else {
 				// Offline mode
 				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
-
 				if (eventIndex >= 0) {
 					// Check if they previously started recording
 					const prevStart = eventList[eventIndex].real_start_time;
@@ -177,8 +279,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		};
 	}, [backTapped, context.eventID, context.appMode, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]));
 
-	/** Reload timer when screen comes into focus */
-	useFocusEffect(useCallback(() => {
+	useEffect(() => {
 		const reloadTimer = async (): Promise<void> => {
 			if (context.appMode === "Online" || context.appMode === "Backup") {
 				let [raceList, raceIndex, eventIndex] = DefaultEventData;
@@ -189,22 +290,29 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				}
 				if (raceIndex >= 0 && eventIndex >= 0) {
 					const savedStartTime = raceList[raceIndex].events[eventIndex].real_start_time;
-					// Start timer interval to display how long race has been occurring
 					if (savedStartTime >= 0) {
-						interval.current = setInterval(() => {
+						// Start timer timerInterval to display how long race has been occurring
+						timerInterval.current = setInterval(() => {
 							setDisplayTime(Date.now() - savedStartTime);
-						}, 150);
+						}, TimeRefreshRate);
+						// Start bibs interval to auto-pull latest bibs
+						bibsInterval.current = setInterval(() => {
+							if (gridView) {
+								loadRSUBibs(false, false);
+							}
+						}, BibRefreshRate);
 					}
 				}
 			} else {
 				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
 				if (eventIndex >= 0) {
 					const savedStartTime = eventList[eventIndex].real_start_time;
-					// Start timer interval to display how long race has been occurring
+					// Start timer timerInterval to display how long race has been occurring
 					if (savedStartTime >= 0) {
-						interval.current = setInterval(() => {
+						// Start timer timerInterval to display how long race has been occurring
+						timerInterval.current = setInterval(() => {
 							setDisplayTime(Date.now() - savedStartTime);
-						}, 150);
+						}, TimeRefreshRate);
 					}
 				}
 			}
@@ -212,11 +320,14 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		reloadTimer();
 
 		return () => {
-			if (interval.current) {
-				clearInterval(interval.current);
+			if (timerInterval.current) {
+				clearInterval(timerInterval.current);
+			}
+			if (bibsInterval.current) {
+				clearInterval(bibsInterval.current);
 			}
 		};
-	}, [context.appMode, context.eventID, context.raceID, context.time]));
+	}, [context.appMode, context.eventID, context.raceID, context.time, gridView, loadRSUBibs]);
 
 	// Update start time
 	const updateStartTime = useCallback(async (timeOfDay: number): Promise<void> => {
@@ -247,7 +358,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			} else {
 				// Offline Functionality
 				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
-
 				if (eventIndex >= 0) {
 					eventList[eventIndex].real_start_time = timeOfDay;
 					await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
@@ -268,51 +378,107 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 		updateStartTime(startTime.current);
 
-		// Start timer interval to display how long race has been occurring
-		interval.current = setInterval(() => {
+		// Start timer timerInterval to display how long race has been occurring
+		timerInterval.current = setInterval(() => {
 			setDisplayTime(Date.now() - startTime.current);
-		}, 150);
-	}, [updateStartTime]);
+		}, TimeRefreshRate);
+
+		// Start bibs interval to auto-pull latest bibs
+		bibsInterval.current = setInterval(() => {
+			if (gridView) {
+				loadRSUBibs(false, false);
+			}
+		}, BibRefreshRate);
+	}, [gridView, loadRSUBibs, updateStartTime]);
 
 	/** Add a time to the finish times */
-	const recordTime = useCallback(() => {
+	const recordTime = useCallback((bib?: number) => {
 		// Race hasn't started yet
 		if (startTime.current === -1) {
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 		} else if (Date.now() - startTime.current > MAX_TIME) {
 			Alert.alert("Record Error", "You have recorded a time that is too large.");
 		} else {
-			finishTimesRef.current.push(Date.now() - startTime.current);			
-			if (!bibText) {
-				checkerBibsRef.current.push(0);
-				updateCheckerBibs([...checkerBibsRef.current]);
+			finishTimesRef.current.push(Date.now() - startTime.current);
+			if (gridView) {
+				if (bib) {
+					// Clear old bib if it exists
+					const oldBibIndex = checkerBibsRef.current.indexOf(bib);
+					if (oldBibIndex >= 0) {
+						checkerBibsRef.current[oldBibIndex] = 0;
+					}
+					checkerBibsRef.current.push(bib);
+				} else {
+					checkerBibsRef.current.push(0);
+				}
+				updateCheckerBibs(checkerBibsRef.current);
 			} else {
-				checkerBibsRef.current.push(parseInt(bibText));
-				updateCheckerBibs([...checkerBibsRef.current]);
-				setBibText("");
+				if (!bibText) {
+					checkerBibsRef.current.push(0);
+					updateCheckerBibs([...checkerBibsRef.current]);
+				} else {
+					checkerBibsRef.current.push(parseInt(bibText));
+					updateCheckerBibs([...checkerBibsRef.current]);
+					setBibText("");
+				}
 			}
-
 			const flatListRefCurrent = flatListRef.current;
 			if (flatListRefCurrent !== null) {
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
 			}
 		}
-	}, [bibText, updateCheckerBibs]);
-
+	}, [bibText, gridView, updateCheckerBibs]);
 
 	// Display save button in header
 	useEffect(() => {
-		const nav = navigation.getParent() ? navigation.getParent() : navigation;
-		nav?.setOptions({
+		navigation.setOptions({
 			headerRight: () => (
-				timerOn && <TouchableOpacity onPress={(): void => {
-					CheckEntries(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
-				}}>
-					<Text style={globalstyles.headerButtonText}>Save</Text>
-				</TouchableOpacity>
+				<View 
+					style={{ 
+						flexDirection: "row", 
+						alignItems: "center", 
+						width: timerOn ? (gridView ? 130 : 94) : (gridView ? 60 : undefined), 
+						justifyContent: timerOn || gridView ? "space-between" : "flex-end", 
+						marginRight: timerOn ? 0 : 15,
+					}} >
+					{gridView ?
+						<TouchableOpacity onPress={async (): Promise<void> => { await loadRSUBibs(true, true); }}>
+							<Icon name="loop3" size={18} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
+
+					{context.appMode === "Online" || context.appMode === "Backup" ?
+						<TouchableOpacity
+							onPress={async (): Promise<void> => {
+								if (!gridView) {
+									await loadRSUBibs(false, true);
+								}
+								setGridView(!gridView);
+
+								const flatListRefCurrent = flatListRef.current;
+								if (flatListRefCurrent !== null) {
+									setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
+								}
+							}}>
+							<Icon
+								name={gridView ? "list-numbered" : "grid"}
+								size={22}
+								color={WHITE_COLOR}
+							/>
+						</TouchableOpacity>
+						: null
+					}
+
+					{timerOn ? <TouchableOpacity onPress={(): void => {
+						CheckEntries(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
+					}}>
+						<Text style={globalstyles.headerButtonText}>Save</Text>
+					</TouchableOpacity> : null}
+				</View>
 			),
 		});
-	}, [context.eventID, context.appMode, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs, loadRSUBibs, gridView]);
 
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {
@@ -323,11 +489,13 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	}, [updateCheckerBibs, updateFinishTimes]);
 
 	// Show Edit Alert
-	const showAlert = (index: number): void => {
+	const showAlert = useCallback((index: number): void => {
 		setAlertIndex(index);
 		setAlertVisible(true);
-		setInputWasFocused(!!bibInputRef.current?.isFocused());
-	};
+		if (!gridView) {
+			setInputWasFocused(!!bibInputRef.current?.isFocused());
+		}
+	}, [gridView]);
 
 	// Renders item on screen
 	const renderItem = useCallback(({ item, index }) => (
@@ -342,17 +510,29 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 			addOne={addOne}
 			showAlert={showAlert}
 		/>
-	), [addOne, updateCheckerBibs, updateFinishTimes]);
+	), [addOne, showAlert, updateCheckerBibs, updateFinishTimes]);
+
+	const bibRenderItem = useCallback(({ item }: { item: BibObject }) => {
+		const checkerBibsIndex = checkerBibsRef.current.indexOf(item.bib);
+
+		return <MemoBibItem
+			bibObject={item}
+			time={GetClockTime(finishTimesRef.current[checkerBibsIndex])}
+			handleBibTap={recordTime}
+			alreadyEntered={checkerBibsIndex >= 0}
+			checkerBibsRef={checkerBibsRef}
+		/>;
+	}, [recordTime]);
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView 
+			<KeyboardAvoidingView
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
 				keyboardVerticalOffset={70}>
 
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
-					<TouchableOpacity 
+					<TouchableOpacity
 						onPress={(): void => {
 							if (startTime.current !== -1 && finishTimesRef.current.length < 1 && Date.now() - startTime.current <= MAX_TIME) {
 								setStartTimeAlertVisible(true);
@@ -361,29 +541,46 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 || Date.now() - startTime.current > MAX_TIME ? 1 : 0.5}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: BIG_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ?  "Too Large" : GetClockTime(displayTime)}
+							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ? "Too Large" : GetClockTime(displayTime)}
 						</Text>
 					</TouchableOpacity>
-					{timerOn ?
-						<TextInput
-							ref={bibInputRef}
-							onChangeText={setBibText}
-							editable={timerOn}
-							style={globalstyles.timerBibInput}
-							value={bibText}
-							maxLength={6}
-							placeholder="Bib Entry"
-							placeholderTextColor={GRAY_COLOR}
-							keyboardType="number-pad"
-						/>
-						:
+
+					{gridView ?
 						<TouchableOpacity
-							onPress={startTimer}
-							style={[globalstyles.startButton, { backgroundColor: DARK_GRAY_COLOR }]}>
+							onPress={(): void => {
+								if (timerOn) {
+									recordTime();
+								} else {
+									startTimer();
+								}
+							}}
+							style={[globalstyles.startButton, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : DARK_GRAY_COLOR }]}>
 							<Text style={globalstyles.startText}>
 								{timerOn ? "Blank Bib" : "Start Timer"}
 							</Text>
 						</TouchableOpacity>
+						:
+						(timerOn ?
+							<TextInput
+								ref={bibInputRef}
+								onChangeText={setBibText}
+								editable={timerOn}
+								style={globalstyles.timerBibInput}
+								value={bibText}
+								maxLength={6}
+								placeholder="Bib Entry"
+								placeholderTextColor={GRAY_COLOR}
+								keyboardType="number-pad"
+							/>
+							:
+							<TouchableOpacity
+								onPress={startTimer}
+								style={[globalstyles.startButton, { backgroundColor: DARK_GRAY_COLOR }]}>
+								<Text style={globalstyles.startText}>
+									{timerOn ? "Blank Bib" : "Start Timer"}
+								</Text>
+							</TouchableOpacity>
+						)
 					}
 
 				</View>
@@ -406,7 +603,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					<>
 						<FlatList
 							showsVerticalScrollIndicator={false}
-							style={globalstyles.flatList}
+							style={gridView ? globalstyles.shortFlatList : globalstyles.flatList}
 							ref={flatListRef}
 							data={finishTimesRef.current}
 							renderItem={renderItem}
@@ -419,19 +616,47 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							keyboardShouldPersistTaps="handled"
 						/>
 
-						<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
-							<MainButton
-								onPress={(): void => {
-									if (timerOn) {
-										recordTime();
-									} else {
-										Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
-									}
-								}}
-								text={"Record"}
-								color={timerOn ? "Green" : "Disabled"}
-							/>
-						</View>
+						{gridView ?
+							<View>
+								{/* Header */}
+								<View style={globalstyles.tableHead}>
+									<Text style={{ fontFamily: "RobotoBold", fontSize: TABLE_FONT_SIZE }}>Event Bib Numbers</Text>
+								</View>
+
+								{/* Bib FlatList */}
+								<FlatList
+									data={rsuBibsRef.current}
+									numColumns={Math.max(Math.floor((Dimensions.get("screen").width / 120)), 3)}
+									style={[globalstyles.altLongFlatList, {	
+										height: Dimensions.get("window").height - TABLE_ITEM_HEIGHT * 3 - TABLE_HEADER_HEIGHT * 2 - headerHeight - 100
+									}]}
+									showsVerticalScrollIndicator={false}
+									renderItem={bibRenderItem}
+									keyExtractor={(_item, index): string => {
+										return "altBib_" + _item + index;
+									}}
+									initialNumToRender={10}
+									windowSize={11}
+									keyboardShouldPersistTaps="handled"
+								/>
+								<View style={{ height: 10, borderBottomWidth: 1, borderBottomColor: DARK_GRAY_COLOR }} />
+								<View style={{ height: 50 }} />
+							</View>
+							:
+							<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
+								<MainButton
+									onPress={(): void => {
+										if (timerOn) {
+											recordTime();
+										} else {
+											Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
+										}
+									}}
+									text={"Record"}
+									color={timerOn ? "Green" : "Disabled"}
+								/>
+							</View>
+						}
 					</>
 				}
 
@@ -454,7 +679,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						}
 
 						const timeOfDay = parseInt(valArray[1]);
-						
+
 						if (!isNaN(timeOfDay) && new Date(timeOfDay) <= new Date() && timeOfDay < minTime) {
 							updateStartTime(timeOfDay);
 							setStartTimeAlertVisible(false);
@@ -484,7 +709,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
 									updateCheckerBibs([...checkerBibsRef.current]);
 									setAlertVisible(false);
-									if (inputWasFocused) {
+									if (!gridView && inputWasFocused) {
 										bibInputRef.current?.focus();
 									}
 								} else {

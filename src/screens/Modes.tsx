@@ -42,7 +42,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const [resultsUploaded, setResultsUploaded] = useState(false);
 
 	const noFinishLine = finishLineDone || chuteDone || chuteProgress;
-	const noChute = chuteDone || finishLineProgress || (!(context.appMode === "Online" || context.appMode === "Backup") && !finishLineDone);
+	const noChute = chuteDone || finishLineProgress || (context.appMode !== "Online" && !finishLineDone);
 	const noResults = (chuteProgress || finishLineProgress) && !resultsUploaded;
 
 	// Handle log out. Delete local tokens
