@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
-import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, BLACK_COLOR, MEDIUM_FONT_SIZE, WHITE_COLOR, DARK_GRAY_COLOR, MAX_TIME } from "../components/styles";
+import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, Alert, FlatList, ActivityIndicator, Platform, BackHandler, Dimensions } from "react-native";
+import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, BLACK_COLOR, WHITE_COLOR, DARK_GRAY_COLOR, MAX_TIME, BIG_FONT_SIZE, TABLE_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -98,53 +98,57 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		setRSUBibs(rsuBibsRef.current);
 	}, []);
 
+	const loadRSUBibs = useCallback(async (alert: boolean): Promise<void> => {
+		setLoading(true);
+		let participants: ParticipantResponse[0] | undefined;
+		try {
+			participants = await getParticipants(context.raceID, context.eventID);
+			let bibs: Array<number> = participants.participants?.map(participant => participant.bib_num).filter(filteredBib => filteredBib !== null);
+			bibs = bibs.filter((c, index) => bibs.indexOf(c) === index).sort((a, b) => (a - b));
+			if (participants.participants && bibs.length > 0) {
+				updateAltBibs(bibs);
+				if (context.appMode === "Online") {
+					AsyncStorage.setItem(`altBibs:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
+				} else {
+					AsyncStorage.setItem(`altBibs:backup:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
+				}
+
+				if (alert)
+					Alert.alert("Bibs Refreshed", "Bib numbers were successfully refreshed from RunSignup.");
+			} else {
+				throw Error("No Participants or Bibs");
+			}
+		} catch {
+			let storedBibsString: string | null = null;
+			if (context.appMode === "Online") {
+				storedBibsString = await AsyncStorage.getItem(`altBibs:${context.raceID}:${context.eventID}`);
+			} else {
+				storedBibsString = await AsyncStorage.getItem(`altBibs:backup:${context.raceID}:${context.eventID}`);
+			}
+			if (storedBibsString) {
+				updateAltBibs(JSON.parse(storedBibsString));
+			} else {
+				Alert.alert(
+					"No Bibs Found",
+					"No bib numbers were found for this event at RunSignup. Grid View only works when participants have been assigned bib numbers beforehand. Please try again.",
+					[
+						{
+							text: "Go Back",
+							onPress: (): void => {
+								navigation.navigate("ListView");
+							}
+						}
+					]
+				);
+			}
+		}
+		setLoading(false);
+	}, [context.appMode, context.eventID, context.raceID, navigation, updateAltBibs]);
+
 	/** Load RSU Bibs */
 	useFocusEffect(useCallback(() => {
-		const loadRSUBibs = async (): Promise<void> => {
-			setLoading(true);
-			let participants: ParticipantResponse[0] | undefined;
-			try {
-				participants = await getParticipants(context.raceID, context.eventID);
-				let bibs: Array<number> = participants.participants?.map(participant => participant.bib_num).filter(filteredBib => filteredBib !== null);
-				bibs = bibs.filter((c, index) => bibs.indexOf(c) === index).sort((a, b) => (a - b));
-				if (participants.participants && bibs.length > 0) {
-					updateAltBibs(bibs);
-					if (context.appMode === "Online") {
-						AsyncStorage.setItem(`altBibs:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
-					} else {
-						AsyncStorage.setItem(`altBibs:backup:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
-					}
-				} else {
-					throw Error("No Participants or Bibs");
-				}
-			} catch {
-				let storedBibsString: string | null = null;
-				if (context.appMode === "Online") {
-					storedBibsString = await AsyncStorage.getItem(`altBibs:${context.raceID}:${context.eventID}`);
-				} else {
-					storedBibsString = await AsyncStorage.getItem(`altBibs:backup:${context.raceID}:${context.eventID}`);
-				}
-				if (storedBibsString) {
-					updateAltBibs(JSON.parse(storedBibsString));
-				} else {
-					Alert.alert(
-						"No Bibs Found",
-						"No bib numbers were found for this event at RunSignup. Please try again.",
-						[
-							{
-								text: "Go Back",
-								onPress: (): void => {
-									navigation.navigate("ListView");
-								}
-							}
-						]
-					);
-				}
-			}
-		};
-		loadRSUBibs();
-		setLoading(false);
-	}, [context.appMode, context.eventID, context.raceID, navigation, updateAltBibs]));
+		loadRSUBibs(false);
+	}, [loadRSUBibs]));
 
 	/** Back Button */
 	useFocusEffect(
@@ -356,14 +360,22 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 	useEffect(() => {
 		navigation.getParent()?.setOptions({
 			headerRight: () => (
-				timerOn && <TouchableOpacity onPress={(): void => {
-					CheckEntries(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
-				}}>
-					<Text style={globalstyles.headerButtonText}>Save</Text>
-				</TouchableOpacity>
+				timerOn ?
+					<View style={{ flexDirection: "row", alignItems: "center", width: 90, justifyContent: "space-between" }} >
+						<TouchableOpacity onPress={async (): Promise<void> => { await loadRSUBibs(true); }}>
+							<Icon name="loop3" size={18} color={WHITE_COLOR}/>
+						</TouchableOpacity>
+
+						<TouchableOpacity onPress={(): void => {
+							CheckEntries(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
+						}}>
+							<Text style={globalstyles.headerButtonText}>Save</Text>
+						</TouchableOpacity>
+					</View>
+					: null
 			),
 		});
-	}, [context.eventID, context.appMode, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation, timerOn, finishTimes, checkerBibs, loadRSUBibs]);
 
 	/** Duplicate another read with the same time for the given index */
 	const addOne = useCallback((item, index) => {
@@ -397,10 +409,10 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 	const bibRenderItem = useCallback(({ item }) => {
 		const checkerBibsIndex = checkerBibsRef.current.indexOf(item);
 
-		return <MemoBibItem 
-			bib={item} 
+		return <MemoBibItem
+			bib={item}
 			time={GetClockTime(finishTimesRef.current[checkerBibsIndex])}
-			handleBibTap={recordTime} 
+			handleBibTap={recordTime}
 			alreadyEntered={checkerBibsIndex >= 0}
 			checkerBibsRef={checkerBibsRef}
 		/>;
@@ -408,7 +420,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-			<KeyboardAvoidingView 
+			<KeyboardAvoidingView
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
 				keyboardVerticalOffset={70}>
@@ -420,9 +432,9 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 								setStartTimeAlertVisible(true);
 							}
 						}}
-						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 || Date.now() - startTime.current > MAX_TIME? 1 : 0.5}
+						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 || Date.now() - startTime.current > MAX_TIME ? 1 : 0.5}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
-						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
+						<Text style={{ fontSize: BIG_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
 							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ? "Too Large" : GetClockTime(displayTime)}
 						</Text>
 					</TouchableOpacity>
@@ -434,8 +446,8 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 								startTimer();
 							}
 						}}
-						style={[globalstyles.altStartButton, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : DARK_GRAY_COLOR }]}>
-						<Text style={globalstyles.altStartText}>
+						style={[globalstyles.startButton, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : DARK_GRAY_COLOR }]}>
+						<Text style={globalstyles.startText}>
 							{timerOn ? "Blank Bib" : "Start Timer"}
 						</Text>
 					</TouchableOpacity>
@@ -472,10 +484,15 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 							keyboardShouldPersistTaps="handled"
 						/>
 
+						{/* Header */}
+						<View style={globalstyles.tableHead}>
+							<Text style={{ fontFamily: "RobotoBold", fontSize: TABLE_FONT_SIZE }}>Event Bib Numbers</Text>
+						</View>
+
 						<FlatList
 							data={rsuBibsRef.current}
-							numColumns={4}
-							style={globalstyles.longFlatList}
+							numColumns={Math.floor((Dimensions.get("screen").width / 120))}
+							style={globalstyles.altLongFlatList}
 							showsVerticalScrollIndicator={false}
 							renderItem={bibRenderItem}
 							keyExtractor={(_item, index): string => {
@@ -486,10 +503,10 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 							keyboardShouldPersistTaps="handled"
 						/>
 
-						<View style={{height: 10, borderBottomWidth: 1, borderBottomColor: DARK_GRAY_COLOR}}/>
+						<View style={{ height: 10, borderBottomWidth: 1, borderBottomColor: DARK_GRAY_COLOR }} />
 					</>
 				}
-				
+
 				{/* Change Start Time Alert */}
 				<TextInputAlert
 					title={"Change Start Time"}
@@ -509,7 +526,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 						}
 
 						const timeOfDay = parseInt(valArray[1]);
-						
+
 						if (!isNaN(timeOfDay) && new Date(timeOfDay) <= new Date() && timeOfDay < minTime) {
 							updateStartTime(timeOfDay);
 							setStartTimeAlertVisible(false);

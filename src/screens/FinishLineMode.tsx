@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useCallback } from "react";
 import { KeyboardAvoidingView, View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Text, TextInput, Alert, FlatList, ActivityIndicator, Platform, BackHandler } from "react-native";
-import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, MEDIUM_FONT_SIZE, WHITE_COLOR, MAX_TIME, DARK_GRAY_COLOR } from "../components/styles";
+import { globalstyles, TABLE_ITEM_HEIGHT, GRAY_COLOR, DARK_GREEN_COLOR, LIGHT_GRAY_COLOR, LIGHT_GREEN_COLOR, UNIVERSAL_PADDING, BLACK_COLOR, WHITE_COLOR, MAX_TIME, DARK_GRAY_COLOR, BIG_FONT_SIZE } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { MemoFinishLineItem } from "../components/FinishLineModeRenderItem";
@@ -360,7 +360,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						}}
 						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 || Date.now() - startTime.current > MAX_TIME ? 1 : 0.5}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
-						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
+						<Text style={{ fontSize: BIG_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
 							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ?  "Too Large" : GetClockTime(displayTime)}
 						</Text>
 					</TouchableOpacity>
@@ -379,8 +379,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						:
 						<TouchableOpacity
 							onPress={startTimer}
-							style={[globalstyles.altStartButton, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : DARK_GRAY_COLOR }]}>
-							<Text style={globalstyles.altStartText}>
+							style={[globalstyles.startButton, { backgroundColor: DARK_GRAY_COLOR }]}>
+							<Text style={globalstyles.startText}>
 								{timerOn ? "Blank Bib" : "Start Timer"}
 							</Text>
 						</TouchableOpacity>

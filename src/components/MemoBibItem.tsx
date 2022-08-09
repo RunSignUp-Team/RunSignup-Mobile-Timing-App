@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Alert, Text, TouchableOpacity } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "./styles";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE } from "./styles";
 
 interface Props {
 	bib: number,
@@ -38,7 +38,7 @@ const BibRenderItem = (props: Props): React.ReactElement => {
 					}
 				}}
 			>
-				<Text style={globalstyles.altBibText}>{props.bib}</Text>
+				<Text style={[globalstyles.altBibText, {fontSize: props.bib.toString().length > 6 ? SMALL_FONT_SIZE : MEDIUM_FONT_SIZE}]}>{props.bib}</Text>
 				{props.time ? <Text style={globalstyles.altTimeText}>{props.time}</Text> : null}
 			</TouchableOpacity>
 		</TouchableOpacity>
