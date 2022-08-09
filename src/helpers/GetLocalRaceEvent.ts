@@ -2,6 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Race } from "../models/Race";
 import Logger from "./Logger";
 
+
+export const DefaultEventData: [Array<Race>, number, number] = [[], -1, -1];
+
 /** 
  * Get the local racelist, race index, and event index if possible 
 */
@@ -31,5 +34,5 @@ export default async function GetLocalRaceEvent(raceID: number, eventID: number)
 		Logger("Could Not Load Local Race Event", error, true);
 	}
 
-	return [[], -1, -1];
+	return DefaultEventData;
 }

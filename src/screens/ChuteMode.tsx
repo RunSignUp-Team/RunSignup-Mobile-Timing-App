@@ -6,7 +6,7 @@ import { AppContext } from "../components/AppContext";
 import { getBibs, postBibs } from "../helpers/APICalls";
 import { MemoChuteItem } from "../components/ChuteModeRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
-import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
+import GetLocalRaceEvent, { DefaultEventData } from "../helpers/GetLocalRaceEvent";
 import GetOfflineEvent from "../helpers/GetOfflineEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -22,6 +22,7 @@ import { BarCodeScanner } from "expo-barcode-scanner";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { Audio } from "expo-av";
 import { Sound } from "expo-av/build/Audio";
+import GetBackupEvent from "../helpers/GetBackupEvent";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -105,7 +106,12 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const addToStorage = useCallback(async (final, bibNumsParam) => {
 		if (context.appMode === "Online" || context.appMode === "Backup") {
 			// Online Functionality
-			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			let [raceList, raceIndex, eventIndex] = DefaultEventData;
+			if (context.appMode === "Online") {
+				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			} else {
+				[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+			}
 
 			if (raceIndex >= 0 && eventIndex >= 0) {
 				raceList[raceIndex].events[eventIndex].bib_nums = bibNumsParam;
@@ -227,7 +233,12 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			// Get local storage if any
 			if (context.appMode === "Online" || context.appMode === "Backup") {
 				// Online Functionality
-				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+				let [raceList, raceIndex, eventIndex] = DefaultEventData;
+				if (context.appMode === "Online") {
+					[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+				} else {
+					[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+				}
 
 				if (raceIndex >= 0 && eventIndex >= 0) {
 					updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);

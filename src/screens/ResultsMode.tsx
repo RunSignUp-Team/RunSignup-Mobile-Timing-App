@@ -7,7 +7,7 @@ import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants
 import { MemoResultsModeRenderItem } from "../components/ResultsModeRenderItem";
 import GetTimeInMils from "../helpers/GetTimeInMils";
 import { HeaderBackButton } from "@react-navigation/elements";
-import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
+import GetLocalRaceEvent, { DefaultEventData } from "../helpers/GetLocalRaceEvent";
 import GetOfflineEvent from "../helpers/GetOfflineEvent";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -139,7 +139,12 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			// Get participants from API
 			const participantList = await getParticipants(context.raceID, context.eventID);
 
-			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			let [raceList, raceIndex, eventIndex] = DefaultEventData;
+			if (context.appMode === "Online") {
+				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			} else if (context.appMode === "Backup") {
+				[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+			}
 
 			// Bibs & Checker Bibs
 			if (raceIndex >= 0 && eventIndex >= 0) {
@@ -244,7 +249,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				setLoading(false);
 			}
 		}
-	}, [context.eventID, context.raceID, hasAPIData, updateRecords]);
+	}, [context.appMode, context.eventID, context.raceID, hasAPIData, updateRecords]);
 
 	// Offline Functionality
 	const getOfflineRecords = useCallback(async (): Promise<void> => {

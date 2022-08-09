@@ -2,11 +2,10 @@ import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Alert } from "react-native";
 import { AppMode } from "../components/AppContext";
 import { TabParamList } from "../components/AppStack";
-import { Race } from "../models/Race";
 import { postStartTime, postFinishTimes } from "./APICalls";
 import CreateAPIError from "./CreateAPIError";
 import { AddToStorage } from "./FLAddToStorage";
-import GetLocalRaceEvent from "./GetLocalRaceEvent";
+import GetLocalRaceEvent, { DefaultEventData } from "./GetLocalRaceEvent";
 
 type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
@@ -22,15 +21,12 @@ export const SaveResults = async (
 	navigation: ScreenNavigationProp
 ): Promise<void> => {
 	try {
-		let [raceList, raceIndex, eventIndex]: [Array<Race>, number, number] = [[], -1, -1];
+		let [raceList, raceIndex, eventIndex] = DefaultEventData;
 
+		// Post Start Time
 		if (appMode === "Online") {
 			[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
 			if (raceIndex < 0 || eventIndex < 0) return;
-		}
-
-		// Post start time
-		if (appMode === "Online") {
 			await postStartTime(raceID, eventID, raceList[raceIndex].events[eventIndex].real_start_time);
 		}
 

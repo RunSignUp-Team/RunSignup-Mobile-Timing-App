@@ -25,6 +25,7 @@ export const AddToStorage = async (
 ): Promise<void> => {
 	if (appMode === "Online") {
 		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
+
 		if (raceIndex >= 0 && eventIndex >= 0) {
 			raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
 			raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
@@ -57,18 +58,13 @@ export const AddToStorage = async (
 
 					await postBibs(raceID, eventID, formData);
 
-					// Clear local data upon successful upload
-					const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
-
-					if (raceIndex >= 0 && eventIndex >= 0) {
-						raceList[raceIndex].events[eventIndex].checker_bibs = [];
-						raceList[raceIndex].events[eventIndex].finish_times = [];
-						raceList[raceIndex].events[eventIndex].real_start_time = -1;
-						if (appMode === "Online") {
-							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-						} else {
-							AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-						}
+					raceList[raceIndex].events[eventIndex].checker_bibs = [];
+					raceList[raceIndex].events[eventIndex].finish_times = [];
+					raceList[raceIndex].events[eventIndex].real_start_time = -1;
+					if (appMode === "Online") {
+						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+					} else {
+						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
 					}
 
 					setLoading(false);
@@ -88,6 +84,7 @@ export const AddToStorage = async (
 		}
 	} else if (appMode === "Backup") {
 		const [raceList, raceIndex, eventIndex] = await GetBackupEvent(raceID, eventID);
+
 		if (raceIndex >= 0 && eventIndex >= 0) {
 			raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
 			raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
@@ -97,6 +94,7 @@ export const AddToStorage = async (
 		}
 	} else {
 		const [eventList, eventIndex] = await GetOfflineEvent(time);
+		
 		if (eventIndex >= 0) {
 			eventList[eventIndex].finish_times = finishTimesParam;
 			eventList[eventIndex].checker_bibs = checkerBibsParam;

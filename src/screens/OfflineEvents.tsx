@@ -138,6 +138,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [context.eventID, context.raceID]);
 
 	// Assign offline bib numbers, finish times, and start time, if any
+	// Currently only supported for Online Races, not Backup Races
 	const assignData = useCallback(async (item: OfflineEvent): Promise<void> => {
 		try {
 			setLoading(true);

@@ -11,13 +11,14 @@ import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
 import MainButton from "../components/MainButton";
 import Logger from "../helpers/Logger";
-import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
+import GetLocalRaceEvent, { DefaultEventData } from "../helpers/GetLocalRaceEvent";
 import { useFocusEffect } from "@react-navigation/native";
 import GetOfflineEvent from "../helpers/GetOfflineEvent";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
 import GetSupport from "../helpers/GetSupport";
 import { SyncAnimation } from "../components/SyncAnimation";
+import GetBackupEvent from "../helpers/GetBackupEvent";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -99,11 +100,17 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			cDone = await AsyncStorage.getItem(`chuteDone:${context.raceID}:${context.eventID}`) === "true";
 
 			// Check if Finish Line / Chute in progress
-			const [localRaceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-			if (!flDone && raceIndex >= 0 && eventIndex >= 0 && localRaceList[raceIndex].events[eventIndex].real_start_time > -1) {
+			let [raceList, raceIndex, eventIndex] = DefaultEventData;
+
+			if (context.appMode === "Online") {
+				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			} else {
+				[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+			}
+			if (!flDone && raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].real_start_time > -1) {
 				flProgress = true;
 			}
-			if (!cDone && raceIndex >= 0 && eventIndex >= 0 && localRaceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
+			if (!cDone && raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 				cProgress = true;
 			}
 		} else {
@@ -140,7 +147,14 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		let eventName = "";
 		const setNavigation = async (): Promise<void> => {
 			if (context.appMode === "Online" || context.appMode === "Backup") {
-				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+				let [raceList, raceIndex, eventIndex] = DefaultEventData;
+
+				if (context.appMode === "Online") {
+					[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+				} else {
+					[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+				}
+
 				if (raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].name) {
 					eventName = raceList[raceIndex].events[eventIndex].name;
 				}
