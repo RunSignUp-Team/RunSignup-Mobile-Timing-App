@@ -36,6 +36,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 	const [timerOn, setTimerOn] = useState(false);
 	const [displayTime, setDisplayTime] = useState(0);
 	const startTime = useRef<number>(-1);
+	const interval = useRef<NodeJS.Timer>();
 
 	// Finish Times
 	const [finishTimes, setFinishTimes] = useState<Array<number>>([]);
@@ -228,17 +229,55 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		};
 	}, [backTapped, context.eventID, context.appMode, context.raceID, context.time, navigation, updateCheckerBibs, updateFinishTimes]));
 
-	// Start the timer interval when user asks to record times
-	useEffect(() => {
-		// Timer hasn't started yet. Exit now
-		if (!timerOn) return;
+	/** Reload timer when screen comes into focus */
+	useFocusEffect(useCallback(() => {
+		const reloadTimer = async (): Promise<void> => {
+			if (context.appMode === "Online" || context.appMode === "Backup") {
+				let [raceList, raceIndex, eventIndex] = DefaultEventData;
+				if (context.appMode === "Online") {
+					[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+				} else {
+					[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+				}
+				if (raceIndex >= 0 && eventIndex >= 0) {
+					const savedStartTime = raceList[raceIndex].events[eventIndex].real_start_time;
+					// Start timer interval to display how long race has been occurring
+					if (savedStartTime >= 0) {
+						interval.current = setInterval(() => {
+							setDisplayTime(Date.now() - savedStartTime);
+						}, 150);
+					}
+				}
+			} else {
+				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+				if (eventIndex >= 0) {
+					const savedStartTime = eventList[eventIndex].real_start_time;
+					// Start timer interval to display how long race has been occurring
+					if (savedStartTime >= 0) {
+						interval.current = setInterval(() => {
+							setDisplayTime(Date.now() - savedStartTime);
+						}, 150);
+					}
+				}
+			}
+		};
+		reloadTimer();
 
-		// No previous start time. Start time as of now
-		if (startTime.current === -1) {
-			startTime.current = Date.now();
-		}
+		return () => {
+			if (interval.current) {
+				clearInterval(interval.current);
+			}
+		};
+	}, [context.appMode, context.eventID, context.raceID, context.time]));
 
-		const saveStartTime = async (): Promise<void> => {
+	// Update start time
+	const updateStartTime = useCallback(async (timeOfDay: number): Promise<void> => {
+		try {
+			// Post to RSU
+			if (context.appMode === "Online") {
+				await postStartTime(context.raceID, context.eventID, timeOfDay);
+			}
+
 			// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
 			if (context.appMode === "Online" || context.appMode === "Backup") {
 				// Online Functionality
@@ -250,40 +289,41 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 				}
 
 				if (raceIndex >= 0 && eventIndex >= 0) {
-					raceList[raceIndex].events[eventIndex].real_start_time = startTime.current;
+					raceList[raceIndex].events[eventIndex].real_start_time = timeOfDay;
 					if (context.appMode === "Online") {
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+						await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 					} else {
-						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+						await AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
 					}
 				}
 			} else {
 				// Offline Functionality
 				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
 				if (eventIndex >= 0) {
-					eventList[eventIndex].real_start_time = startTime.current;
-					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+					eventList[eventIndex].real_start_time = timeOfDay;
+					await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 				}
 			}
-		};
 
-		saveStartTime();
+			startTime.current = timeOfDay;
+		} catch (error) {
+			Logger("Failed to Update Start Time", error, true);
+		}
+	}, [context.eventID, context.appMode, context.raceID, context.time]);
+
+	/** Start Timer */
+	const startTimer = useCallback(async () => {
+		startTime.current = Date.now();
+
+		setTimerOn(true);
+
+		updateStartTime(startTime.current);
 
 		// Start timer interval to display how long race has been occurring
-		const interval = setInterval(() => {
+		interval.current = setInterval(() => {
 			setDisplayTime(Date.now() - startTime.current);
 		}, 150);
-
-		// Clean up interval
-		return () => {
-			clearInterval(interval);
-		};
-
-	}, [context.eventID, context.appMode, context.raceID, context.time, timerOn]);
-
-	const startTimer = useCallback(() => {
-		setTimerOn(true);
-	}, []);
+	}, [updateStartTime]);
 
 	/** Add a time to the finish times */
 	const recordTime = useCallback((bib?: number) => {
@@ -312,7 +352,6 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		}
 	}, [updateCheckerBibs]);
 
-
 	// Display save button in header
 	useEffect(() => {
 		navigation.getParent()?.setOptions({
@@ -339,48 +378,6 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		setAlertIndex(index);
 		setAlertVisible(true);
 	};
-
-	// Update start time
-	const updateStartTime = useCallback(async (timeOfDay: number): Promise<void> => {
-		try {
-			// Post to RSU
-			if (context.appMode === "Online") {
-				await postStartTime(context.raceID, context.eventID, timeOfDay);
-			}
-
-			// Set to AsyncStorage the current time so we can come back to this time if the app crashes, or the user leaves this screen
-			if (context.appMode === "Online" || context.appMode === "Backup") {
-				// Online Functionality
-				let [raceList, raceIndex, eventIndex] = DefaultEventData;
-				if (context.appMode === "Online") {
-					[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-				} else {
-					[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
-				}
-				
-				if (raceIndex >= 0 && eventIndex >= 0) {
-					raceList[raceIndex].events[eventIndex].real_start_time = timeOfDay;
-					if (context.appMode === "Online") {
-						await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-					} else {
-						await AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-					}
-				}
-			} else {
-				// Offline Functionality
-				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
-				if (eventIndex >= 0) {
-					eventList[eventIndex].real_start_time = timeOfDay;
-					await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-				}
-			}
-
-			startTime.current = timeOfDay;
-		} catch (error) {
-			Logger("Failed to Update Start Time", error, true);
-		}
-	}, [context.eventID, context.appMode, context.raceID, context.time]);
-
 
 	// Renders item on screen
 	const renderItem = useCallback(({ item, index }) => (
@@ -419,11 +416,11 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 					<TouchableOpacity
 						onPress={(): void => {
-							if (startTime.current !== -1 && finishTimesRef.current.length < 1) {
+							if (startTime.current !== -1 && finishTimesRef.current.length < 1 && Date.now() - startTime.current <= MAX_TIME) {
 								setStartTimeAlertVisible(true);
 							}
 						}}
-						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 ? 1 : 0.5}
+						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 || Date.now() - startTime.current > MAX_TIME? 1 : 0.5}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: MEDIUM_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
 							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ? "Too Large" : GetClockTime(displayTime)}
