@@ -412,27 +412,33 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				try {
 					// Backup Functionality
 					if (recordsRef.current.length > 0) {
-						GetBackupEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+						const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+
+						if (raceIndex >= 0 && eventIndex >= 0) {
 							raceList[raceIndex].events[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
 							raceList[raceIndex].events[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
 							raceList[raceIndex].events[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
+
 							AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-							AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
-							AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
+							AsyncStorage.setItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, "true");
+							AsyncStorage.setItem(`chuteDone:backup:${context.raceID}:${context.eventID}`, "true");
 							Alert.alert("Success", "Results successfully saved to your local device!");
-						});
+						}
 					} else {
-						GetBackupEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
+						const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+
+						if (raceIndex >= 0 && eventIndex >= 0) {
 							raceList[raceIndex].events[eventIndex].bib_nums = [];
 							raceList[raceIndex].events[eventIndex].finish_times = [];
 							raceList[raceIndex].events[eventIndex].checker_bibs = [];
 							raceList[raceIndex].events[eventIndex].real_start_time = -1;
+
 							AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-							AsyncStorage.setItem(`finishLineDone:${context.time}`, "false");
-							AsyncStorage.setItem(`chuteDone:${context.time}`, "false");
+							AsyncStorage.setItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, "false");
+							AsyncStorage.setItem(`chuteDone:backup:${context.raceID}:${context.eventID}`, "false");
 							Alert.alert("Success", "Results successfully deleted from your local device!");
 							navigation.goBack();
-						});
+						}
 					}
 					setEditMode(false);
 				} catch (error) {
@@ -451,6 +457,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 							eventList[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
 							eventList[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
 							eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
+
 							AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 							AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
 							AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
@@ -464,6 +471,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 							eventList[eventIndex].finish_times = [];
 							eventList[eventIndex].checker_bibs = [];
 							eventList[eventIndex].real_start_time = -1;
+
 							AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 							AsyncStorage.setItem(`finishLineDone:${context.time}`, "false");
 							AsyncStorage.setItem(`chuteDone:${context.time}`, "false");

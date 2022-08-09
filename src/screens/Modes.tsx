@@ -74,7 +74,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 		setLoading(true);
 
-		if (context.appMode === "Online" || context.appMode === "Backup") {
+		if (context.appMode === "Online") {
 			// Get latest RSU data
 			try {
 				const times = await getFinishTimes(context.raceID, context.eventID);
@@ -111,6 +111,20 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 				flProgress = true;
 			}
 			if (!cDone && raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
+				cProgress = true;
+			}
+		} else if (context.appMode === "Backup") {
+			// Finish Line Done
+			flDone = await AsyncStorage.getItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`) === "true";
+			// Chute Done
+			cDone = await AsyncStorage.getItem(`chuteDone:backup:${context.raceID}:${context.eventID}`) === "true";
+
+			// Check if Finish Line / Chute in progress
+			const [localEventList, eventIndex] = await GetOfflineEvent(context.time);
+			if (!flDone && localEventList[eventIndex].real_start_time >= 0) {
+				flProgress = true;
+			}
+			if (!cDone && localEventList[eventIndex].bib_nums.length > 0) {
 				cProgress = true;
 			}
 		} else {

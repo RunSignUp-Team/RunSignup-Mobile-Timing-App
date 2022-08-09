@@ -165,14 +165,14 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 				if (final) {
 					// Navigate away
-					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}:${context.appMode}`, "true");
+					AsyncStorage.setItem(`chuteDone:backup:${context.raceID}:${context.eventID}`, "true");
 					setLoading(false);
 					navigation.navigate("ModeScreen");
-					await AsyncStorage.getItem(`finishLineDone:${context.raceID}:${context.eventID}:${context.appMode}`, (_err, result) => {
+					await AsyncStorage.getItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, (_err, result) => {
 						if (result === "true") {
 							navigation.navigate("VerificationMode");
 						} else {
-							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}:${context.appMode}`, "true");
+							AsyncStorage.setItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, "true");
 						}
 					});
 				}

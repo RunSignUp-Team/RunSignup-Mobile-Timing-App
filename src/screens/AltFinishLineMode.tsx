@@ -108,12 +108,21 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 				bibs = bibs.filter((c, index) => bibs.indexOf(c) === index).sort((a, b) => (a - b));
 				if (participants.participants && bibs.length > 0) {
 					updateAltBibs(bibs);
-					AsyncStorage.setItem(`altBibs:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
+					if (context.appMode === "Online") {
+						AsyncStorage.setItem(`altBibs:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
+					} else {
+						AsyncStorage.setItem(`altBibs:backup:${context.raceID}:${context.eventID}`, JSON.stringify(bibs));
+					}
 				} else {
 					throw Error("No Participants or Bibs");
 				}
 			} catch {
-				const storedBibsString = await AsyncStorage.getItem(`altBibs:${context.raceID}:${context.eventID}`);
+				let storedBibsString: string | null = null;
+				if (context.appMode === "Online") {
+					storedBibsString = await AsyncStorage.getItem(`altBibs:${context.raceID}:${context.eventID}`);
+				} else {
+					storedBibsString = await AsyncStorage.getItem(`altBibs:backup:${context.raceID}:${context.eventID}`);
+				}
 				if (storedBibsString) {
 					updateAltBibs(JSON.parse(storedBibsString));
 				} else {
@@ -134,7 +143,7 @@ export default function AltFinishLineMode({ navigation }: Props): React.ReactEle
 		};
 		loadRSUBibs();
 		setLoading(false);
-	}, [context.eventID, context.raceID, navigation, updateAltBibs]));
+	}, [context.appMode, context.eventID, context.raceID, navigation, updateAltBibs]));
 
 	/** Back Button */
 	useFocusEffect(
