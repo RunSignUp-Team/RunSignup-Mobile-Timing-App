@@ -6,6 +6,7 @@ import { globalstyles, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZ
 interface Props {
 	bibObject: BibObject,
 	time: string,
+	timerOn: boolean,
 	handleBibTap: (bib: number) => void,
 	alreadyEntered: boolean,
 	checkerBibsRef: React.MutableRefObject<Array<number>>,
@@ -38,7 +39,7 @@ const BibRenderItem = (props: Props): React.ReactElement => {
 	return (
 		<TouchableOpacity activeOpacity={1} style={globalstyles.gridBibContainer}>
 			<TouchableOpacity
-				style={[globalstyles.gridBibButton, {backgroundColor: props.alreadyEntered ? GRAY_COLOR : GREEN_COLOR}]}
+				style={[globalstyles.gridBibButton, {backgroundColor: props.timerOn ? (props.alreadyEntered ? GRAY_COLOR : GREEN_COLOR) : GRAY_COLOR}]}
 				onPress={(): void => {
 					bibTapLogic(props);
 				}}
@@ -56,7 +57,7 @@ const BibRenderItem = (props: Props): React.ReactElement => {
 								onPress: (): void => {
 									bibTapLogic(props);
 								}
-							}
+							} 
 						]
 					);
 				}}

@@ -437,7 +437,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					style={{ 
 						flexDirection: "row", 
 						alignItems: "center", 
-						width: timerOn ? (gridView ? 130 : 94) : (gridView ? 60 : undefined), 
+						width: timerOn ? (context.appMode === "Offline" ? undefined : (gridView ? 130 : 94)) : (gridView ? 60 : undefined), 
 						justifyContent: timerOn || gridView ? "space-between" : "flex-end", 
 						marginRight: timerOn ? 0 : 15,
 					}} >
@@ -492,10 +492,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const showAlert = useCallback((index: number): void => {
 		setAlertIndex(index);
 		setAlertVisible(true);
-		if (!gridView) {
-			setInputWasFocused(!!bibInputRef.current?.isFocused());
-		}
-	}, [gridView]);
+		setInputWasFocused(!!bibInputRef.current?.isFocused());
+	}, []);
 
 	// Renders item on screen
 	const renderItem = useCallback(({ item, index }) => (
@@ -517,12 +515,13 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 		return <MemoBibItem
 			bibObject={item}
+			timerOn={timerOn}
 			time={GetClockTime(finishTimesRef.current[checkerBibsIndex])}
 			handleBibTap={recordTime}
 			alreadyEntered={checkerBibsIndex >= 0}
 			checkerBibsRef={checkerBibsRef}
 		/>;
-	}, [recordTime]);
+	}, [recordTime, timerOn]);
 
 	return (
 		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -709,8 +708,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									checkerBibsRef.current[alertIndex] = parseInt(valArray[0]);
 									updateCheckerBibs([...checkerBibsRef.current]);
 									setAlertVisible(false);
-									if (!gridView && inputWasFocused) {
-										bibInputRef.current?.focus();
+									if (inputWasFocused) {
+										setTimeout(() => {
+											bibInputRef.current?.focus();
+										}, 100);
 									}
 								} else {
 									Alert.alert(
@@ -720,6 +721,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								}
 							} else {
 								setAlertVisible(false);
+								if (inputWasFocused) {
+									setTimeout(() => {
+										bibInputRef.current?.focus();
+									}, 1000);
+								}
 							}
 						}} cancelOnPress={(): void => {
 							setAlertVisible(false);
