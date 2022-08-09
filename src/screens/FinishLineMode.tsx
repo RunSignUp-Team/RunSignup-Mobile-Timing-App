@@ -270,7 +270,6 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 			const flatListRefCurrent = flatListRef.current;
 			if (flatListRefCurrent !== null) {
-				console.log("hi");
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
 			}
 		};
