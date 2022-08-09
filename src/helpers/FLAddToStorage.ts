@@ -61,11 +61,7 @@ export const AddToStorage = async (
 					raceList[raceIndex].events[eventIndex].checker_bibs = [];
 					raceList[raceIndex].events[eventIndex].finish_times = [];
 					raceList[raceIndex].events[eventIndex].real_start_time = -1;
-					if (appMode === "Online") {
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-					} else {
-						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-					}
+					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 
 					setLoading(false);
 					navigation.navigate("ModeScreen");
@@ -94,7 +90,7 @@ export const AddToStorage = async (
 		}
 	} else {
 		const [eventList, eventIndex] = await GetOfflineEvent(time);
-		
+
 		if (eventIndex >= 0) {
 			eventList[eventIndex].finish_times = finishTimesParam;
 			eventList[eventIndex].checker_bibs = checkerBibsParam;

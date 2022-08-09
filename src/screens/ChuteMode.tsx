@@ -104,22 +104,13 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [navigation]);
 
 	const addToStorage = useCallback(async (final, bibNumsParam) => {
-		if (context.appMode === "Online" || context.appMode === "Backup") {
+		if (context.appMode === "Online") {
 			// Online Functionality
-			let [raceList, raceIndex, eventIndex] = DefaultEventData;
-			if (context.appMode === "Online") {
-				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-			} else {
-				[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
-			}
+			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 
 			if (raceIndex >= 0 && eventIndex >= 0) {
 				raceList[raceIndex].events[eventIndex].bib_nums = bibNumsParam;
-				if (context.appMode === "Online") {
-					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-				} else {
-					AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-				}
+				AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 
 				if (final) {
 					try {
@@ -145,11 +136,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 							// Clear local data upon successful upload
 							raceList[raceIndex].events[eventIndex].bib_nums = [];
-							if (context.appMode === "Online") {
-								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-							} else {
-								AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-							}
+							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 
 							// Don't allow further changes
 							setLoading(false);
@@ -165,7 +152,32 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					}
 				}
 			} else {
-				Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex], true);
+				Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex, context.appMode], true);
+				setLoading(false);
+			}
+		} else if (context.appMode === "Backup") {
+			// Backup Functionality
+			const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].bib_nums = bibNumsParam;
+				AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+
+				if (final) {
+					// Navigate away
+					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}:${context.appMode}`, "true");
+					setLoading(false);
+					navigation.navigate("ModeScreen");
+					await AsyncStorage.getItem(`finishLineDone:${context.raceID}:${context.eventID}:${context.appMode}`, (_err, result) => {
+						if (result === "true") {
+							navigation.navigate("VerificationMode");
+						} else {
+							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}:${context.appMode}`, "true");
+						}
+					});
+				}
+			} else {
+				Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex, context.appMode], true);
 				setLoading(false);
 			}
 		} else {
@@ -194,7 +206,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					setLoading(false);
 				}
 			} else {
-				Logger("Local Storage Error (Chute)", [eventList, eventIndex], true);
+				Logger("Local Storage Error (Chute)", [eventList, eventIndex, context.appMode], true);
 				setLoading(false);
 			}
 		}
