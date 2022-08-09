@@ -16,7 +16,7 @@ export default async function GetSupport(raceID: number, eventID: number, email:
 
 	if (appMode === "Online" || appMode === "Backup") {
 		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
-		if (raceList && raceList.length > 0 && raceList[raceIndex]?.events[eventIndex]?.name) {
+		if (raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].name) {
 			raceName = raceList[raceIndex].name;
 			eventName = raceList[raceIndex].events[eventIndex].name;
 			body += `\nRace: ${raceName}\nEvent: ${eventName}`;

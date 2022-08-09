@@ -100,10 +100,10 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			// Check if Finish Line / Chute in progress
 			const [localRaceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-			if (!flDone && localRaceList[raceIndex].events[eventIndex].real_start_time > -1) {
+			if (!flDone && raceIndex >= 0 && eventIndex >= 0 && localRaceList[raceIndex].events[eventIndex].real_start_time > -1) {
 				flProgress = true;
 			}
-			if (!cDone && localRaceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
+			if (!cDone && raceIndex >= 0 && eventIndex >= 0 && localRaceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 				cProgress = true;
 			}
 		} else {
@@ -114,7 +114,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 			// Check if Finish Line / Chute in progress
 			const [localEventList, eventIndex] = await GetOfflineEvent(context.time);
-			if (!flDone && localEventList[eventIndex].real_start_time > -1) {
+			if (!flDone && localEventList[eventIndex].real_start_time >= 0) {
 				flProgress = true;
 			}
 			if (!cDone && localEventList[eventIndex].bib_nums.length > 0) {
@@ -141,12 +141,12 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 		const setNavigation = async (): Promise<void> => {
 			if (context.appMode === "Online" || context.appMode === "Backup") {
 				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-				if (raceList && raceList.length > 0 && raceList[raceIndex]?.events[eventIndex]?.name) {
+				if (raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].name) {
 					eventName = raceList[raceIndex].events[eventIndex].name;
 				}
 			} else {
 				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
-				if (eventList && eventList.length > 0 && eventList[eventIndex]?.name) {
+				if (eventIndex >= 0 && eventList[eventIndex].name) {
 					eventName = eventList[eventIndex].name;
 				}
 			}

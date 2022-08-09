@@ -172,10 +172,12 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			await AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 
 			// Clear local data for event
-			raceList[raceIndex].events[eventIndex].checker_bibs = [];
-			raceList[raceIndex].events[eventIndex].bib_nums = [];
-			raceList[raceIndex].events[eventIndex].finish_times = [];
-			await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].checker_bibs = [];
+				raceList[raceIndex].events[eventIndex].bib_nums = [];
+				raceList[raceIndex].events[eventIndex].finish_times = [];
+				await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+			}
 
 			Alert.alert("Success", `The data in ${item.name} has been successfully assigned to ${raceList[raceIndex]?.events[eventIndex]?.name}!`);
 			navigationRef.current.navigate("ModeScreen");

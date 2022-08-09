@@ -105,96 +105,92 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	const addToStorage = useCallback(async (final, bibNumsParam) => {
 		if (context.appMode === "Online" || context.appMode === "Backup") {
 			// Online Functionality
-			GetLocalRaceEvent(context.raceID, context.eventID).then(async ([raceList, raceIndex, eventIndex]) => {
-				if (raceIndex !== -1 && eventIndex !== -1) {
-					raceList[raceIndex].events[eventIndex].bib_nums = bibNumsParam;
-					if (context.appMode === "Online") {
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-					} else {
-						AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-					}
+			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 
-					if (final) {
-						try {
-							const bibs = await getBibs(context.raceID, context.eventID);
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].bib_nums = bibNumsParam;
+				if (context.appMode === "Online") {
+					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				} else {
+					AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+				}
 
-							if (bibs !== null && bibs.length > 0) {
-								// If there are already bibs saved from Finish Line Mode, navigate to Verification Mode
-								setLoading(false);
-								navigation.navigate("ModeScreen");
-								navigation.navigate("VerificationMode");
+				if (final) {
+					try {
+						const bibs = await getBibs(context.raceID, context.eventID);
+
+						if (bibs !== null && bibs.length > 0) {
+							// If there are already bibs saved from Finish Line Mode, navigate to Verification Mode
+							setLoading(false);
+							navigation.navigate("ModeScreen");
+							navigation.navigate("VerificationMode");
+						} else {
+							// Otherwise push bibs
+							const formData = new FormData();
+							formData.append(
+								"request",
+								JSON.stringify({
+									last_finishing_place: 0,
+									bib_nums: bibNumsParam
+								})
+							);
+
+							await postBibs(context.raceID, context.eventID, formData);
+
+							// Clear local data upon successful upload
+							raceList[raceIndex].events[eventIndex].bib_nums = [];
+							if (context.appMode === "Online") {
+								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 							} else {
-								// Otherwise push bibs
-								const formData = new FormData();
-								formData.append(
-									"request",
-									JSON.stringify({
-										last_finishing_place: 0,
-										bib_nums: bibNumsParam
-									})
-								);
-
-								await postBibs(context.raceID, context.eventID, formData);
-
-								// Clear local data upon successful upload
-								GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-									if (raceIndex !== null && eventIndex !== null) {
-										raceList[raceIndex].events[eventIndex].bib_nums = [];
-										if (context.appMode === "Online") {
-											AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-										} else {
-											AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
-										}
-									}
-								});
-
-								// Don't allow further changes
-								setLoading(false);
-								navigation.navigate("ModeScreen");
+								AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
 							}
 
-							// No use case currently for a user to use Chute Mode followed by Finish Line Mode on one device
-							AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-							AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-						} catch (error) {
-							CreateAPIError("Chute", error);
+							// Don't allow further changes
 							setLoading(false);
+							navigation.navigate("ModeScreen");
 						}
+
+						// No use case currently for a user to use Chute Mode followed by Finish Line Mode on one device
+						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
+					} catch (error) {
+						CreateAPIError("Chute", error);
+						setLoading(false);
 					}
-				} else {
-					Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex], true);
-					setLoading(false);
 				}
-			});
+			} else {
+				Logger("Local Storage Error (Chute)", [raceList, raceIndex, eventIndex], true);
+				setLoading(false);
+			}
 		} else {
 			// Offline Functionality
-			GetOfflineEvent(context.time).then(async ([eventList, eventIndex]) => {
-				if (eventIndex !== -1) {
-					eventList[eventIndex].bib_nums = bibNumsParam;
+			const [eventList, eventIndex] = await GetOfflineEvent(context.time);
 
-					if (final) {
-						// Navigate away
-						AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
-						setLoading(false);
-						navigation.navigate("ModeScreen");
-						await AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
-							if (result === "true") {
-								navigation.navigate("VerificationMode");
-							} else {
-								AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
-							}
-						});
+			if (eventIndex >= 0) {
+				eventList[eventIndex].bib_nums = bibNumsParam;
 
-					} else {
-						// Set data
-						await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-						setLoading(false);
-					}
+				if (final) {
+					// Navigate away
+					AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
+					setLoading(false);
+					navigation.navigate("ModeScreen");
+					await AsyncStorage.getItem(`finishLineDone:${context.time}`, (_err, result) => {
+						if (result === "true") {
+							navigation.navigate("VerificationMode");
+						} else {
+							AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
+						}
+					});
+
 				} else {
-					Logger("Local Storage Error (Chute)", [eventList, eventIndex], true);
+					// Set data
+					await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 					setLoading(false);
 				}
-			});
+			} else {
+				Logger("Local Storage Error (Chute)", [eventList, eventIndex], true);
+				setLoading(false);
+			}
 		}
 	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
@@ -219,6 +215,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		}, [backTapped]),
 	);
 
+	/** Get old data in case screen closed before saving */
 	useEffect(() => {
 		navigation.setOptions({
 			headerLeft: () => (
@@ -226,26 +223,34 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			)
 		});
 
-		// Get local storage if any
-		if (context.appMode === "Online" || context.appMode === "Backup") {
-			// Online Functionality
-			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-				updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
-				if (raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
-					// Alert user of data recovery
-					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+		const getOldData = async (): Promise<void> => {
+			// Get local storage if any
+			if (context.appMode === "Online" || context.appMode === "Backup") {
+				// Online Functionality
+				const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+
+				if (raceIndex >= 0 && eventIndex >= 0) {
+					updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
+					if (raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
+						// Alert user of data recovery
+						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+					}
 				}
-			});
-		} else {
-			// Offline Functionality
-			GetOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-				updateBibNums(eventList[eventIndex].bib_nums);
-				if (eventList[eventIndex].bib_nums.length > 0) {
-					// Alert user of data recovery
-					Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+			} else {
+				// Offline Functionality
+				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+				
+				if (eventIndex >= 0) {
+					updateBibNums(eventList[eventIndex].bib_nums);
+					if (eventList[eventIndex].bib_nums.length > 0) {
+						// Alert user of data recovery
+						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+					}
 				}
-			});
-		}
+			}
+		};
+
+		getOldData();
 
 		setLoading(false);
 

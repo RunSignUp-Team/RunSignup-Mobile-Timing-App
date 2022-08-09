@@ -75,9 +75,11 @@ export const WriteFiles = async (raceID: number, eventID: number, records: VReco
 		}
 	} else {
 		const [eventList, eventIndex] = await GetOfflineEvent(time);
-		const event = eventList[eventIndex];
-		if (event?.real_start_time > 0) {
-			realStartTime = event.real_start_time;
+		if (eventIndex >= 0) {
+			const event = eventList[eventIndex];
+			if (event.real_start_time > 0) {
+				realStartTime = event.real_start_time;
+			}
 		}
 	}
 

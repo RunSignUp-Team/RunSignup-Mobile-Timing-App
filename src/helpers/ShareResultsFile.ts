@@ -12,14 +12,14 @@ export default async function ShareResultsFile(raceID: number, eventID: number, 
 	let body = "";
 	if (appMode === "Online" || appMode === "Backup") {
 		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
-		if (raceList && raceList.length > 0 && raceList[raceIndex]?.events[eventIndex]?.name) {
+		if (raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].name) {
 			const raceName = raceList[raceIndex].name;
 			const eventName = raceList[raceIndex].events[eventIndex].name;
 			body = `Attached are results and timing data from:\n\n${raceName}\n${eventName}`;
 		}
 	} else {
 		const [eventList, eventIndex] = await GetOfflineEvent(time);
-		if (eventList && eventList.length > 0 && eventList[eventIndex]?.name) {
+		if (eventIndex >= 0 && eventList[eventIndex].name) {
 			const eventName = eventList[eventIndex].name;
 			body = `Attached are results and timing data from:\n\n${eventName}`;
 		}
