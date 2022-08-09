@@ -291,9 +291,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				if (raceIndex >= 0 && eventIndex >= 0) {
 					const savedStartTime = raceList[raceIndex].events[eventIndex].real_start_time;
 					if (savedStartTime >= 0) {
-						// Start timer timerInterval to display how long race has been occurring
+						// Start timerInterval to display how long race has been occurring
+						startTime.current = savedStartTime;
 						timerInterval.current = setInterval(() => {
-							setDisplayTime(Date.now() - savedStartTime);
+							setDisplayTime(Date.now() - startTime.current);
 						}, TimeRefreshRate);
 						// Start bibs interval to auto-pull latest bibs
 						bibsInterval.current = setInterval(() => {
@@ -307,11 +308,12 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				const [eventList, eventIndex] = await GetOfflineEvent(context.time);
 				if (eventIndex >= 0) {
 					const savedStartTime = eventList[eventIndex].real_start_time;
-					// Start timer timerInterval to display how long race has been occurring
+					// Start timerInterval to display how long race has been occurring
 					if (savedStartTime >= 0) {
-						// Start timer timerInterval to display how long race has been occurring
+						// Start timerInterval to display how long race has been occurring
+						startTime.current = savedStartTime;
 						timerInterval.current = setInterval(() => {
-							setDisplayTime(Date.now() - savedStartTime);
+							setDisplayTime(Date.now() - startTime.current);
 						}, TimeRefreshRate);
 					}
 				}
@@ -662,7 +664,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				{/* Change Start Time Alert */}
 				<TextInputAlert
 					title={"Change Start Time"}
-					message={"Change the start time for this event. Tap AM / PM to toggle between day and night."}
+					message={`Change the start time for this event.\nTap AM / PM to toggle between day and night.\nStart Date: ${new Date(startTime.current).toLocaleDateString()}`}
 					type={"timeofday"}
 					keyboardType={"number-pad"}
 					visible={startTimeAlertVisible}
