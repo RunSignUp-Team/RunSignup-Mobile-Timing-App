@@ -38,6 +38,15 @@ type VRecord = [
 
 export type VRecords = Array<VRecord>;
 
+export const OpenResultsLink = async (raceID: number): Promise<void> => {
+	const url = `https://runsignup.com/Race/${raceID}/Results/Dashboard/EditIndividualResults`;
+	if (await Linking.canOpenURL(url)) {
+		Linking.openURL(url);
+	} else {
+		Logger("Cannot Open Link", "Device Not Set Up Correctly", true);
+	}
+};
+
 const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
 
@@ -921,15 +930,6 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		);
 	}, []);
 
-	const openLink = useCallback(async (): Promise<void> => {
-		const url = `https://runsignup.com/Race/${context.raceID}/Results/Dashboard/EditIndividualResults`;
-		if (await Linking.canOpenURL(url)) {
-			Linking.openURL(url);
-		} else {
-			Logger("Cannot Open Link", "Device Not Set Up Correctly", true);
-		}
-	}, [context.raceID]);
-
 	const deleteAllRecords = useCallback(() => {
 		if (recordsRef.current.length > 0) {
 			Alert.alert(
@@ -984,39 +984,54 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
 					{/* Delete All Records */}
-					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={deleteAllRecords} >
-						<Icon name={"bin5"} size={22} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(editMode && !loading) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={deleteAllRecords} >
+							<Icon name={"bin5"} size={22} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 					{/* Add Record */}
-					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={addRecord} >
-						<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(editMode && !loading) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={addRecord} >
+							<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 
 					{/* RSU Results */}
-					{!editMode && !loading && context.appMode === "Online" && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
-						<Icon name={"stats-bars2"} size={24} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(!editMode && !loading && context.appMode === "Online" && conflicts === 0) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={(): void => { OpenResultsLink(context.raceID); }} >
+							<Icon name={"stats-bars2"} size={24} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 					{/* Share Results */}
-					{!editMode && !loading && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={shareResults} >
-						<Icon name={"file-upload2"} size={22} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(!editMode && !loading && conflicts === 0) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={shareResults} >
+							<Icon name={"file-upload2"} size={22} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 
 					{/* Edit / Save */}
-					{!loading && conflicts === 0 && <TouchableOpacity
-						onPress={(): void => {
-							if (!editMode) {
-								editTable();
-							} else {
-								checkEntries();
-							}
-						}}>
-						{!editMode && <Text style={globalstyles.headerButtonText}>Edit</Text>}
-						{editMode && <Text style={globalstyles.headerButtonText}>Save</Text>}
-					</TouchableOpacity>}
+					{(!loading && conflicts === 0) ?
+						<TouchableOpacity
+							onPress={(): void => {
+								if (!editMode) {
+									editTable();
+								} else {
+									checkEntries();
+								}
+							}}>
+							{!editMode && <Text style={globalstyles.headerButtonText}>Edit</Text>}
+							{editMode && <Text style={globalstyles.headerButtonText}>Save</Text>}
+						</TouchableOpacity>
+						: null
+					}
 				</View>
 			),
 		});
-	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords, context.appMode, shareResults]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, deleteAllRecords, context.appMode, shareResults, context.raceID]);
 
 	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]): void => {

@@ -136,6 +136,8 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 			<MemoEventsListItem
 				index={index}
 				item={item}
+				raceID={context.raceID}
+				appMode={context.appMode}
 				setEventID={setEventID}
 				setEventTitle={setEventTitle}
 				navigationRef={navigationRef}
