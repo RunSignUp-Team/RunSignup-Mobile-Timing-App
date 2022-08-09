@@ -66,8 +66,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 	// Grid View
 	const [gridView, setGridView] = useState(false);
-	const [rsuBibs, setRSUBibs] = useState<Array<BibObject>>([]);
-	const rsuBibsRef = useRef<Array<BibObject>>(rsuBibs);
+	const [bibObjects, setBibObjects] = useState<Array<BibObject>>([]);
+	const bibObjectsRef = useRef<Array<BibObject>>(bibObjects);
 	const bibsInterval = useRef<NodeJS.Timer>();
 
 	// Alerts
@@ -112,10 +112,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		AddToStorage(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef.current, checkerBibsRef.current, false, setLoading, navigation);
 	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
-	/** Updates Alt Bibs without re-rendering entire list */
-	const updateAltBibs = useCallback((newBibs: Array<BibObject>) => {
-		rsuBibsRef.current = newBibs;
-		setRSUBibs(rsuBibsRef.current);
+	/** Updates Bib Objects without re-rendering entire list */
+	const updateBibObjects = useCallback((newBibs: Array<BibObject>) => {
+		bibObjectsRef.current = newBibs;
+		setBibObjects(bibObjectsRef.current);
 	}, []);
 
 	const loadRSUBibs = useCallback(async (alert: boolean, errorAlert: boolean): Promise<void> => {
@@ -149,7 +149,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				});
 			}
 			if (participants.participants && bibObjects.length > 0) {
-				updateAltBibs(bibObjects);
+				updateBibObjects(bibObjects);
 				if (context.appMode === "Online") {
 					AsyncStorage.setItem(`bibObjects:${context.raceID}:${context.eventID}`, JSON.stringify(bibObjects));
 				} else {
@@ -169,7 +169,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				storedBibsString = await AsyncStorage.getItem(`bibObjects:backup:${context.raceID}:${context.eventID}`);
 			}
 			if (storedBibsString) {
-				updateAltBibs(JSON.parse(storedBibsString));
+				updateBibObjects(JSON.parse(storedBibsString));
 			} else if (errorAlert) {
 				Alert.alert(
 					"No Bibs Found",
@@ -189,7 +189,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 		if (alert || errorAlert) {
 			setLoading(false);
 		}	
-	}, [context.appMode, context.eventID, context.raceID, updateAltBibs]);
+	}, [context.appMode, context.eventID, context.raceID, updateBibObjects]);
 
 	/** Load RSU Bibs */
 	useFocusEffect(useCallback(() => {
@@ -625,15 +625,15 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 								{/* Bib FlatList */}
 								<FlatList
-									data={rsuBibsRef.current}
+									data={bibObjectsRef.current}
 									numColumns={Math.max(Math.floor((Dimensions.get("screen").width / 120)), 3)}
-									style={[globalstyles.altLongFlatList, {	
+									style={[globalstyles.gridFlatList, {	
 										height: Dimensions.get("window").height - TABLE_ITEM_HEIGHT * 3 - TABLE_HEADER_HEIGHT * 2 - headerHeight - 100
 									}]}
 									showsVerticalScrollIndicator={false}
 									renderItem={bibRenderItem}
 									keyExtractor={(_item, index): string => {
-										return "altBib_" + _item + index;
+										return "bibObject_" + _item + index;
 									}}
 									initialNumToRender={10}
 									windowSize={11}

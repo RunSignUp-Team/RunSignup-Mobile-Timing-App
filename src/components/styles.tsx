@@ -144,7 +144,7 @@ export const globalstyles = StyleSheet.create({
 		maxHeight: TABLE_ITEM_HEIGHT * 3,
 		minHeight: TABLE_ITEM_HEIGHT * 3
 	},
-	altLongFlatList: {
+	gridFlatList: {
 		overflow: "hidden",
 		padding: 5,
 	},
@@ -342,24 +342,24 @@ export const globalstyles = StyleSheet.create({
 		textAlign: "center"
 	},
 
-	altBibContainer: {
+	gridBibContainer: {
 		flex: 1, 
 		alignItems: "center", 
 		padding: 4,
 		flexDirection: "row",
 	},
-	altBibButton: {
+	gridBibButton: {
 		height: 45,
 		alignItems: "center",
 		justifyContent: "center",
 		flexGrow: 1,
 		borderRadius: 5,
 	},
-	altBibText: {
+	gridBibText: {
 		color: WHITE_COLOR, 
 		fontFamily: "RobotoBold"
 	},
-	altTimeText: {
+	gridTimeText: {
 		color: WHITE_COLOR, 
 		fontFamily: "RobotoMono", 
 		fontSize: TABLE_FONT_SIZE

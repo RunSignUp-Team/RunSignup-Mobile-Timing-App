@@ -36,9 +36,9 @@ const bibTapLogic = (props: Props): void => {
 
 const BibRenderItem = (props: Props): React.ReactElement => {
 	return (
-		<TouchableOpacity activeOpacity={1} style={globalstyles.altBibContainer}>
+		<TouchableOpacity activeOpacity={1} style={globalstyles.gridBibContainer}>
 			<TouchableOpacity
-				style={[globalstyles.altBibButton, {backgroundColor: props.alreadyEntered ? GRAY_COLOR : GREEN_COLOR}]}
+				style={[globalstyles.gridBibButton, {backgroundColor: props.alreadyEntered ? GRAY_COLOR : GREEN_COLOR}]}
 				onPress={(): void => {
 					bibTapLogic(props);
 				}}
@@ -61,8 +61,8 @@ const BibRenderItem = (props: Props): React.ReactElement => {
 					);
 				}}
 			>
-				<Text style={[globalstyles.altBibText, {fontSize: props.bibObject.bib.toString().length > 6 ? SMALL_FONT_SIZE : MEDIUM_FONT_SIZE}]}>{props.bibObject.bib}</Text>
-				{props.time ? <Text style={globalstyles.altTimeText}>{props.time}</Text> : null}
+				<Text style={[globalstyles.gridBibText, {fontSize: props.bibObject.bib.toString().length > 6 ? SMALL_FONT_SIZE : MEDIUM_FONT_SIZE}]}>{props.bibObject.bib}</Text>
+				{props.time ? <Text style={globalstyles.gridTimeText}>{props.time}</Text> : null}
 			</TouchableOpacity>
 		</TouchableOpacity>
 	);
