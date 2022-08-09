@@ -82,7 +82,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				<HeaderBackButton onPress={goToHomeScreen} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 			headerRight: () => (
-				<View style={{ flexDirection: "row", width: 70, justifyContent: "space-between", alignItems: "center" }}>
+				<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between", alignItems: "center" }}>
 					<SyncAnimation disabled={context.appMode === "Backup"}/>
 					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
 						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>

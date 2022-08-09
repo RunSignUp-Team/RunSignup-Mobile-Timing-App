@@ -5,6 +5,7 @@ export const DARK_GREEN_COLOR = "#00663C";
 export const LIGHT_GREEN_COLOR = "#00cc77";
 
 export const RED_COLOR = "#ff3b30";
+export const DARK_RED_COLOR = "#B30900";
 
 export const APPLE_BLUE_COLOR = "#0a84ff";
 
