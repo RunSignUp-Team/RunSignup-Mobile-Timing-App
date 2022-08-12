@@ -448,7 +448,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					}} >
 					{gridView ?
 						<TouchableOpacity onPress={async (): Promise<void> => { await loadRSUBibs(true, true); }}>
-							<Icon name="loop3" size={18} color={WHITE_COLOR} />
+							<Icon name="loop22" size={18} color={WHITE_COLOR} />
 						</TouchableOpacity>
 						: null
 					}
@@ -596,10 +596,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 					<Text style={globalstyles.timeTableHeadText}>Time</Text>
 					<View style={globalstyles.tableAddButton}>
-						<Icon name="plus2" color={BLACK_COLOR} size={10} />
+						<Icon name="plus" color={BLACK_COLOR} size={10} />
 					</View>
 					<View style={globalstyles.tableDeleteButton}>
-						<Icon name="minus2" color={BLACK_COLOR} size={10} />
+						<Icon name="minus" color={BLACK_COLOR} size={10} />
 					</View>
 				</View>
 
