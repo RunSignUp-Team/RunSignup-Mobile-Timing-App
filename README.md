@@ -1,9 +1,14 @@
-# Mobile Timing App
+# RaceDay Mobile Timing
  
 ## About
-This app allows users to record race results on their mobile devices, either recording solo using Finish Line Mode, or as a two person team, using both Finish Line Mode and Chute Mode. The results are stored locally and pushed to Runsignup upon the completion of the race. There is also an offline mode that timers can use when they know they will not have a good internet connection.
+This app allows users to record race results on their mobile devices. Finish Line Mode allows users to record finish times (and bib numbers, optionally). Chute Mode allows users to record bib numbers. The data is stored locally on the device, and pushed to RunSignup when recording is finished (if the user has chosen the `Score & Publish Results` App Flow). One user can record times in Finish Line Mode, and multiple users can record bib numbers in Chute Mode.
 
-## Getting The App Running
+## App Flows
+1. `Score & Publish Results` - Results are stored locally. Participant data is pulled from RunSignup, allowing Grid View in Finish Line Mode (see below). When the user has finished recording Finish Times & Bib Numbers, results are synced to RunSignup. Results can also be exported by the user.
+2. `Score as Backup Timer` - Results are stored locally. Participant data is pulled from RunSignup, allowing Grid View in Finish Line Mode (see below). Results are never pushed up to RunSignup, but can be exported by the user.
+3. `Score Offline` - Results are stored locally. This App Flow can be used without an Internet Connection. Results are never pushed up to RunSignup, but can be exported by the user. Results can also be assigned to an Online Event (in the `Score & Publish Results` App Flow) when an Internet Connection is established.
+
+## Running The Project
 1. Clone this project
 2. Download nodeJS if you have not already (https://nodejs.org/en/)
 3. Run "npm install" in Terminal
@@ -15,22 +20,31 @@ This app allows users to record race results on their mobile devices, either rec
     - You can use the "a" and "i" keys to run the Android and iOS emulators respectively, otherwise:
     - Scan the QR code that appears in the terminal with your mobile device to run the app inside Expo Go
 
-## Authentication with OAuth 2.0
-- To authenticate the app and allow the user to access their online races, you need to set up OAuth 2.0. There is a file called `oAuth2Constants.ts` in the `constants` folder. By setting the `CLIENT_ID` and `REDIRECT_URI` there, you will be able to authenticate using OAuth 2.0. The `REDIRECT_URI` ***must*** exactly match what you gave to Runsignup when you created your Runsignup client for OAuth 2.0.
-- Once the app is ready for production mode, you must make some changes to the `REDIRECT_URI`, both in the code and on Runsignup. It must be `"Scheme"://optional/paths/can/be/empty`, where the "Scheme" is the `scheme` in `app.json` (can be whatever you want). You can use `npx uri-scheme add myredirect` to add a custom uri if you want. Example `REDIRECT_URI`: com.rsu.mobile_timing_app://
-_Note: The_ `REDIRECT_URI` _only needs to change for production._ 
+## Images
+**App Flows**
 
-## Finish Line Mode
-![Finish Line Mode](https://user-images.githubusercontent.com/97470828/170090440-91458325-28be-4651-a8ff-7da023213192.png)
+<img src="https://user-images.githubusercontent.com/97470828/184407883-2cd1bc40-e58c-4671-94de-1bfe28357e0c.png" width="300">
 
-## Chute Mode
-![Chute Mode](https://user-images.githubusercontent.com/97470828/170090461-401f7803-c3b7-49a1-8f2a-e55447092e83.png)
+**Finish Line Mode - List View**
 
-## Verification Mode
-![Verification Mode](https://user-images.githubusercontent.com/97470828/170090494-fad7d726-4b97-4ebe-810d-eecb3c829da9.png)
+<img src="https://user-images.githubusercontent.com/97470828/184407957-729cbf58-03e6-4a50-bdb5-2685db0c70f4.png" width="300">
 
+**Finish Line Mode - Grid View**
 
-## MIT Licenses
-- Axios (https://github.com/axios/axios)
+<img src="https://user-images.githubusercontent.com/97470828/184407982-622ee65d-e824-48bd-bc2b-af0f20867518.png" width="300">
+
+**Chute Mode - List View**
+
+<img src="https://user-images.githubusercontent.com/97470828/184408066-d4bb4d80-700d-454e-8288-d6e6a6a1a694.png" width="300">
+
+**Chute Mode - Scan View**
+
+<img src="https://user-images.githubusercontent.com/97470828/184408124-c73c5bde-eaa5-4518-beeb-3be7f1402422.png" width="300">
+
+**Results Mode**
+
+<img src="https://user-images.githubusercontent.com/97470828/184408273-f6444fa3-8a31-4ca0-877e-79e530ffaf74.png" width="300">
+
+### MIT Licenses
 - React Navigation (https://github.com/react-navigation/react-navigation)
 - Async Storage (https://github.com/react-native-async-storage/async-storage)
