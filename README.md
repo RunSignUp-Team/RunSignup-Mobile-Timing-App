@@ -71,6 +71,6 @@ To change a physical Android device hosts file, you would need to root the devic
 
 <img src="https://user-images.githubusercontent.com/97470828/184408273-f6444fa3-8a31-4ca0-877e-79e530ffaf74.png" width="300">
 
-### MIT Licenses
+## MIT Licenses
 - React Navigation (https://github.com/react-navigation/react-navigation)
 - Async Storage (https://github.com/react-native-async-storage/async-storage)
