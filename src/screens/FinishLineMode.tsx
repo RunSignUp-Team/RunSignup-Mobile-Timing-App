@@ -74,6 +74,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const [alertVisible, setAlertVisible] = useState(false);
 	const [alertIndex, setAlertIndex] = useState<number>();
 	const [startTimeAlertVisible, setStartTimeAlertVisible] = useState(false);
+	const dateRef = useRef(Date.now());
 
 	// Other
 	const [loading, setLoading] = useState(true);
@@ -537,11 +538,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%", alignItems: "center" }}>
 					<TouchableOpacity
 						onPress={(): void => {
-							if (startTime.current !== -1 && finishTimesRef.current.length < 1 && Date.now() - startTime.current <= MAX_TIME) {
+							if (finishTimesRef.current.length < 1) {
 								setStartTimeAlertVisible(true);
 							}
 						}}
-						activeOpacity={startTime.current === -1 || finishTimesRef.current.length > 0 || Date.now() - startTime.current > MAX_TIME ? 1 : 0.5}
+						activeOpacity={finishTimesRef.current.length < 1 ? 0.5 : 1}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: BIG_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
 							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ? "Too Large" : GetClockTime(displayTime)}
@@ -574,6 +575,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								placeholder="Bib Entry"
 								placeholderTextColor={GRAY_COLOR}
 								keyboardType="number-pad"
+								onSubmitEditing={bibText !== "" ? (): void => { recordTime(); } : undefined}
 							/>
 							:
 							<TouchableOpacity
@@ -670,29 +672,25 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				{/* Change Start Time Alert */}
 				<TextInputAlert
 					title={"Change Start Time"}
-					message={`Change the start time for this event.\nTap AM / PM to toggle between day and night.\nStart Date: ${new Date(startTime.current).toLocaleDateString()}`}
+					message={`${Date.now() - startTime.current > MAX_TIME ? "This event was started more than 24 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\n${Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
 					type={"timeofday"}
 					keyboardType={"number-pad"}
 					visible={startTimeAlertVisible}
-					timeInitialValue={startTime.current}
+					timeInitialValue={(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? dateRef.current : startTime.current}
 					actionOnPress={(valArray): void => {
-						// Get Min Finish Time
-						let minTime = Number.MAX_SAFE_INTEGER;
-						for (let i = 0; i < finishTimesRef.current.length; i++) {
-							const time = finishTimesRef.current[i];
-							if (time < minTime) {
-								minTime = time;
-							}
-						}
-
 						const timeOfDay = parseInt(valArray[1]);
-
-						if (!isNaN(timeOfDay) && new Date(timeOfDay) <= new Date() && timeOfDay < minTime) {
-							updateStartTime(timeOfDay);
+						
+						if (!isNaN(timeOfDay) && new Date(timeOfDay) <= new Date()) {
+							if (startTime.current < 0) {
+								startTimer();
+							} else {
+								updateStartTime(timeOfDay);
+							}
 							setStartTimeAlertVisible(false);
 						} else {
-							Alert.alert("You cannot select a start time in the future or a start time greater than an existing finish time.");
+							Alert.alert("You cannot select a start time in the future.");
 						}
+
 					}} cancelOnPress={(): void => {
 						setStartTimeAlertVisible(false);
 					}}
