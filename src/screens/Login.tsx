@@ -93,7 +93,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	);
 
 	/** Handle user wanting to record online races */
-	const onlineOrTimekeeperTapped = async (appMode: AppMode): Promise<void> => {
+	const onlineOrBackupTapped = async (appMode: AppMode): Promise<void> => {
 		setLoading(true);
 		try {
 			const accessToken = await oAuthLogin(false);
@@ -167,8 +167,8 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 						<Icon name={"info"} size={25} color={GREEN_COLOR} />
 					</TouchableOpacity>
 				</View>
-				<MainButton text={"Score & Publish Results"} onPress={(): void => { onlineOrTimekeeperTapped("Online"); }} />
-				<MainButton text={"Score as Backup Timer"} onPress={(): void => { onlineOrTimekeeperTapped("Backup"); }} />
+				<MainButton text={"Score & Publish Results"} onPress={(): void => { onlineOrBackupTapped("Online"); }} />
+				<MainButton text={"Score as Backup Timer"} onPress={(): void => { onlineOrBackupTapped("Backup"); }} />
 				<MainButton text={"Score Offline"} onPress={offlineTapped} />
 				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				<View style={{ position: "absolute", bottom: 20, width: "100%" }}>

@@ -22,7 +22,7 @@ export const SyncAnimation = (props: Props): React.ReactElement => {
 	);
 
 	useEffect(() => {
-		if (props.appMode !== "Online") {
+		if (props.appMode === "Offline") {
 			animation.reset();
 		} else {
 			animation.start();
@@ -34,18 +34,18 @@ export const SyncAnimation = (props: Props): React.ReactElement => {
 			onPress={(): void => {
 				if (props.appMode === "Online") {
 					Alert.alert(
-						"Syncing Results",
-						"You are currently in the \"Score & Publish Results\" App Flow. All of your results for any event will be uploaded to RunSignup."
+						"Publishing Results",
+						"You are currently in the \"Score & Publish Results\" App Flow.\nParticipant data will sync down from RunSignup and all of your results will be uploaded to RunSignup."
 					);
 				} else if (props.appMode === "Backup") {
 					Alert.alert(
-						"Not Syncing Results",
-						"You are currently in the \"Score as Backup Timer\" App Flow. None of your results for any event will be uploaded to RunSignup. You must manually export them."
+						"Backup Timing",
+						"You are currently in the \"Score as Backup Timer\" App Flow.\nParticipant data will sync down from RunSignup, but none of your results will be uploaded to RunSignup.\nYou will need to export them from \"Results\"."
 					);
 				} else {
 					Alert.alert(
-						"Not Syncing Results",
-						"You are currently in the \"Score Offline\" App Flow. None of your results for any event will be uploaded to RunSignup, and you can continue to score an Offline Event without an Internet Connection."
+						"Offline Scoring",
+						"You are currently in the \"Score Offline\" App Flow.\nNo participant data will sync down from RunSignup and none of your results will be uploaded to RunSignup.\nHowever, you can score an Offline Event without an Internet Connection.\nData can be exported from \"Results\" or assigned to an Online Event in the \"Score & Publish Results\" App Flow."
 					);
 				}
 
@@ -54,12 +54,12 @@ export const SyncAnimation = (props: Props): React.ReactElement => {
 			<Animated.View
 				style={{
 					borderRadius: 20,
-					opacity: props.appMode === "Online" ? fadeAnim : 1,
+					opacity: props.appMode !== "Offline" ? fadeAnim : 1,
 					alignItems: "center",
 					justifyContent: "center",
 				}}>
 				<View
-					style={props.appMode !== "Online" ? undefined : {
+					style={props.appMode === "Offline" ? undefined : {
 						shadowColor: WHITE_COLOR,
 						shadowOffset: { width: 0, height: 0 },
 						shadowOpacity: 1,
@@ -67,7 +67,7 @@ export const SyncAnimation = (props: Props): React.ReactElement => {
 						elevation: 5,
 					}}
 				>
-					<Icon name={props.appMode === "Backup" ? "cloud-x" : (props.appMode === "Offline" ? "folder" : "cloud-check")} color={props.appMode !== "Online" ? DARK_GRAY_COLOR : DARK_RED_COLOR} size={30} />
+					<Icon name={props.appMode === "Backup" ? "cloud-download" : (props.appMode === "Offline" ? "cloud-x" : "cloud-upload")} color={props.appMode === "Offline" ? DARK_GRAY_COLOR : DARK_RED_COLOR} size={30} />
 				</View>
 			</Animated.View>
 		</TouchableOpacity>

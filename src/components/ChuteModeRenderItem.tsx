@@ -37,7 +37,7 @@ export default function ChuteModeRenderItem(props: Props): React.ReactElement {
 			<TouchableOpacity
 				style={globalstyles.tableDeleteButton}
 				onPress={removeSelf}>
-				<Icon name="minus-circle" color={RED_COLOR} size={25} />
+				<Icon name="minus-circle" color={RED_COLOR} size={28} />
 			</TouchableOpacity>
 		</View>
 	);

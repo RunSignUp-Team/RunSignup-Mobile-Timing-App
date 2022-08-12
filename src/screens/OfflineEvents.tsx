@@ -15,6 +15,7 @@ import { ItemLayout } from "../models/ItemLayout";
 import TextInputAlert from "../components/TextInputAlert";
 import MainButton from "../components/MainButton";
 import CreateAPIError from "../helpers/CreateAPIError";
+import { SyncAnimation } from "../components/SyncAnimation";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -52,6 +53,11 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		navigation.setOptions({
 			headerLeft: () => (
 				<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
+			),
+			headerRight: () => (
+				<View style={{ flexDirection: "row", marginRight: 15, justifyContent: "space-between", alignItems: "center" }}>
+					<SyncAnimation appMode={context.appMode} />
+				</View>
 			),
 		});
 	}, [context.eventID, context.appMode, context.raceID, navigation]);

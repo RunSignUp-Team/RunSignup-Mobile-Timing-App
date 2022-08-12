@@ -110,7 +110,7 @@ export default function ResultsModeRenderItem(props: Props): React.ReactElement 
 								props.updateMaxTime(maxTime);
 							}
 						}}>
-						<Icon name="minus-circle" color={RED_COLOR} size={25} />
+						<Icon name="minus-circle" color={RED_COLOR} size={28} />
 					</TouchableOpacity>
 				}
 			</TouchableOpacity>

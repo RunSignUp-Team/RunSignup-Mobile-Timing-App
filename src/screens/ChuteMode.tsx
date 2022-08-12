@@ -300,7 +300,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			Alert.alert(
 				"Save Results",
-				`Are you sure you want to save ${context.appMode === "Online" || context.appMode === "Backup" ? "to the cloud" : "results"} and quit?`,
+				`Are you sure you want to save ${context.appMode === "Online" ? "to the cloud" : "results"} and quit?`,
 				[
 					{ text: "Cancel" },
 					{
