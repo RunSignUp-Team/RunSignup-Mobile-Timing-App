@@ -967,7 +967,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			try {
 				await ShareResultsFile(context.raceID, context.eventID, context.time, context.appMode);
 			} catch (error) {
-				Logger("Failed to Share Results", error, true);
+				Logger(`Failed to Share Results.\n${error}`, error, true);
 			}
 			await DeleteFiles(context.raceID, context.eventID, context.time, context.appMode);
 		} else {
@@ -986,14 +986,14 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					{/* Delete All Records */}
 					{(editMode && !loading) ?
 						<TouchableOpacity style={{ marginRight: 15 }} onPress={deleteAllRecords} >
-							<Icon name={"bin5"} size={22} color={WHITE_COLOR} />
+							<Icon name={"bin"} size={22} color={WHITE_COLOR} />
 						</TouchableOpacity>
 						: null
 					}
 					{/* Add Record */}
 					{(editMode && !loading) ?
 						<TouchableOpacity style={{ marginRight: 15 }} onPress={addRecord} >
-							<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
+							<Icon name={"plus"} size={20} color={WHITE_COLOR} />
 						</TouchableOpacity>
 						: null
 					}
@@ -1001,14 +1001,14 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					{/* RSU Results */}
 					{(!editMode && !loading && context.appMode === "Online" && conflicts === 0) ?
 						<TouchableOpacity style={{ marginRight: 15 }} onPress={(): void => { OpenResultsLink(context.raceID); }} >
-							<Icon name={"stats-bars2"} size={24} color={WHITE_COLOR} />
+							<Icon name={"stats-bars"} size={24} color={WHITE_COLOR} />
 						</TouchableOpacity>
 						: null
 					}
 					{/* Share Results */}
 					{(!editMode && !loading && conflicts === 0) ?
 						<TouchableOpacity style={{ marginRight: 15 }} onPress={shareResults} >
-							<Icon name={"file-upload2"} size={22} color={WHITE_COLOR} />
+							<Icon name={"file-upload"} size={22} color={WHITE_COLOR} />
 						</TouchableOpacity>
 						: null
 					}
@@ -1150,7 +1150,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					{(context.appMode === "Online" || context.appMode === "Backup") ? <Text style={globalstyles.nameTableHeadText}>Name</Text> : null}
 					{editMode &&
 						<View style={globalstyles.tableDeleteButton}>
-							<Icon name="minus2" color={BLACK_COLOR} size={10} />
+							<Icon name="minus" color={BLACK_COLOR} size={12} />
 						</View>
 					}
 				</View>

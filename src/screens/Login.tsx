@@ -1,6 +1,6 @@
 import React, { useContext, useCallback, useState, useEffect } from "react";
 import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, TouchableOpacity, Text } from "react-native";
-import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, WHITE_COLOR } from "../components/styles";
 import { AppContext, AppMode } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -151,14 +151,25 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		<View style={globalstyles.container}>
-			<View style={{ flexDirection: "column", flex: 1 }}>
+			<View style={{ flex: 1 }}>
 				<Image
 					style={[globalstyles.image, { marginTop: 10 }]}
 					source={require("../assets/logo.png")}
 				/>
-				<MainButton text={"Online Races"} onPress={(): void => { onlineOrTimekeeperTapped("Online"); }} buttonStyle={{ marginTop: 50 }} />
-				<MainButton text={"Backup Races"} onPress={(): void => { onlineOrTimekeeperTapped("Backup"); }}  />
-				<MainButton text={"Offline Events"} onPress={offlineTapped} />
+				<View style={{ flexDirection: "row", alignItems: "center", marginTop: 40, marginBottom: 10, justifyContent: "center" }}>
+					<Text style={globalstyles.header}>{"Select an App Flow"}</Text>
+					<TouchableOpacity
+						style={{ marginLeft: 10 }}
+						onPress={(): void => {
+							Alert.alert("App Flows", "1. Score & Publish Results - Publishes all scoring results to RunSignup.\n2. Score as Backup Timer - Gets participant data from RunSignup, but does not publish any results to RunSignup. Results must be manually exported.\n3. Score Offline - Completely offline scoring for poor Internet Connection. Results must be manually exported or assigned when an Internet Connection is re-established.\nSee Start Guide for more information.")
+						}}
+					>
+						<Icon name={"info"} size={25} color={GREEN_COLOR} />
+					</TouchableOpacity>
+				</View>
+				<MainButton text={"Score & Publish Results"} onPress={(): void => { onlineOrTimekeeperTapped("Online"); }} />
+				<MainButton text={"Score as Backup Timer"} onPress={(): void => { onlineOrTimekeeperTapped("Backup"); }} />
+				<MainButton text={"Score Offline"} onPress={offlineTapped} />
 				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 				<View style={{ position: "absolute", bottom: 20, width: "100%" }}>
 					{version ? <Text style={globalstyles.modalHeader}>{`Version ${version}`}</Text> : null}

@@ -79,7 +79,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 				),
 				headerRight: () => (
 					<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between", alignItems: "center" }}>
-						<SyncAnimation disabled={context.appMode === "Backup"} />
+						<SyncAnimation appMode={context.appMode} />
 						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
 							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
 						</TouchableOpacity>

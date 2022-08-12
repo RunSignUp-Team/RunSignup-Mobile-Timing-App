@@ -14,7 +14,7 @@ export default function Icon({ name, ...restProps }: IconProps): React.ReactElem
 	const Icon = createIconSetFromIcoMoon(
 		json,
 		"IcoMoon",
-		"icomoon.ttf"
+		"IcoMoon-Ultimate.ttf"
 	);
 
 	return <Icon name={name} {...restProps} />;

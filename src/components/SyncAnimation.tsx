@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, View } from "react-native";
+import { Alert, Animated, TouchableOpacity, View } from "react-native";
+import { AppMode } from "./AppContext";
 import Icon from "./IcoMoon";
-import { DARK_GRAY_COLOR, DARK_RED_COLOR } from "./styles";
+import { DARK_GRAY_COLOR, DARK_RED_COLOR, WHITE_COLOR } from "./styles";
 
 interface Props {
-	disabled?: boolean
+	appMode: AppMode
 }
 
 export const SyncAnimation = (props: Props): React.ReactElement => {
@@ -21,72 +22,54 @@ export const SyncAnimation = (props: Props): React.ReactElement => {
 	);
 
 	useEffect(() => {
-		if (props.disabled) {
+		if (props.appMode !== "Online") {
 			animation.reset();
 		} else {
 			animation.start();
 		}
-	}, [animation, fadeAnim, props.disabled]);
+	}, [animation, fadeAnim, props.appMode]);
 
 	return (
-		<Animated.View 
-			style={{ 
-				borderRadius: 20, 
-				opacity: props.disabled ? 1 : fadeAnim, 
-				alignItems: "center", 
-				justifyContent: "center",
-			}}>
-			<View
-				style={props.disabled ? undefined : {
-					shadowColor: DARK_RED_COLOR,
-					shadowOffset: { width: 0, height: 0 },
-					shadowOpacity: 1,
-					shadowRadius: 3,
-					elevation: 5,
-				}}
-			>
-				<Icon name={"cloud2"} color={props.disabled ? DARK_GRAY_COLOR : DARK_RED_COLOR} size={30} />
-			</View>
-		</Animated.View>
-	);
+		<TouchableOpacity
+			onPress={(): void => {
+				if (props.appMode === "Online") {
+					Alert.alert(
+						"Syncing Results",
+						"You are currently in the \"Score & Publish Results\" App Flow. All of your results for any event will be uploaded to RunSignup."
+					);
+				} else if (props.appMode === "Backup") {
+					Alert.alert(
+						"Not Syncing Results",
+						"You are currently in the \"Score as Backup Timer\" App Flow. None of your results for any event will be uploaded to RunSignup. You must manually export them."
+					);
+				} else {
+					Alert.alert(
+						"Not Syncing Results",
+						"You are currently in the \"Score Offline\" App Flow. None of your results for any event will be uploaded to RunSignup, and you can continue to score an Offline Event without an Internet Connection."
+					);
+				}
 
-	// return (
-	// 	<Animated.View 
-	// 		style={{ 
-	// 			borderWidth: 4, 
-	// 			borderColor: BLACK_COLOR, 
-	// 			borderRadius: 15, 
-	// 			height: 21, 
-	// 			width: 21, 
-	// 			opacity: props.disabled ? 1 : fadeAnim, 
-	// 			alignItems: "center", 
-	// 			justifyContent: "center",
-	// 			shadowColor: RED_COLOR,
-	// 			shadowOffset: { width: 0, height: 0 },
-	// 			shadowOpacity: 1,
-	// 			shadowRadius: 4,
-	// 			elevation: 5,
-	// 		}}>
-	// 		{props.disabled ? <View
-	// 			style={{
-	// 				position: "absolute",
-	// 				width: 3,
-	// 				height: 29,
-	// 				backgroundColor: RED_COLOR, transform: [{ rotate: "45deg" }],
-	// 				zIndex: 1,
-	// 				shadowColor: BLACK_COLOR,
-	// 				shadowOffset: { width: 0, height: 1 },
-	// 				shadowOpacity: 1,
-	// 				shadowRadius: 3,
-	// 				elevation: 10,
-	// 			}} /> : null}
-	// 		<View 
-	// 			style={{ 
-	// 				backgroundColor: props.disabled ? DARK_RED_COLOR : DARK_RED_COLOR, 
-	// 				borderRadius: 20, 
-	// 				width: 8, 
-	// 				height: 8,
-	// 			}} />
-	// 	</Animated.View>
-	// );
+			}}
+		>
+			<Animated.View
+				style={{
+					borderRadius: 20,
+					opacity: props.appMode === "Online" ? fadeAnim : 1,
+					alignItems: "center",
+					justifyContent: "center",
+				}}>
+				<View
+					style={props.appMode !== "Online" ? undefined : {
+						shadowColor: WHITE_COLOR,
+						shadowOffset: { width: 0, height: 0 },
+						shadowOpacity: 1,
+						shadowRadius: 3,
+						elevation: 5,
+					}}
+				>
+					<Icon name={props.appMode === "Backup" ? "cloud-x" : (props.appMode === "Offline" ? "folder" : "cloud-check")} color={props.appMode !== "Online" ? DARK_GRAY_COLOR : DARK_RED_COLOR} size={30} />
+				</View>
+			</Animated.View>
+		</TouchableOpacity>
+	);
 };

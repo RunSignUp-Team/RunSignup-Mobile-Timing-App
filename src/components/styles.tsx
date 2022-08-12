@@ -99,6 +99,10 @@ export const globalstyles = StyleSheet.create({
 	},
 
 	// Headers
+	header: {
+		fontSize: BIG_FONT_SIZE,
+		fontFamily: "RobotoBold",
+	},
 	modalHeader: {
 		fontSize: MEDIUM_FONT_SIZE,
 		fontFamily: "RobotoBold",
@@ -190,7 +194,7 @@ export const globalstyles = StyleSheet.create({
 		shadowOffset: { width: 0, height: 3 },
 		shadowOpacity: 0.6,
 		shadowRadius: 3,
-		elevation: 10,
+		elevation: 50,
 	},
 
 	// Table Text

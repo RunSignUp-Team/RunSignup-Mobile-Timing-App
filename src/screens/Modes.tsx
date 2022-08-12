@@ -185,14 +185,14 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
-					(context.appMode === "Online" || context.appMode === "Backup") ?
-						<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between", alignItems: "center" }}>
-							<SyncAnimation disabled={context.appMode === "Backup"} />
+					<View style={{ flexDirection: "row", width: context.appMode === "Offline" ? undefined : 75, marginRight: context.appMode === "Offline" ? 15 : 0, justifyContent: "space-between", alignItems: "center" }}>
+						<SyncAnimation appMode={context.appMode} />
+						{context.appMode === "Offline" ? null :
 							<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
 								<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
 							</TouchableOpacity>
-						</View> 
-						: null
+						}
+					</View>
 				),
 				headerTitle: eventName ? eventName : "Modes"
 			});

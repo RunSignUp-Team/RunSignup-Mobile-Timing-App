@@ -464,7 +464,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							placeholder="Record Bib #"
 							placeholderTextColor={GRAY_COLOR}
 							keyboardType="number-pad"
-							onSubmitEditing={bibText !== "" ? recordBib : (): void => { return; }}
+							onSubmitEditing={bibText !== "" ? recordBib : undefined}
 							autoFocus={true}
 						/>
 					</View>
@@ -475,7 +475,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<Text style={[globalstyles.placeTableHeadText, { flex: 0.3 }]}>#</Text>
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 					<View style={globalstyles.tableDeleteButton}>
-						<Icon name="minus2" color={BLACK_COLOR} size={10} />
+						<Icon name="minus" color={BLACK_COLOR} size={12} />
 					</View>
 				</View>
 
@@ -503,7 +503,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							<View style={{ flex: 1, backgroundColor: BLACK_COLOR }}>
 								<TouchableOpacity style={{ zIndex: 2, position: "absolute", marginLeft: (camWidth - 150) / 2, marginTop: (camHeight - 150) / 2 }} onPress={(): void => { setPaused(!paused); }}>
 									<Icon
-										name={paused ? "play3" : "pause"}
+										name={paused ? "play22" : "pause"}
 										color={"rgba(255,255,255,0.7)"}
 										size={150}
 									/>
