@@ -151,8 +151,6 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			let [raceList, raceIndex, eventIndex] = DefaultEventData;
 			if (context.appMode === "Online") {
 				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
-			} else if (context.appMode === "Backup") {
-				[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
 			}
 
 			// Bibs & Checker Bibs
