@@ -35,16 +35,26 @@ For oAuth to work with RunSignup in DEV, we have a `REDIRECT_URI` set up that wo
 
 ### Changing Android Simulator Hosts File
 To change a physical Android device hosts file, you would need to root the device. What we can more easily and safely do is root the Android simulator:
-1. Run `emulator -list-avds` to get the name of your Emulator
-2. Run `emulator -avd <avdname> -writable-system`, where `<avdname>` is the name of your Emulator
-3. In another terminal window, run `adb root`
-4. Run `adb shell avbctl disable-verification`
-5. Run `adb reboot` (wait for the simulator to reboot)
-6. Run `adb remount` (you may need to run `adb root` again beforehand)
-7. Run `adb shell`
-8. In `adb shell`, run `cd system/etc`
-9. In `adb shell`, run `echo "127.0.0.1 mobiletest.example.com" >> hosts`
-10. In `adb shell`, run `cat hosts` to confirm that your change has been saved to the file
+1. Make sure expo isn't running
+2. Close the Android simulator
+3. Run `emulator -list-avds` to get the name of your Emulator
+4. Run `emulator -avd <avdname> -writable-system`, where `<avdname>` is the name of your Emulator
+5. In another terminal window, run `adb root`
+6. Run `adb shell avbctl disable-verification`
+7. Run `adb reboot` (wait for the simulator to reboot)
+8. Run `adb root` again
+9. Run `adb remount`
+10. Run `adb shell`
+11. In `adb shell`, run `cd system/etc`
+12. In `adb shell`, run `echo "127.0.0.1 mobiletest.example.com" >> hosts`
+13. In `adb shell`, run `cat hosts` to confirm that your change has been saved to the file
+14. Start expo again
+
+Unfortunately, after setting this up on Android, it seems that you still need to do a few steps every time you want to run the app:
+1. Run steps 1-4 again
+2. Run `adb root`
+3. Run `adb reboot`
+4. Start expo
 
 ## Images
 **App Flows**
