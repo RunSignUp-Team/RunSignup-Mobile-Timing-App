@@ -11,13 +11,13 @@ This app allows users to record race results on their mobile devices. Finish Lin
 ## Running The Project
 1. Clone this project
 2. Download nodeJS if you have not already (https://nodejs.org/en/)
-3. Run "npm install" in Terminal
-4. Run "npm install expo-cli" in Terminal
-5. Download the "Expo Go" app on your mobile device, or follow the instructions at these links to run an iOS or Android emulator on your computer.
+3. Run `npm install` in Terminal
+4. Run `npm install expo-cli` in Terminal
+5. Download the Expo Go app on your mobile device, or follow the instructions at these links to run an iOS or Android emulator on your computer.
     - Android emulator (https://docs.expo.dev/workflow/android-studio-emulator/)
     - iOS simulator (https://docs.expo.dev/workflow/ios-simulator/ -- a Mac is required)
-6. Run "npm start" in Terminal
-    - You can use the "a" and "i" keys to run the Android and iOS emulators respectively, otherwise:
+6. Run `npm start` in Terminal
+    - You can use the `a` and `i` keys to run the Android and iOS emulators respectively, otherwise:
     - Scan the QR code that appears in the terminal with your mobile device to run the app inside Expo Go
     
 ## Using `REDIRECT_URI` in DEV
