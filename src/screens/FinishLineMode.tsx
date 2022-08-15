@@ -376,8 +376,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	}, [context.eventID, context.appMode, context.raceID, context.time]);
 
 	/** Start Timer */
-	const startTimer = useCallback(async () => {
-		startTime.current = Date.now();
+	const startTimer = useCallback(async (newTime?: number) => {
+		const time = newTime ? newTime : Date.now();
+		startTime.current = time;
 
 		setTimerOn(true);
 
@@ -579,7 +580,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							/>
 							:
 							<TouchableOpacity
-								onPress={startTimer}
+								onPress={(): void => { startTimer(); }}
 								style={[globalstyles.startButton, { backgroundColor: DARK_GRAY_COLOR }]}>
 								<Text style={globalstyles.startText}>
 									{timerOn ? "Blank Bib" : "Start Timer"}
@@ -672,7 +673,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				{/* Change Start Time Alert */}
 				<TextInputAlert
 					title={"Change Start Time"}
-					message={`${Date.now() - startTime.current > MAX_TIME ? "This event was started more than 24 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\n${Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
+					message={`${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "This event was started more than 24 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\n${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
 					type={"timeofday"}
 					keyboardType={"number-pad"}
 					visible={startTimeAlertVisible}
@@ -682,7 +683,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						
 						if (!isNaN(timeOfDay) && new Date(timeOfDay) <= new Date()) {
 							if (startTime.current < 0) {
-								startTimer();
+								startTimer(timeOfDay);
 							} else {
 								updateStartTime(timeOfDay);
 							}
