@@ -368,7 +368,7 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 			<MainButton disabled={loading} color={noFinishLine || loading ? "Disabled" : "Green"} onPress={context.appMode !== "Online" ? finishLineTappedOffline : finishLineTapped} text={`${finishLineProgress ? "Continue: " : ""}Finish Line Mode`} buttonStyle={{ marginTop: 0 }} />
 			<MainButton disabled={loading} color={noChute || loading ? "Disabled" : "Green"} onPress={context.appMode !== "Online" ? chuteTappedOffline : chuteTapped} text={`${chuteProgress ? "Continue: " : ""}Chute Mode`} />
 			<MainButton disabled={loading} color={noResults || loading ? "Disabled" : "Green"} onPress={context.appMode !== "Online" ? resultsTappedOffline : resultsTapped} text={"Results"} />
-			{context.appMode !== "Backup" ? <MainButton onPress={context.appMode === "Online" ? assignEvent : deleteEvent} text={context.appMode === "Online" ? "Assign Offline Event" : "Delete Offline Event"} color={context.appMode ? "Gray" : "Red"} /> : null}
+			{context.appMode !== "Backup" ? <MainButton onPress={context.appMode === "Online" ? assignEvent : deleteEvent} text={context.appMode === "Online" ? "Assign Offline Event" : "Delete Offline Event"} color={context.appMode === "Online" ? "Gray" : "Red"} /> : null}
 			{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
 			<MainButton text={"Get Support"} onPress={getSupport} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
 		</View>

@@ -1133,7 +1133,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						style={[globalstyles.input, { borderWidth: 0 }]}
 						onChangeText={setSearch}
 						value={search}
-						placeholder={context.appMode ? "Search by Bib # or Name" : "Search by Bib #"}
+						placeholder={context.appMode !== "Offline" ? "Search by Bib # or Name" : "Search by Bib #"}
 						placeholderTextColor={GRAY_COLOR}
 					/>
 				</View>
