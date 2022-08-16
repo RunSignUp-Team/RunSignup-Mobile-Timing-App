@@ -270,12 +270,28 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	
 			if (raceIndex >= 0 && eventIndex >= 0) {
 				const event = raceList[raceIndex].events[eventIndex];
-				// Get Bibs
-				for (let i = 0; i < event.bib_nums.length; i++) {
+
+				const biggerArray = Math.max(event.bib_nums.length, event.checker_bibs.length);
+
+				// Bibs & Checker Bibs
+				for (let i = 0; i < biggerArray; i++) {
 					if (i > recordsRef.current.length - 1) {
 						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 					}
-					recordsRef.current[i][0] = event.bib_nums[i];
+
+					const localBib = event.bib_nums[i];
+					const localCheckerBib = event.checker_bibs[i];
+
+					recordsRef.current[i][0] = localBib;
+					recordsRef.current[i][2] = localCheckerBib;
+
+					// Deal with simple conflicts right away
+					if (!recordsRef.current[i][0] && recordsRef.current[i][2]) {
+						recordsRef.current[i][0] = recordsRef.current[i][2];
+					}
+					if (!recordsRef.current[i][2] && recordsRef.current[i][0]) {
+						recordsRef.current[i][2] = recordsRef.current[i][0];
+					}
 				}
 	
 				// Get Finish Times
@@ -290,23 +306,6 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					// Get Max Time for Adding New Records
 					if (finishTime > maxTime.current) {
 						maxTime.current = finishTime;
-					}
-				}
-	
-				// Get Checker Bibs
-				for (let i = 0; i < event.checker_bibs.length; i++) {
-					if (i > recordsRef.current.length - 1) {
-						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-					}
-					recordsRef.current[i][2] = event.checker_bibs[i];
-	
-					// Get best bib data available into records[0]
-					if (!recordsRef.current[i][0]) {
-						if (recordsRef.current[i][2]) {
-							recordsRef.current[i][0] = recordsRef.current[i][2];
-						} else {
-							recordsRef.current[i][0] = 0;
-						}
 					}
 				}
 	
@@ -341,12 +340,27 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		const [eventList, eventIndex] = await GetOfflineEvent(context.time);
 
 		if (eventIndex >= 0) {
-			// Get Bibs
-			for (let i = 0; i < eventList[eventIndex].bib_nums.length; i++) {
+			const biggerArray = Math.max(eventList[eventIndex].bib_nums.length, eventList[eventIndex].checker_bibs.length);
+
+			// Bibs & Checker Bibs
+			for (let i = 0; i < biggerArray; i++) {
 				if (i > recordsRef.current.length - 1) {
 					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 				}
-				recordsRef.current[i][0] = eventList[eventIndex].bib_nums[i];
+
+				const localBib = eventList[eventIndex].bib_nums[i];
+				const localCheckerBib = eventList[eventIndex].checker_bibs[i];
+
+				recordsRef.current[i][0] = localBib;
+				recordsRef.current[i][2] = localCheckerBib;
+
+				// Deal with simple conflicts right away
+				if (!recordsRef.current[i][0] && recordsRef.current[i][2]) {
+					recordsRef.current[i][0] = recordsRef.current[i][2];
+				}
+				if (!recordsRef.current[i][2] && recordsRef.current[i][0]) {
+					recordsRef.current[i][2] = recordsRef.current[i][0];
+				}
 			}
 
 			// Get Finish Times
@@ -361,23 +375,6 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				// Get Max Time for Adding New Records
 				if (finishTime > maxTime.current) {
 					maxTime.current = finishTime;
-				}
-			}
-
-			// Get Checker Bibs
-			for (let i = 0; i < eventList[eventIndex].checker_bibs.length; i++) {
-				if (i > recordsRef.current.length - 1) {
-					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-				}
-				recordsRef.current[i][2] = eventList[eventIndex].checker_bibs[i];
-
-				// Get best bib data available into records[0]
-				if (!recordsRef.current[i][0]) {
-					if (recordsRef.current[i][2]) {
-						recordsRef.current[i][0] = recordsRef.current[i][2];
-					} else {
-						recordsRef.current[i][0] = 0;
-					}
 				}
 			}
 

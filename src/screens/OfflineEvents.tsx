@@ -84,30 +84,15 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
 		const formData = new FormData();
 
-		let checkerBibSum = 0;
-		let bibSum = 0;
-
-		if (item.checker_bibs.length > 0) {
-			for (let i = 0; i < item.checker_bibs.length; i++) {
-				const checkerBib = item.checker_bibs[i];
-				if (checkerBib !== Number.MAX_SAFE_INTEGER && checkerBib >= 0 && checkerBibSum < 1) {
-					checkerBibSum += checkerBib;
-				}
-			}
-		}
-
-		if (item.bib_nums.length > 0) {
-			for (let i = 0; i < item.bib_nums.length; i++) {
-				const bib = item.bib_nums[i];
-				if (bib !== Number.MAX_SAFE_INTEGER && bib >= 0 && bibSum < 1) {
-					bibSum += bib;
-				}
-			}
-		}
+		// Even though the length is not really what determines which array contains the values we want to push to RSU,
+		// It is a way to detect which array actually has valid values to begin with,
+		// So we push bib_nums / checker_bibs based on which one has more non-zero values.
+		// This assumes that assigning an offline event with conflicts is not allowed.
+		const numValidBibs = item.bib_nums.filter(bib => (bib !== Number.MAX_SAFE_INTEGER && bib > 0)).length;
+		const numValidCheckerBibs = item.checker_bibs.filter(checkerBib => (checkerBib !== Number.MAX_SAFE_INTEGER && checkerBib > 0)).length;
 
 		// Post checker bibs if they exist
-		// (we check the sum of the Checker Bibs to see if there are any that are more than 0)
-		if (checkerBibSum >= bibSum) {
+		if (numValidCheckerBibs > numValidBibs) {
 			await deleteBibs(context.raceID, context.eventID);
 
 			// Appending checker bib
