@@ -26,7 +26,6 @@ type Props = {
 export interface OfflineEvent {
 	time: number,
 	name: string,
-	start_time: string,
 	real_start_time: number,
 	finish_times: Array<number>,
 	bib_nums: Array<number>,
@@ -197,7 +196,6 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			const offlineEvent: OfflineEvent = {
 				time: createTime,
 				name: eventName,
-				start_time: "",
 				real_start_time: -1,
 				finish_times: [],
 				bib_nums: [],
