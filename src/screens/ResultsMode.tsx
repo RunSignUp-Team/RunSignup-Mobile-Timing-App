@@ -279,8 +279,9 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 					}
 
-					const localBib = event.bib_nums[i];
-					const localCheckerBib = event.checker_bibs[i];
+					// Default to 0 if undefined
+					const localBib = event.bib_nums[i] ?? 0;
+					const localCheckerBib = event.checker_bibs[i] ?? 0;
 
 					recordsRef.current[i][0] = localBib;
 					recordsRef.current[i][2] = localCheckerBib;
@@ -348,8 +349,9 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
 				}
 
-				const localBib = eventList[eventIndex].bib_nums[i];
-				const localCheckerBib = eventList[eventIndex].checker_bibs[i];
+				// Default to 0 if undefined
+				const localBib = eventList[eventIndex].bib_nums[i] ?? 0;
+				const localCheckerBib = eventList[eventIndex].checker_bibs[i] ?? 0;
 
 				recordsRef.current[i][0] = localBib;
 				recordsRef.current[i][2] = localCheckerBib;
