@@ -45,27 +45,26 @@ export const AddToStorage = async (
 					navigation.navigate("ModeScreen");
 					navigation.navigate("ResultsMode");
 				} else {
-					// Only push if there are any actual checker bibs to push
-					if (checkerBibsParam.filter(checkerBib => (checkerBib !== Number.MAX_SAFE_INTEGER && checkerBib > 0)).length > 0) {
-						// Otherwise push bibs
-						// Formatting and appending bib numbers
-						const formData = new FormData();
-						formData.append(
-							"request",
-							JSON.stringify({
-								last_finishing_place: 0,
-								bib_nums: checkerBibsParam
-							})
-						);
+					// Otherwise, we will always post checker bibs, even if they are just [0, 0, 0, ...]
+					// Chute Mode will handle combining checker bibs and bibs if there are no conflicts,
+					// And Results Mode will handle combining checker bibs and bibs if there are conflicts
+					
+					// Formatting and appending bib numbers
+					const formData = new FormData();
+					formData.append(
+						"request",
+						JSON.stringify({
+							last_finishing_place: 0,
+							bib_nums: checkerBibsParam
+						})
+					);
 
-						await postBibs(raceID, eventID, formData);
+					await postBibs(raceID, eventID, formData);
 
-						raceList[raceIndex].events[eventIndex].checker_bibs = [];
-						raceList[raceIndex].events[eventIndex].finish_times = [];
-						raceList[raceIndex].events[eventIndex].real_start_time = -1;
-						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-					}
-
+					raceList[raceIndex].events[eventIndex].checker_bibs = [];
+					raceList[raceIndex].events[eventIndex].finish_times = [];
+					raceList[raceIndex].events[eventIndex].real_start_time = -1;
+					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 
 					setLoading(false);
 					navigation.navigate("ModeScreen");

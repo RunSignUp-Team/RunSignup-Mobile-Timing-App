@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, View, TouchableOpacity, Text, Alert, FlatList, Te
 import { BLACK_COLOR, DARK_GREEN_COLOR, globalstyles, GRAY_COLOR, TABLE_ITEM_HEIGHT, UNIVERSAL_PADDING, WHITE_COLOR } from "../components/styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
-import { getBibs, postBibs } from "../helpers/APICalls";
+import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, postBibs, postFinishTimes } from "../helpers/APICalls";
 import { MemoChuteItem } from "../components/ChuteModeRenderItem";
 import { HeaderBackButton } from "@react-navigation/elements";
 import GetLocalRaceEvent, { DefaultEventData } from "../helpers/GetLocalRaceEvent";
@@ -23,6 +23,8 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { Audio } from "expo-av";
 import { Sound } from "expo-av/build/Audio";
 import GetBackupEvent from "../helpers/GetBackupEvent";
+import ConflictBoolean from "../helpers/ConflictBoolean";
+import GetTimeInMils from "../helpers/GetTimeInMils";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -115,12 +117,72 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 				if (final) {
 					try {
 						const bibs = await getBibs(context.raceID, context.eventID);
-
+							
+						// If there is data at RunSignup
 						if (bibs !== null && bibs.length > 0) {
-							// If there are already bibs saved from Finish Line Mode, navigate to Results Mode
-							setLoading(false);
-							navigation.navigate("ModeScreen");
-							navigation.navigate("ResultsMode");
+							// If there are no conflicts between the two sets of data,
+							// We will just resolve them here
+							// So that the correct results are reflected at RSU immediately
+							let anyConflicts = false;
+
+							const biggerArray = Math.max(raceList[raceIndex].events[eventIndex].bib_nums.length, bibs.length);
+							const combinedBibs: Array<number> = [];
+
+							for (let i = 0; i < biggerArray; i++) {
+								const localBib = raceList[raceIndex].events[eventIndex].bib_nums[i] ?? 0;
+								const apiBib = isNaN(parseInt(bibs[i]?.bib_num)) ? 0 : parseInt(bibs[i]?.bib_num);
+
+								// If there are any conflicts, don't push
+								// We will handle this in Results Mode
+								if (ConflictBoolean(localBib, apiBib)) {
+									anyConflicts = true;
+									break;
+								} else {
+									if (!localBib && apiBib) {
+										combinedBibs.push(apiBib);
+									} else {
+										combinedBibs.push(localBib);
+									}
+								}
+							}
+
+							if (!anyConflicts) {
+								// Delete RSU bibs and push combined data
+								const formData = new FormData();
+								formData.append(
+									"request",
+									JSON.stringify({
+										last_finishing_place: 0,
+										bib_nums: combinedBibs
+									})
+								);
+
+								await deleteBibs(context.raceID, context.eventID);
+								await postBibs(context.raceID, context.eventID, formData);
+
+								// TEMPORARY: THIS IS ONLY NECESSARY BECAUSE THE RESULT SET
+								// CURRENTLY DOES NOT REFRESH WHEN ONLY BIBS ARE POSTED
+								// SO WE GET, DELETE, AND THEN RE-POST FINISH TIMES TO FORCE A REFRESH
+								// THIS NEEDS TO BE FIXED ON RSU'S SIDE
+								const apiTimes = await getFinishTimes(context.raceID, context.eventID);
+								const uploadTimes = apiTimes.map(time => GetTimeInMils(time.time));
+
+								await deleteFinishTimes(context.raceID, context.eventID);
+								await postFinishTimes(context.raceID, context.eventID, uploadTimes);
+
+								// Clear local data upon successful upload
+								raceList[raceIndex].events[eventIndex].bib_nums = [];
+								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+
+								// Don't allow further changes
+								setLoading(false);
+								navigation.navigate("ModeScreen");
+							} else {
+								// Navigate to Results Mode
+								setLoading(false);
+								navigation.navigate("ModeScreen");
+								navigation.navigate("ResultsMode");
+							}
 						} else {
 							// Otherwise push bibs
 							const formData = new FormData();
