@@ -40,7 +40,7 @@ export const SyncAnimation = (props: Props): React.ReactElement => {
 				} else if (props.appMode === "Backup") {
 					Alert.alert(
 						"Backup Timing",
-						"You are currently in the \"Score as Backup Timer\" App Flow.\nParticipant data will sync down from RunSignup, but none of your results will be uploaded to RunSignup.\nYou will need to export them from \"Results\"."
+						"You are currently in the \"Backup Timer\" App Flow.\nParticipant data will sync down from RunSignup, but none of your results will be uploaded to RunSignup.\nYou will need to export them from \"Results\"."
 					);
 				} else {
 					Alert.alert(

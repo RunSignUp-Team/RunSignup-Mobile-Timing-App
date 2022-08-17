@@ -161,7 +161,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 					<TouchableOpacity
 						style={{ marginLeft: 10 }}
 						onPress={(): void => {
-							Alert.alert("App Flows", "1. Score & Publish Results - Participant data will sync down from RunSignup and all of your results will be uploaded to RunSignup.\n\n2. Score as Backup Timer - Participant data will sync down from RunSignup, but none of your results will be uploaded to RunSignup. Data can be exported.\n\n3. Score Offline - No participant data will sync down from RunSignup and none of your results will be uploaded to RunSignup. However, you can score an Offline Event without an Internet Connection. Data can be exported or assigned to an Online Event in the \"Score & Publish Results\" App Flow.\n\nSee the Start Guide for more information.");
+							Alert.alert("App Flows", "1. Score & Publish Results - Participant data will sync down from RunSignup and all of your results will be uploaded to RunSignup.\n\n2. Backup Timer - Participant data will sync down from RunSignup, but none of your results will be uploaded to RunSignup. Data can be exported.\n\n3. Score Offline - No participant data will sync down from RunSignup and none of your results will be uploaded to RunSignup. However, you can score an Offline Event without an Internet Connection. Data can be exported or assigned to an Online Event in the \"Score & Publish Results\" App Flow.\n\nSee the Start Guide for more information.");
 						}}
 					>
 						<Icon name={"info"} size={25} color={GREEN_COLOR} />

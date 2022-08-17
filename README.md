@@ -5,7 +5,7 @@ This app allows users to record race results on their mobile devices. Finish Lin
 
 ## App Flows
 1. `Score & Publish Results` - Results are stored locally. Participant data is pulled from RunSignup, allowing Grid View in Finish Line Mode (see below). When the user has finished recording Finish Times & Bib Numbers, results are synced to RunSignup. Results can also be exported by the user.
-2. `Score as Backup Timer` - Results are stored locally. Participant data is pulled from RunSignup, allowing Grid View in Finish Line Mode (see below). Results are never pushed up to RunSignup, but can be exported by the user.
+2. `Backup Timer` - Results are stored locally. Participant data is pulled from RunSignup, allowing Grid View in Finish Line Mode (see below). Results are never pushed up to RunSignup, but can be exported by the user.
 3. `Score Offline` - Results are stored locally. This App Flow can be used without an Internet Connection. Results are never pushed up to RunSignup, but can be exported by the user. Results can also be assigned to an Online Event (in the `Score & Publish Results` App Flow) when an Internet Connection is established.
 
 ## Running The Project
