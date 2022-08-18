@@ -67,7 +67,7 @@ export const SyncAnimation = (props: Props): React.ReactElement => {
 						elevation: 5,
 					}}
 				>
-					<Icon name={props.appMode === "Backup" ? "cloud-download" : (props.appMode === "Offline" ? "cloud-x" : "cloud-upload")} color={props.appMode === "Offline" ? DARK_GRAY_COLOR : DARK_RED_COLOR} size={30} />
+					<Icon name={props.appMode === "Backup" ? "cloud-download" : (props.appMode === "Offline" ? "cloud-x" : "cloud-upload")} color={props.appMode !== "Online" ? DARK_GRAY_COLOR : DARK_RED_COLOR} size={30} />
 				</View>
 			</Animated.View>
 		</TouchableOpacity>

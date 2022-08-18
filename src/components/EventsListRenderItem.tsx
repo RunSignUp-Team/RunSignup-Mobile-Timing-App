@@ -69,9 +69,22 @@ export default function EventsListRenderItem(props: Props): React.ReactElement {
 								],
 							);
 						} else {
-							props.setEventID(props.item.event_id);
-							props.setEventTitle(props.item.name);
-							props.navigationRef.current.navigate("ModeScreen");		
+							Alert.alert(
+								"Warning",
+								"You are in the \"Score & Publish Results\" App Flow. All result sets for this event will be controlled by RaceDay Mobile Timing. Do not use on events scored using other scoring software. Any results from other scoring software will be deleted.",
+								[
+									{ 
+										text: "I Understand", 
+										style: "destructive",
+										onPress: (): void => {
+											props.setEventID(props.item.event_id);
+											props.setEventTitle(props.item.name);
+											props.navigationRef.current.navigate("ModeScreen");		
+										}
+									},
+									{ text: "Cancel", style: "default" }
+								]
+							);
 						}
 					} catch (error) {
 						CreateAPIError("Result Sets Check", error, true);
