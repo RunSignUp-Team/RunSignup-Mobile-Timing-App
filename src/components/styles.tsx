@@ -358,7 +358,7 @@ export const globalstyles = StyleSheet.create({
 		flexDirection: "row",
 	},
 	gridBibButton: {
-		height: 45,
+		height: 47,
 		alignItems: "center",
 		justifyContent: "center",
 		flexGrow: 1,

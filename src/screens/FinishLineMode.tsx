@@ -634,7 +634,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								{/* Bib FlatList */}
 								<FlatList
 									data={bibObjectsRef.current}
-									numColumns={Math.max(Math.floor((Dimensions.get("screen").width / 120)), 3)}
+									numColumns={Math.min(Math.max(Math.floor((Dimensions.get("screen").width / 130)), 3), 6)}
 									style={[globalstyles.gridFlatList, {	
 										height: Dimensions.get("window").height - TABLE_ITEM_HEIGHT * 3 - TABLE_HEADER_HEIGHT * 2 - headerHeight - 100
 									}]}
@@ -648,6 +648,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 									initialNumToRender={10}
 									windowSize={11}
 									keyboardShouldPersistTaps="handled"
+									ListFooterComponent={<View style={{ height: 20 }}/>}
 								/>
 								<View style={{ height: 10, borderBottomWidth: 1, borderBottomColor: DARK_GRAY_COLOR }} />
 								<View style={{ height: 50 }} />
