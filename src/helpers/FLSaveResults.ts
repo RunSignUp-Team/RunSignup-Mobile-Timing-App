@@ -2,10 +2,9 @@ import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Alert } from "react-native";
 import { AppMode } from "../components/AppContext";
 import { TabParamList } from "../components/AppStack";
-import { postStartTime, postFinishTimes } from "./APICalls";
+import { postFinishTimes } from "./APICalls";
 import CreateAPIError from "./CreateAPIError";
 import { AddToStorage } from "./FLAddToStorage";
-import GetLocalRaceEvent, { DefaultEventData } from "./GetLocalRaceEvent";
 
 type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
@@ -21,15 +20,6 @@ export const SaveResults = async (
 	navigation: ScreenNavigationProp
 ): Promise<void> => {
 	try {
-		let [raceList, raceIndex, eventIndex] = DefaultEventData;
-
-		// Post Start Time
-		if (appMode === "Online") {
-			[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
-			if (raceIndex < 0 || eventIndex < 0) return;
-			await postStartTime(raceID, eventID, raceList[raceIndex].events[eventIndex].real_start_time);
-		}
-
 		// Post Finish Times data
 		if (finishTimesRef.current.length < 1) {
 			// Alert if no finishing times have been recorded

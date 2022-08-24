@@ -292,6 +292,12 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 										} else {
 											setShowLoader(true);
 											props.action2OnPress([textValue, timeValue.toString()]);
+											// Force refresh bib field
+											if (props.initialValue !== undefined) {
+												setTextValue(props.initialValue);
+											} else {
+												setTextValue("");
+											}
 											setTimeout(() => {
 												setShowLoader(false);
 											}, 750);

@@ -75,11 +75,26 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 				setAmpm(date.getHours() >= 12 ? "PM" : "AM");
 			}
 
+			// Handle different number of millisecond digits
+			const milliString = date.getUTCMilliseconds().toLocaleString();
+			let milliDisplay = "";
+			switch (milliString.length) {
+				case 3:
+					milliDisplay = addLeadingZeros(date.getUTCMilliseconds());
+					break;
+				case 2:
+					milliDisplay = "0" + milliString.substring(0, 1);
+					break;
+				default:
+					milliDisplay = "00";
+					break;
+			}
+
 			// We want to respect timezone if we are dealing with time of day
 			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12) : addLeadingZeros(date.getUTCHours()));
-			setMinutes(props.timeOfDay ? addLeadingZeros(date.getMinutes()) : addLeadingZeros(date.getUTCMinutes()));
-			setSeconds(props.timeOfDay ? addLeadingZeros(date.getSeconds()) : addLeadingZeros(date.getUTCSeconds()));
-			setMilli(props.timeOfDay ? addLeadingZeros(date.getMilliseconds()) : addLeadingZeros(date.getUTCMilliseconds()));
+			setMinutes(addLeadingZeros(date.getUTCMinutes()));
+			setSeconds(addLeadingZeros(date.getUTCSeconds()));
+			setMilli(milliDisplay);
 
 			hoursRef.current?.blur();
 			minutesRef.current?.blur();
