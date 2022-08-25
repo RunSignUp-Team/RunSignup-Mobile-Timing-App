@@ -922,6 +922,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			"Edit Mode", 
 			`WARNING: Once finish times have been entered in Results, other users will be unable to upload finish times.\n\nWARNING: Once data has been edited in Results, you will not be able to re-open either Finish Line Mode or Chute Mode on this device unless you delete all Results.\n\n${recordsRef.current.length > 0 ? "Tap on a bib number or finish time to edit it. Tap on two places to swap the bibs in the list. " : ""}Tap + to add a record.`,
 			[
+				{ text: "Cancel", style: "default", onPress: (): void => { setEditMode(false); } },
 				{ text: "I Understand", style: "destructive" }
 			]
 		);
