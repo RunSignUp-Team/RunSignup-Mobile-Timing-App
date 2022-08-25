@@ -69,7 +69,7 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 
 	useEffect(() => {
 		if (props.initialValue) {
-			const date = new Date(props.initialValue);
+			const date = new Date(props.initialValue === Number.MAX_SAFE_INTEGER ? 0 : props.initialValue);
 			if (props.timeOfDay) {
 				setExtraDateInfo(new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime().toString());
 				setAmpm(date.getHours() >= 12 ? "PM" : "AM");
