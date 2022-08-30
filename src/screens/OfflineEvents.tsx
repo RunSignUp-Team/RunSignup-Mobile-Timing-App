@@ -83,55 +83,36 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
 		const formData = new FormData();
 
-		// Even though the length is not really what determines which array contains the values we want to push to RSU,
-		// It is a way to detect which array actually has valid values to begin with,
-		// So we push bib_nums / checker_bibs based on which one has more non-zero values.
-		// This assumes that assigning an offline event with conflicts is not allowed.
-		const numValidBibs = item.bib_nums.filter(bib => (bib !== Number.MAX_SAFE_INTEGER && bib > 0)).length;
-		const numValidCheckerBibs = item.checker_bibs.filter(checkerBib => (checkerBib !== Number.MAX_SAFE_INTEGER && checkerBib > 0)).length;
+		const biggerArray = Math.max(item.bib_nums.length, item.checker_bibs.length);
+		const combinedBibs: Array<number> = [];
 
-		// Post checker bibs if they exist
-		if (numValidCheckerBibs > 0 || numValidBibs > 0) {
-			if (numValidCheckerBibs > numValidBibs) {
-				await deleteBibs(context.raceID, context.eventID);
-	
-				// Appending checker bib
-				formData.append(
-					"request",
-					"{\"last_finishing_place\": 0,\"bib_nums\": [" +
-					item.checker_bibs +
-					"]}"
-				);
-				await postBibs(context.raceID, context.eventID, formData);
-				// Else post bib numbers if they exist
+		// We already know that there are no conflicts,
+		// So we can combine the bibs and checker bibs into one array to push to RSU
+		for (let i = 0; i < biggerArray; i++) {
+			const bibNum = item.bib_nums[i] ?? 0;
+			const checkerBib = item.checker_bibs[i] ?? 0;
+
+			if (!bibNum && checkerBib) {
+				combinedBibs.push(checkerBib);
 			} else {
-				await deleteBibs(context.raceID, context.eventID);
-	
-				// Appending bib numbers
-				formData.append(
-					"request",
-					"{\"last_finishing_place\": 0,\"bib_nums\": [" +
-					item.bib_nums +
-					"]}"
-				);
-				await postBibs(context.raceID, context.eventID, formData);
+				combinedBibs.push(bibNum);
 			}
-		} else {
-			// We only have 0s
-			const maxArrLength = Math.max(item.checker_bibs.length, item.bib_nums.length);
-			const zeroArray = new Array(maxArrLength).fill(0);
-			await deleteBibs(context.raceID, context.eventID);
+		}
 
-			// Appending bib numbers
+		if (combinedBibs.length > 0) {
+			await deleteBibs(context.raceID, context.eventID);
+	
+			// Appending combined bibs
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
-				zeroArray +
+				combinedBibs +
 				"]}"
 			);
 			await postBibs(context.raceID, context.eventID, formData);
+		} else {
+			throw new Error(JSON.stringify([item.bib_nums, item.checker_bibs]));
 		}
-
 	}, [context.eventID, context.raceID]);
 
 	// Delete old Finish Times and upload new Finish Times
