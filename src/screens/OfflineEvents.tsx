@@ -91,33 +91,47 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 		const numValidCheckerBibs = item.checker_bibs.filter(checkerBib => (checkerBib !== Number.MAX_SAFE_INTEGER && checkerBib > 0)).length;
 
 		// Post checker bibs if they exist
-		if (numValidCheckerBibs > numValidBibs) {
-			await deleteBibs(context.raceID, context.eventID);
-
-			// Appending checker bib
-			formData.append(
-				"request",
-				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
-				item.checker_bibs +
-				"]}"
-			);
-			await postBibs(context.raceID, context.eventID, formData);
-			// Else post bib numbers if they exist
-		} else if (item.bib_nums?.length > 0) {
+		if (numValidCheckerBibs > 0 || numValidBibs > 0) {
+			if (numValidCheckerBibs > numValidBibs) {
+				await deleteBibs(context.raceID, context.eventID);
+	
+				// Appending checker bib
+				formData.append(
+					"request",
+					"{\"last_finishing_place\": 0,\"bib_nums\": [" +
+					item.checker_bibs +
+					"]}"
+				);
+				await postBibs(context.raceID, context.eventID, formData);
+				// Else post bib numbers if they exist
+			} else {
+				await deleteBibs(context.raceID, context.eventID);
+	
+				// Appending bib numbers
+				formData.append(
+					"request",
+					"{\"last_finishing_place\": 0,\"bib_nums\": [" +
+					item.bib_nums +
+					"]}"
+				);
+				await postBibs(context.raceID, context.eventID, formData);
+			}
+		} else {
+			// We only have 0s
+			const maxArrLength = Math.max(item.checker_bibs.length, item.bib_nums.length);
+			const zeroArray = new Array(maxArrLength).fill(0);
 			await deleteBibs(context.raceID, context.eventID);
 
 			// Appending bib numbers
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
-				item.bib_nums +
+				zeroArray +
 				"]}"
 			);
 			await postBibs(context.raceID, context.eventID, formData);
-			// Else unknown error
-		} else {
-			throw new Error(JSON.stringify([item.bib_nums, item.checker_bibs]));
 		}
+
 	}, [context.eventID, context.raceID]);
 
 	// Delete old Finish Times and upload new Finish Times
