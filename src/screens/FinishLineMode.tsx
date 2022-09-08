@@ -24,6 +24,7 @@ import Logger from "../helpers/Logger";
 import GetBackupEvent from "../helpers/GetBackupEvent";
 import MainButton from "../components/MainButton";
 import { useHeaderHeight } from "@react-navigation/elements";
+import * as Device from "expo-device";
 
 type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
@@ -80,6 +81,21 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	const [loading, setLoading] = useState(true);
 	const isUnmounted = useRef(false);
 	const flatListRef = useRef<FlatList>(null);
+	const deviceType = useRef<"Phone"|"Tablet">("Phone");
+
+	// Get Device Type
+	useEffect(() => {
+		const getDeviceType = async (): Promise<void> => {
+			const type = await Device.getDeviceTypeAsync();
+			if (type === 1) {
+				deviceType.current = "Phone";
+			} else {
+				deviceType.current = "Tablet";
+			}
+		};
+
+		getDeviceType();
+	}, []);
 
 	// Leave with alert
 	const backTapped = useCallback(() => {
@@ -634,7 +650,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								{/* Bib FlatList */}
 								<FlatList
 									data={bibObjectsRef.current}
-									numColumns={Math.min(Math.max(Math.floor((Dimensions.get("screen").width / 130)), 3), 6)}
+									numColumns={deviceType.current === "Phone" ? 3 : 6}
 									style={[globalstyles.gridFlatList, {	
 										height: Dimensions.get("window").height - TABLE_ITEM_HEIGHT * 3 - TABLE_HEADER_HEIGHT * 2 - headerHeight - 100
 									}]}
