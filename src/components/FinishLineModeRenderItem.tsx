@@ -48,12 +48,12 @@ export default function FinishLineModeRenderItem(props: Props): React.ReactEleme
 			<TouchableOpacity 
 				style={globalstyles.tableAddButton}
 				onPress={addOne}>
-				<Icon  name="plus-circle" color={GREEN_COLOR} size={25}/>
+				<Icon  name="plus-circle" color={GREEN_COLOR} size={28}/>
 			</TouchableOpacity>
 			<TouchableOpacity
 				style={globalstyles.tableDeleteButton}
 				onPress={removeSelf}>
-				<Icon  name="minus-circle" color={RED_COLOR} size={25}/>
+				<Icon  name="minus-circle" color={RED_COLOR} size={28}/>
 			</TouchableOpacity>
 		</View>
 	);

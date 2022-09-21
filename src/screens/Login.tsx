@@ -1,7 +1,7 @@
 import React, { useContext, useCallback, useState, useEffect } from "react";
-import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, TouchableOpacity } from "react-native";
-import { BLACK_COLOR, globalstyles, GRAY_COLOR, WHITE_COLOR } from "../components/styles";
-import { AppContext } from "../components/AppContext";
+import { View, Image, BackHandler, ActivityIndicator, Platform, Alert, TouchableOpacity, Text } from "react-native";
+import { BLACK_COLOR, globalstyles, GRAY_COLOR, GREEN_COLOR, WHITE_COLOR } from "../components/styles";
+import { AppContext, AppMode } from "../components/AppContext";
 import { useFocusEffect } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
@@ -14,6 +14,7 @@ import * as Linking from "expo-linking";
 import * as Network from "expo-network";
 import { NetworkErrorBool } from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import Constants from "expo-constants";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -58,19 +59,15 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	}, []);
 
 	useEffect(() => {
-		if (loggedIn) {
-			navigation.setOptions({
-				headerRight: () => (
-					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+		navigation.setOptions({
+			headerRight: () => (
+				<View style={{ flexDirection: "row", justifyContent: loggedIn ? "space-between" : "flex-end" }}>
+					{loggedIn ? <TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
 						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-					</TouchableOpacity>
-				)
-			});
-		} else {
-			navigation.setOptions({
-				headerRight: () => (null)
-			});
-		}
+					</TouchableOpacity> : null}
+				</View>
+			)
+		});
 	}, [handleLogOut, loggedIn, navigation]);
 
 	useFocusEffect(
@@ -96,7 +93,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	);
 
 	/** Handle user wanting to record online races */
-	const handleRecordOnlineClick = async (): Promise<void> => {
+	const onlineOrBackupTapped = async (appMode: AppMode): Promise<void> => {
 		setLoading(true);
 		try {
 			const accessToken = await oAuthLogin(false);
@@ -120,7 +117,7 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 				}
 
 				// Go to the race list if connected to internet
-				context.setOnline(true);
+				context.setAppMode(appMode);
 				if ((await Network.getNetworkStateAsync()).isInternetReachable) {
 					navigation.push("RaceList");
 				} else {
@@ -135,13 +132,13 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 	};
 
 	/** Handle user wanting to record offline races */
-	const handleRecordOfflineClick = (): void => {
-		context.setOnline(false);
+	const offlineTapped = (): void => {
+		context.setAppMode("Offline");
 		navigation.navigate("OfflineEventsList");
 	};
 
 	/** Handle start guide link */
-	const handleStartGuideClick = async (): Promise<void> => {
+	const startGuideTapped = async (): Promise<void> => {
 		const url = "https://help.runsignup.com/support/solutions/articles/17000125950-mobile-timing-app";
 		if (await Linking.canOpenURL(url)) {
 			Linking.openURL(url);
@@ -150,17 +147,34 @@ const LoginScreen = ({ navigation }: Props): React.ReactElement => {
 		}
 	};
 
+	const version = Constants.manifest?.version;
+
 	return (
 		<View style={globalstyles.container}>
-			<View style={{ flexDirection: "column", flex: 1 }}>
+			<View style={{ flex: 1 }}>
 				<Image
 					style={[globalstyles.image, { marginTop: 10 }]}
 					source={require("../assets/logo.png")}
 				/>
-				<MainButton text={"Online Races"} onPress={handleRecordOnlineClick} buttonStyle={{ marginTop: 50 }} />
-				<MainButton text={"Offline Events"} onPress={handleRecordOfflineClick} />
+				<View style={{ flexDirection: "row", alignItems: "center", marginTop: 40, marginBottom: 10, justifyContent: "center" }}>
+					<Text style={globalstyles.header}>{"Select an App Flow"}</Text>
+					<TouchableOpacity
+						style={{ marginLeft: 10 }}
+						onPress={(): void => {
+							Alert.alert("App Flows", "1. Score & Publish Results - Participant data will sync down from RunSignup and all of your results will be uploaded to RunSignup.\n\n2. Backup Timer - Participant data will sync down from RunSignup, but none of your results will be uploaded to RunSignup. Data can be exported.\n\n3. Score Offline - No participant data will sync down from RunSignup and none of your results will be uploaded to RunSignup. However, you can score an Offline Event without an Internet Connection. Data can be exported or assigned to an Online Event in the \"Score & Publish Results\" App Flow.\n\nSee the Start Guide for more information.");
+						}}
+					>
+						<Icon name={"info"} size={25} color={GREEN_COLOR} />
+					</TouchableOpacity>
+				</View>
+				<MainButton text={"Score & Publish Results"} onPress={(): void => { onlineOrBackupTapped("Online"); }} />
+				<MainButton text={"Backup Timer"} onPress={(): void => { onlineOrBackupTapped("Backup"); }} />
+				<MainButton text={"Score Offline"} onPress={offlineTapped} />
 				{loading && <ActivityIndicator size="large" color={Platform.OS === "android" ? BLACK_COLOR : GRAY_COLOR} style={{ marginTop: 20 }} />}
-				<MainButton text={"Start Guide"} onPress={handleStartGuideClick} buttonStyle={{ position: "absolute", bottom: 20, minHeight: 50 }} color="Gray" />
+				<View style={{ position: "absolute", bottom: 20, width: "100%" }}>
+					{version ? <Text style={globalstyles.modalHeader}>{`Version ${version}`}</Text> : null}
+					<MainButton text={"Start Guide"} onPress={startGuideTapped} buttonStyle={{ minHeight: 50 }} color="Gray" />
+				</View>
 			</View>
 
 		</View>

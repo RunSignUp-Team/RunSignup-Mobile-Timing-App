@@ -1,45 +1,69 @@
 import React, { memo } from "react";
 import { Alert, Text, TouchableOpacity } from "react-native";
-import { globalstyles, GRAY_COLOR, GREEN_COLOR } from "./styles";
+import { BibObject } from "../screens/FinishLineMode";
+import { globalstyles, GRAY_COLOR, GREEN_COLOR, MEDIUM_FONT_SIZE, SMALL_FONT_SIZE } from "./styles";
 
 interface Props {
-	bib: number,
+	bibObject: BibObject,
 	time: string,
+	timerOn: boolean,
 	handleBibTap: (bib: number) => void,
 	alreadyEntered: boolean,
 	checkerBibsRef: React.MutableRefObject<Array<number>>,
 }
 
+const bibTapLogic = (props: Props): void => {
+	if (props.alreadyEntered) {
+		Alert.alert(
+			"Already Entered",
+			`You have already entered bib ${props.bibObject.bib} at place ${props.checkerBibsRef.current.indexOf(props.bibObject.bib) + 1}. Are you sure you want to enter bib ${props.bibObject.bib} again? This will clear the previous bib entry at place ${props.checkerBibsRef.current.indexOf(props.bibObject.bib) + 1}.`,
+			[
+				{
+					text: "Cancel",
+					style: "cancel",
+				},
+				{
+					text: "Re-Enter",
+					onPress: (): void => {
+						props.handleBibTap(props.bibObject.bib);
+					}
+				}
+			]
+		);
+	} else {
+		props.handleBibTap(props.bibObject.bib);
+	}
+};
+
 const BibRenderItem = (props: Props): React.ReactElement => {
 	return (
-		<TouchableOpacity activeOpacity={1} style={globalstyles.altBibContainer}>
+		<TouchableOpacity activeOpacity={1} style={globalstyles.gridBibContainer}>
 			<TouchableOpacity
-				style={[globalstyles.altBibButton, {backgroundColor: props.alreadyEntered ? GRAY_COLOR : GREEN_COLOR}]}
+				style={[globalstyles.gridBibButton, {backgroundColor: props.timerOn ? (props.alreadyEntered ? GRAY_COLOR : GREEN_COLOR) : GRAY_COLOR}]}
 				onPress={(): void => {
-					if (props.alreadyEntered) {
-						Alert.alert(
-							"Already Entered",
-							`You have already entered bib ${props.bib} at place ${props.checkerBibsRef.current.indexOf(props.bib) + 1}. Are you sure you want to enter bib ${props.bib} again? This will clear the previous bib entry at place ${props.checkerBibsRef.current.indexOf(props.bib) + 1}.`,
-							[
-								{
-									text: "Cancel",
-									style: "cancel",
-								},
-								{
-									text: "Re-Enter",
-									onPress: (): void => {
-										props.handleBibTap(props.bib);
-									}
+					bibTapLogic(props);
+				}}
+
+				// User Info Alert
+				onLongPress={(): void => {
+					Alert.alert(
+						"Participant Information",
+						`Bib Number: ${props.bibObject.bib}\nName: ${props.bibObject.name}\nAge: ${props.bibObject.age ?? "Not Set"}\nGender: ${props.bibObject.gender ?? "Not Set"}`,
+						[
+							{ text: "Cancel", style: "cancel" },
+							{ 
+								text: "Record Time",
+								style: "default",
+								onPress: (): void => {
+									bibTapLogic(props);
 								}
-							]
-						);
-					} else {
-						props.handleBibTap(props.bib);
-					}
+							} 
+						]
+					);
 				}}
 			>
-				<Text style={globalstyles.altBibText}>{props.bib}</Text>
-				{props.time ? <Text style={globalstyles.altTimeText}>{props.time}</Text> : null}
+				<Text style={[globalstyles.gridBibText, {fontSize: props.bibObject.bib.toString().length > 6 ? SMALL_FONT_SIZE : MEDIUM_FONT_SIZE}]}>{props.bibObject.bib}</Text>
+				{props.time ? <Text style={globalstyles.gridTimeText}>{props.time}</Text> : null}
 			</TouchableOpacity>
 		</TouchableOpacity>
 	);

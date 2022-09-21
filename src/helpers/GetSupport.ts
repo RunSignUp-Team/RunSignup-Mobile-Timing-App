@@ -1,8 +1,13 @@
 import * as Mailer from "expo-mail-composer";
-import GetLocalRaceEvent from "./GetLocalRaceEvent";
+import { AppMode } from "../components/AppContext";
+import GetBackupEvent from "./GetBackupEvent";
+import GetLocalRaceEvent, { DefaultEventData } from "./GetLocalRaceEvent";
 
 /** Get support via mail */
-export default async function GetSupport(raceID: number, eventID: number, email: string, online: boolean): Promise<Mailer.MailComposerResult> {
+export default async function GetSupport(raceID: number, eventID: number, email: string, appMode: AppMode): Promise<Mailer.MailComposerResult> {
+	let raceName = "";
+	let eventName = "";
+
 	let body = `Please describe your issue below:
 
 
@@ -10,11 +15,16 @@ export default async function GetSupport(raceID: number, eventID: number, email:
 
 	-------`;
 
-	if (online) {
-		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
-		if (raceList && raceList.length > 0 && raceList[raceIndex]?.events[eventIndex]?.name) {
-			const raceName = raceList[raceIndex].name;
-			const eventName = raceList[raceIndex].events[eventIndex].name;
+	if (appMode === "Online" || appMode === "Backup") {
+		let [raceList, raceIndex, eventIndex] = DefaultEventData;
+		if (appMode === "Online") {
+			[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
+		} else {
+			[raceList, raceIndex, eventIndex] = await GetBackupEvent(raceID, eventID);
+		}
+		if (raceIndex >= 0 && eventIndex >= 0 && raceList[raceIndex].events[eventIndex].name) {
+			raceName = raceList[raceIndex].name;
+			eventName = raceList[raceIndex].events[eventIndex].name;
 			body += `\nRace: ${raceName}\nEvent: ${eventName}`;
 		}
 	
@@ -28,7 +38,7 @@ export default async function GetSupport(raceID: number, eventID: number, email:
 	}
 
 	return new Promise((resolve, reject) => {
-		const subject = "RaceDay Mobile Timing Support";
+		const subject = `${raceName} RaceDay Mobile Timing Support`;
 
 		Mailer.composeAsync({
 			subject: subject,

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import BugsnagHelper from "../helpers/BugsnagHelper";
 
+export type AppMode = "Online" | "Offline" | "Backup";
+
 export interface Context {
-	online: boolean;
+	appMode: AppMode;
 	raceID: number;
 	eventID: number;
 	eventTitle: string;
 	time: number;
 	email: string;
-	setOnline(online: boolean): void;
+	setAppMode(appMode: AppMode): void;
 	setRaceID(id: number): void;
 	setEventID(id: number): void;
 	setEventTitle(title: string): void;
@@ -17,13 +19,13 @@ export interface Context {
 }
 
 export const AppContext = React.createContext<Context>({
-	online: false,
+	appMode: "Offline",
 	raceID: -1,
 	eventID: -1,
 	eventTitle: "",
 	time: -1,
 	email: "",
-	setOnline: () => { return; },
+	setAppMode: () => { return; },
 	setRaceID: () => { return; },
 	setEventID: () => { return; },
 	setEventTitle: () => { return; },
@@ -37,7 +39,7 @@ interface Props {
 
 export default function AppProvider(props: Props): React.ReactElement {
 	// Global variables
-	const [online, setOnline] = useState(false);
+	const [appMode, setAppMode] = useState<AppMode>("Offline");
 	const [raceID, setRaceID] = useState(0);
 	const [eventID, setEventID] = useState(0);
 	const [eventTitle, setEventTitle] = useState("");
@@ -58,13 +60,13 @@ export default function AppProvider(props: Props): React.ReactElement {
 	}, [eventID]);
 
 	const contextVariables: Context = {
-		online: online,
+		appMode: appMode,
 		raceID: raceID,
 		eventID: eventID,
 		eventTitle: eventTitle,
 		time: time,
 		email: email,
-		setOnline,
+		setAppMode,
 		setRaceID,
 		setEventID,
 		setEventTitle,

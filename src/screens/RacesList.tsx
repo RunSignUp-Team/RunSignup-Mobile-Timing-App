@@ -15,6 +15,7 @@ import { Race } from "../models/Race";
 import { Event } from "../models/Event";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
+import { SyncAnimation } from "../components/SyncAnimation";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -38,8 +39,9 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Log out with alert
 	const goToHomeScreen = useCallback(() => {
+		context.setAppMode("Offline");
 		navigation.navigate("Login");
-	}, [navigation]);
+	}, [context, navigation]);
 
 	// Handle log out. Delete local tokens
 	const handleLogOut = useCallback(() => {
@@ -80,15 +82,18 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				<HeaderBackButton onPress={goToHomeScreen} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
 			headerRight: () => (
-				<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-					<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-				</TouchableOpacity>
+				<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between", alignItems: "center" }}>
+					<SyncAnimation appMode={context.appMode}/>
+					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+					</TouchableOpacity>
+				</View>
 			)
 		});
-	}, [goToHomeScreen, handleLogOut, navigation]);
+	}, [context.appMode, goToHomeScreen, handleLogOut, navigation]);
 
 	// Get Race List data from API
-	const fetchRaces = async (reload: boolean): Promise<void> => {
+	const fetchRaces = useCallback(async (reload: boolean): Promise<void> => {
 		try {
 			if (reload) {
 				setRefreshing(true);
@@ -97,7 +102,13 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			}
 
 			const races = await getRaces();
-			const response = await AsyncStorage.getItem("onlineRaces");
+			let response: string | null = null;
+			if (context.appMode === "Online") {
+				response = await AsyncStorage.getItem("onlineRaces");
+			} else {
+				response = await AsyncStorage.getItem("backupRaces");
+			}
+
 			const localRaceList: Array<Race> = response !== null ? JSON.parse(response) : [];
 			const combinedRaceList: Array<Race> = [];
 
@@ -160,7 +171,12 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 			// Update race list and local storage
 			setFinalRaceList([...combinedRaceList]);
-			AsyncStorage.setItem("onlineRaces", JSON.stringify(combinedRaceList));
+			
+			if (context.appMode === "Online") {
+				AsyncStorage.setItem("onlineRaces", JSON.stringify(combinedRaceList));
+			} else {
+				AsyncStorage.setItem("backupRaces", JSON.stringify(combinedRaceList));
+			}
 
 			if (reload) {
 				setRefreshing(false);
@@ -176,7 +192,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 				setLoading(false);
 			}
 		}
-	};
+	}, [context.appMode]);
 
 	const firstRun = useRef(true);
 	useEffect(() => {
@@ -184,7 +200,7 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 			firstRun.current = false;
 			fetchRaces(false);
 		}
-	}, [context.eventID, context.eventTitle, context.raceID]);
+	}, [context.eventID, context.eventTitle, context.raceID, fetchRaces]);
 
 	// Rendered item in the Flatlist
 	const renderItem = ({ item, index }: { item: Race, index: number }): React.ReactElement => {
@@ -232,7 +248,9 @@ const RaceListScreen = ({ navigation }: Props): React.ReactElement => {
 
 				{!loading &&
 					<FlatList
-						showsVerticalScrollIndicator={false}
+						showsVerticalScrollIndicator={true}
+						scrollIndicatorInsets={{ right: -2 }}
+						indicatorStyle={"black"}
 						data={data}
 						onRefresh={(): void => { fetchRaces(true); }}
 						refreshing={refreshing}

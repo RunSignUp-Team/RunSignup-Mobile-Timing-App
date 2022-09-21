@@ -11,11 +11,11 @@ import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
-import addLeadingZeros from "../helpers/AddLeadingZeros";
 import { ItemLayout } from "../models/ItemLayout";
 import TextInputAlert from "../components/TextInputAlert";
 import MainButton from "../components/MainButton";
 import CreateAPIError from "../helpers/CreateAPIError";
+import { SyncAnimation } from "../components/SyncAnimation";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -26,7 +26,6 @@ type Props = {
 export interface OfflineEvent {
 	time: number,
 	name: string,
-	start_time: string,
 	real_start_time: number,
 	finish_times: Array<number>,
 	bib_nums: Array<number>,
@@ -54,8 +53,13 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			headerLeft: () => (
 				<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 			),
+			headerRight: () => (
+				<View style={{ flexDirection: "row", marginRight: 15, justifyContent: "space-between", alignItems: "center" }}>
+					<SyncAnimation appMode={context.appMode} />
+				</View>
+			),
 		});
-	}, [context.eventID, context.online, context.raceID, navigation]);
+	}, [context.eventID, context.appMode, context.raceID, navigation]);
 
 	// Get offline events from local storage, and run again when deleting an offline event
 	useEffect(() => {
@@ -79,53 +83,33 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	const assignBibNums = useCallback(async (item: OfflineEvent) => {
 		const formData = new FormData();
 
-		let checkerBibSum = 0;
-		let bibSum = 0;
+		const biggerArray = Math.max(item.bib_nums.length, item.checker_bibs.length);
+		const combinedBibs: Array<number> = [];
 
-		if (item.checker_bibs.length > 0) {
-			for (let i = 0; i < item.checker_bibs.length; i++) {
-				const checkerBib = item.checker_bibs[i];
-				if (checkerBib !== Number.MAX_SAFE_INTEGER && checkerBib >= 0 && checkerBibSum < 1) {
-					checkerBibSum += checkerBib;
-				}
+		// We already know that there are no conflicts,
+		// So we can combine the bibs and checker bibs into one array to push to RSU
+		for (let i = 0; i < biggerArray; i++) {
+			const bibNum = item.bib_nums[i] ?? 0;
+			const checkerBib = item.checker_bibs[i] ?? 0;
+
+			if (!bibNum && checkerBib) {
+				combinedBibs.push(checkerBib);
+			} else {
+				combinedBibs.push(bibNum);
 			}
 		}
 
-		if (item.bib_nums.length > 0) {
-			for (let i = 0; i < item.bib_nums.length; i++) {
-				const bib = item.bib_nums[i];
-				if (bib !== Number.MAX_SAFE_INTEGER && bib >= 0 && bibSum < 1) {
-					bibSum += bib;
-				}
-			}
-		}
-
-		// Post checker bibs if they exist
-		// (we check the sum of the Checker Bibs to see if there are any that are more than 0)
-		if (checkerBibSum >= bibSum) {
+		if (combinedBibs.length > 0) {
 			await deleteBibs(context.raceID, context.eventID);
-
-			// Appending checker bib
+	
+			// Appending combined bibs
 			formData.append(
 				"request",
 				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
-				item.checker_bibs +
+				combinedBibs +
 				"]}"
 			);
 			await postBibs(context.raceID, context.eventID, formData);
-			// Else post bib numbers if they exist
-		} else if (item.bib_nums?.length > 0) {
-			await deleteBibs(context.raceID, context.eventID);
-
-			// Appending bib numbers
-			formData.append(
-				"request",
-				"{\"last_finishing_place\": 0,\"bib_nums\": [" +
-				item.bib_nums +
-				"]}"
-			);
-			await postBibs(context.raceID, context.eventID, formData);
-			// Else unknown error
 		} else {
 			throw new Error(JSON.stringify([item.bib_nums, item.checker_bibs]));
 		}
@@ -133,23 +117,13 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Delete old Finish Times and upload new Finish Times
 	const assignFinishTimes = useCallback(async (item: OfflineEvent) => {
-		const formatStartTime = new Date(item.real_start_time);
-		const formDataStartTime = new FormData();
-
-		// Append request to API
-		formDataStartTime.append(
-			"request",
-			JSON.stringify({
-				start_time: `${formatStartTime.getFullYear()}-${addLeadingZeros(formatStartTime.getMonth() + 1)}-${addLeadingZeros(formatStartTime.getDate())} ${addLeadingZeros(formatStartTime.getHours())}:${addLeadingZeros(formatStartTime.getMinutes())}:${addLeadingZeros(formatStartTime.getSeconds())}`
-			})
-		);
-
-		await postStartTime(context.raceID, context.eventID, formDataStartTime);
+		await postStartTime(context.raceID, context.eventID, item.real_start_time);
 		await deleteFinishTimes(context.raceID, context.eventID);
 		await postFinishTimes(context.raceID, context.eventID, item.finish_times);
 	}, [context.eventID, context.raceID]);
 
 	// Assign offline bib numbers, finish times, and start time, if any
+	// Currently only supported for Online Races, not Backup Races
 	const assignData = useCallback(async (item: OfflineEvent): Promise<void> => {
 		try {
 			setLoading(true);
@@ -184,10 +158,12 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			await AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
 
 			// Clear local data for event
-			raceList[raceIndex].events[eventIndex].checker_bibs = [];
-			raceList[raceIndex].events[eventIndex].bib_nums = [];
-			raceList[raceIndex].events[eventIndex].finish_times = [];
-			await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].checker_bibs = [];
+				raceList[raceIndex].events[eventIndex].bib_nums = [];
+				raceList[raceIndex].events[eventIndex].finish_times = [];
+				await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+			}
 
 			Alert.alert("Success", `The data in ${item.name} has been successfully assigned to ${raceList[raceIndex]?.events[eventIndex]?.name}!`);
 			navigationRef.current.navigate("ModeScreen");
@@ -200,13 +176,13 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 	// Save offline events to storage
 	useEffect(() => {
-		if (doneInitialLoad && isFocused && !context.online) {
+		if (doneInitialLoad && isFocused && context.appMode === "Offline") {
 			const saveOfflineEvents = async (): Promise<void> => {
 				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
 			};
 			saveOfflineEvents();
 		}
-	}, [context.online, doneInitialLoad, eventList, isFocused]);
+	}, [context.appMode, doneInitialLoad, eventList, isFocused]);
 
 	// Create Offline Event
 	const createEvent = async (eventName: string): Promise<void> => {
@@ -215,7 +191,6 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 			const offlineEvent: OfflineEvent = {
 				time: createTime,
 				name: eventName,
-				start_time: "",
 				real_start_time: -1,
 				finish_times: [],
 				bib_nums: [],
@@ -250,7 +225,7 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 				index={index}
 				setEventTitle={setEventTitle}
 				setTime={setTime}
-				online={context.online}
+				appMode={context.appMode}
 				eventTitle={context.eventTitle}
 				assignBibNums={assignBibNums}
 				assignFinishTimes={assignFinishTimes}
@@ -289,8 +264,10 @@ const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 
 				{!loading &&
 					<FlatList
-						ListHeaderComponent={(context.online || (data.length < 1 && eventList.length > 0)) ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
-						showsVerticalScrollIndicator={false}
+						ListHeaderComponent={(context.appMode === "Online" || context.appMode === "Backup" || (data.length < 1 && eventList.length > 0)) ? undefined : <MainButton color="Gray" text="Add Offline Event" onPress={(): void => { setAlertVisible(true); }} buttonStyle={{ minHeight: 50, marginBottom: 5, marginTop: 0 }} />}
+						showsVerticalScrollIndicator={true}
+						scrollIndicatorInsets={{ right: -2 }}
+						indicatorStyle={"black"}
 						data={data}
 						renderItem={renderItem}
 						ref={flatListRef}

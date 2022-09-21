@@ -1,11 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { AppMode } from "../components/AppContext";
 import { TabParamList } from "../components/AppStack";
 import { getBibs, postBibs } from "./APICalls";
 import CreateAPIError from "./CreateAPIError";
-import GetLocalOfflineEvent from "./GetLocalOfflineEvent";
+import GetOfflineEvent from "./GetOfflineEvent";
 import GetLocalRaceEvent from "./GetLocalRaceEvent";
 import Logger from "./Logger";
+import GetBackupEvent from "./GetBackupEvent";
 
 type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 
@@ -13,7 +15,7 @@ type ScreenNavigationProp = BottomTabNavigationProp<TabParamList>;
 export const AddToStorage = async (
 	raceID: number,
 	eventID: number,
-	online: boolean,
+	appMode: AppMode,
 	time: number,
 	finishTimesParam: Array<number>, 
 	checkerBibsParam: Array<number>,
@@ -21,30 +23,32 @@ export const AddToStorage = async (
 	setLoading: (value: React.SetStateAction<boolean>) => void,
 	navigation: ScreenNavigationProp
 ): Promise<void> => {
-	if (online) {
-		// Set start time locally
-		GetLocalRaceEvent(raceID, eventID).then(([raceList, raceIndex, eventIndex]) => {
-			if (raceIndex !== -1 && eventIndex !== -1) {
-				raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
-				raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
-				AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-			} else {
-				Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex], true);
-			}
-		});
+	if (appMode === "Online") {
+		const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(raceID, eventID);
+
+		if (raceIndex >= 0 && eventIndex >= 0) {
+			raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
+			raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
+			AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+		} else {
+			Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex, appMode], true);
+		}
 
 		if (final) {
 			try {
 				const bibs = await getBibs(raceID, eventID);
 
 				if (bibs && bibs.length > 0) {
-					// If there are already bibs saved from Chute Mode, navigate to Verification Mode
+					// If there are already bibs saved from Chute Mode, navigate to Results Mode
 					AsyncStorage.setItem(`chuteDone:${raceID}:${eventID}`, "true");
 					setLoading(false);
 					navigation.navigate("ModeScreen");
-					navigation.navigate("VerificationMode");
+					navigation.navigate("ResultsMode");
 				} else {
-					// Otherwise push bibs
+					// Otherwise, we will always post checker bibs, even if they are just [0, 0, 0, ...]
+					// Chute Mode will handle combining checker bibs and bibs if there are no conflicts,
+					// And Results Mode will handle combining checker bibs and bibs if there are conflicts
+					
 					// Formatting and appending bib numbers
 					const formData = new FormData();
 					formData.append(
@@ -57,15 +61,10 @@ export const AddToStorage = async (
 
 					await postBibs(raceID, eventID, formData);
 
-					// Clear local data upon successful upload
-					GetLocalRaceEvent(raceID, eventID).then(([raceList, raceIndex, eventIndex]) => {
-						if (raceIndex !== null && eventIndex !== null) {
-							raceList[raceIndex].events[eventIndex].checker_bibs = [];
-							raceList[raceIndex].events[eventIndex].finish_times = [];
-							raceList[raceIndex].events[eventIndex].real_start_time = -1;
-							AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-						}
-					});
+					raceList[raceIndex].events[eventIndex].checker_bibs = [];
+					raceList[raceIndex].events[eventIndex].finish_times = [];
+					raceList[raceIndex].events[eventIndex].real_start_time = -1;
+					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 
 					setLoading(false);
 					navigation.navigate("ModeScreen");
@@ -82,28 +81,53 @@ export const AddToStorage = async (
 				setLoading(false);
 			}
 		}
+	} else if (appMode === "Backup") {
+		const [raceList, raceIndex, eventIndex] = await GetBackupEvent(raceID, eventID);
+
+		if (raceIndex >= 0 && eventIndex >= 0) {
+			raceList[raceIndex].events[eventIndex].finish_times = finishTimesParam;
+			raceList[raceIndex].events[eventIndex].checker_bibs = checkerBibsParam;
+			AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+		} else {
+			Logger("Local Storage Error (Finish Line)", [raceList, raceIndex, eventIndex, appMode], true);
+		}
+
+		if (final) {
+			// Navigate away
+			AsyncStorage.setItem(`finishLineDone:backup:${raceID}:${eventID}`, "true");
+			setLoading(false);
+	
+			navigation.navigate("ModeScreen");
+			await AsyncStorage.getItem(`chuteDone:backup:${raceID}:${eventID}`, (_err, result) => {
+				if (result === "true") {
+					navigation.navigate("ResultsMode");
+				}
+			});
+		}
 	} else {
-		GetLocalOfflineEvent(time).then(([eventList, eventIndex]) => {
-			if (eventIndex !== -1) {
-				eventList[eventIndex].finish_times = finishTimesParam;
-				eventList[eventIndex].checker_bibs = checkerBibsParam;
-				AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-			} else {
-				Logger("Local Storage Error (Finish Line)", [eventList, eventIndex], true);
-			}
-		});
+		const [eventList, eventIndex] = await GetOfflineEvent(time);
+
+		if (eventIndex >= 0) {
+			eventList[eventIndex].finish_times = finishTimesParam;
+			eventList[eventIndex].checker_bibs = checkerBibsParam;
+			AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+		} else {
+			Logger("Local Storage Error (Finish Line)", [eventList, eventIndex, appMode], true);
+		}
 
 		if (final) {
 			// Navigate away
 			AsyncStorage.setItem(`finishLineDone:${time}`, "true");
 			setLoading(false);
-
+	
 			navigation.navigate("ModeScreen");
 			await AsyncStorage.getItem(`chuteDone:${time}`, (_err, result) => {
 				if (result === "true") {
-					navigation.navigate("VerificationMode");
+					navigation.navigate("ResultsMode");
 				}
 			});
 		}
 	}
+
+	
 };

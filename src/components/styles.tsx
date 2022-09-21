@@ -5,6 +5,7 @@ export const DARK_GREEN_COLOR = "#00663C";
 export const LIGHT_GREEN_COLOR = "#00cc77";
 
 export const RED_COLOR = "#ff3b30";
+export const DARK_RED_COLOR = "#B30900";
 
 export const APPLE_BLUE_COLOR = "#0a84ff";
 
@@ -24,6 +25,7 @@ export const BORDER_RADIUS = 12;
 
 export const TABLE_ITEM_HEIGHT = 50;
 export const LONG_TABLE_ITEM_HEIGHT = 50;
+export const TABLE_HEADER_HEIGHT = 35;
 
 export const UNIVERSAL_PADDING = 15;
 
@@ -93,10 +95,14 @@ export const globalstyles = StyleSheet.create({
 	},
 	tableContainer: {
 		flex: 1,
-		backgroundColor: BACKGROUND_COLOR
+		backgroundColor: BACKGROUND_COLOR,
 	},
 
 	// Headers
+	header: {
+		fontSize: BIG_FONT_SIZE,
+		fontFamily: "RobotoBold",
+	},
 	modalHeader: {
 		fontSize: MEDIUM_FONT_SIZE,
 		fontFamily: "RobotoBold",
@@ -139,8 +145,12 @@ export const globalstyles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderColor: DARK_GRAY_COLOR,
 		overflow: "hidden",
-		maxHeight: TABLE_ITEM_HEIGHT * 2,
-		minHeight: TABLE_ITEM_HEIGHT * 2
+		maxHeight: TABLE_ITEM_HEIGHT * 3,
+		minHeight: TABLE_ITEM_HEIGHT * 3
+	},
+	gridFlatList: {
+		overflow: "hidden",
+		padding: 5,
 	},
 
 	// Table Items
@@ -171,11 +181,20 @@ export const globalstyles = StyleSheet.create({
 	tableHead: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
-		borderColor: DARK_GRAY_COLOR,
+		borderTopWidth: 2,
+		borderBottomColor: GRAY_COLOR,
+		borderTopColor: GRAY_COLOR,
 		paddingHorizontal: UNIVERSAL_PADDING,
-		height: TABLE_ITEM_HEIGHT,
+		paddingTop: 1,
+		height: TABLE_HEADER_HEIGHT,
 		backgroundColor: LIGHT_GRAY_COLOR,
 		alignItems: "center",
+		justifyContent: "center",
+		shadowColor: DARK_GREEN_COLOR,
+		shadowOffset: { width: 0, height: 3 },
+		shadowOpacity: 0.6,
+		shadowRadius: 3,
+		elevation: 50,
 	},
 
 	// Table Text
@@ -264,9 +283,9 @@ export const globalstyles = StyleSheet.create({
 		paddingHorizontal: 8,
 		borderRadius: BORDER_RADIUS,
 		margin: 10,
-		marginLeft: UNIVERSAL_PADDING,
-		flex: 2,
-		height: 45,
+		marginRight: 5,
+		flex: 1.75,
+		height: 40,
 		overflow: "hidden",
 		justifyContent: "center"
 	},
@@ -274,12 +293,27 @@ export const globalstyles = StyleSheet.create({
 		paddingHorizontal: 8,
 		borderRadius: BORDER_RADIUS,
 		margin: 10,
-		marginRight: UNIVERSAL_PADDING,
+		marginLeft: 5,
 		flex: 1,
-		height: 45,
-		fontSize: MEDIUM_FONT_SIZE,
+		height: 40,
+		fontSize: BIG_FONT_SIZE,
 		fontFamily: "RobotoBold",
 		backgroundColor: LIGHT_GRAY_COLOR,
+	},
+	startButton: {
+		paddingHorizontal: 8,
+		borderRadius: BORDER_RADIUS,
+		margin: 10,
+		marginLeft: 5,
+		flex: 1,
+		height: 40,
+		alignItems: "center",
+		justifyContent: "center"
+	},
+	startText: {
+		fontSize: BIG_FONT_SIZE,
+		fontFamily: "RobotoBold",
+		color: WHITE_COLOR
 	},
 
 	// Time Entry
@@ -317,42 +351,26 @@ export const globalstyles = StyleSheet.create({
 		textAlign: "center"
 	},
 
-	altStartButton: {
-		paddingHorizontal: 8,
-		borderRadius: BORDER_RADIUS,
-		margin: 10,
-		marginRight: UNIVERSAL_PADDING,
-		flex: 1,
-		height: 45,
-		alignItems: "center",
-		justifyContent: "center"
-	},
-	altStartText: {
-		fontSize: MEDIUM_FONT_SIZE,
-		fontFamily: "RobotoBold",
-		color: WHITE_COLOR
-	},
-	altBibContainer: {
+	gridBibContainer: {
 		flex: 1, 
 		alignItems: "center", 
-		padding: 7,
+		padding: 4,
 		flexDirection: "row",
 	},
-	altBibButton: {
-		height: 45,
+	gridBibButton: {
+		height: 47,
 		alignItems: "center",
 		justifyContent: "center",
 		flexGrow: 1,
-		borderRadius: 5
+		borderRadius: 5,
 	},
-	altBibText: {
+	gridBibText: {
 		color: WHITE_COLOR, 
-		fontFamily: "RobotoBold", 
-		fontSize: MEDIUM_FONT_SIZE,
+		fontFamily: "RobotoBold"
 	},
-	altTimeText: {
+	gridTimeText: {
 		color: WHITE_COLOR, 
-		fontFamily: "Roboto", 
-		fontSize: TABLE_FONT_SIZE,
+		fontFamily: "RobotoMono", 
+		fontSize: TABLE_FONT_SIZE
 	}
 });

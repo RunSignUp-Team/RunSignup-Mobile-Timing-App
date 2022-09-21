@@ -6,11 +6,12 @@ import { RootStackParamList } from "../components/AppStack";
 import MainButton from "./MainButton";
 import AddLeadingZeros from "../helpers/AddLeadingZeros";
 import DateToDate from "../helpers/DateToDate";
+import { AppMode } from "./AppContext";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface Props {
-	online: boolean,
+	appMode: AppMode,
 	index: number,
 	item: OfflineEvent,
 	navigationRef: {
@@ -44,7 +45,7 @@ export default function OfflineEventsRenderItem(props: Props): React.ReactElemen
 			listButton={props.index + 1}
 			subtitle={`${month}/${day}/${year} - ${hour}:${minutes} ${ampm}`}
 			onPress={(): void => {
-				if (!props.online) {
+				if (props.appMode === "Offline") {
 					props.setEventTitle(props.item.name);
 					props.setTime(props.item.time);
 					props.navigationRef.current.navigate("ModeScreen");

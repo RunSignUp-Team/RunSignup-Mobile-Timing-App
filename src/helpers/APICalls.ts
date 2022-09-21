@@ -2,11 +2,31 @@ import { oAuthLogin } from "./oAuth2Helper";
 import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
 import GetClockTime from "./GetClockTime";
 import DateToDate from "./DateToDate";
+import addLeadingZeros from "./AddLeadingZeros";
 
 type RaceResponse = {
 	races: Array<{
 		race: RSURace
 	}>
+}
+
+interface ResultSet {
+	alt_event_ids: Array<number>,
+	individual_result_set_id: number,
+	individual_result_set_name: string,
+	pace_type: "T" | "F",
+	preliminary_results: "T" | "F",
+	public_results: "T" | "F",
+	results: Array<object>,
+	results_headers: Record<string,string>,
+	results_source_name: string | null,
+	results_source_url: string | null,
+	sort_order: number,
+	team_column_display_type: number,
+}
+
+interface ResultSetsResponse {
+	individual_results_sets: Array<ResultSet>
 }
 
 export interface RSURace {
@@ -265,6 +285,12 @@ export const getRaces = async (): Promise<RaceResponse["races"]> => {
 	return response.races;
 };
 
+/** Get result sets from RSU API */
+export const getResultSets = async (raceID: number, eventID: number): Promise<ResultSetsResponse> => {
+	const response = await handleGetCall<ResultSetsResponse>(RUNSIGNUP_URL + `Rest/race/${raceID}/results/get-result-sets?format=json&event_id=${eventID}`);
+	return response;
+};
+
 /** Get Bib Numbers from RSU API */
 export const getBibs = async (raceID: number, eventID: number): Promise<BibsResponse["bib_finishing_order"]> => {
 	const response = await handleGetCall<BibsResponse>(`${RUNSIGNUP_URL}Rest/race/${raceID}/results/get-chute-data?format=json&event_id=${eventID}`);
@@ -289,7 +315,19 @@ export const getParticipants = async (raceID: number, eventID: number): Promise<
 };
 
 /** Post Start Time to RSU API */
-export const postStartTime = async (raceID: number, eventID: number, formData: FormData): Promise<FormData> => {
+export const postStartTime = async (raceID: number, eventID: number, startTime: number): Promise<FormData> => {
+	const formData = new FormData();
+
+	const formatStartTime = new Date(startTime);
+
+	// Append request to API
+	formData.append(
+		"request",
+		JSON.stringify({
+			start_time: `${formatStartTime.getFullYear()}-${addLeadingZeros(formatStartTime.getMonth() + 1)}-${addLeadingZeros(formatStartTime.getDate())} ${addLeadingZeros(formatStartTime.getHours())}:${addLeadingZeros(formatStartTime.getMinutes())}:${addLeadingZeros(formatStartTime.getSeconds())}`
+		})
+	);
+
 	const response = await handlePostCall(
 		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/start-time?format=json&event_id=${eventID}&request_format=json`,
 		formData
@@ -299,7 +337,6 @@ export const postStartTime = async (raceID: number, eventID: number, formData: F
 
 /** Post Finish Times to RSU API */
 export const postFinishTimes = async (raceID: number, eventID: number, times: Array<number>): Promise<FormData> => {
-
 	const timeString = [];
 
 	for (let i = 0; i < times.length; i++) {
@@ -314,7 +351,7 @@ export const postFinishTimes = async (raceID: number, eventID: number, times: Ar
 			finishing_times: timeString
 		})
 	);
-
+	
 	const response = await handlePostCall(
 		`${RUNSIGNUP_URL}Rest/race/${raceID}/results/finishing-times?format=json&event_id=${eventID}&request_format=json`,
 		formData

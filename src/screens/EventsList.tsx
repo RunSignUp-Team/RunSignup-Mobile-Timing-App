@@ -14,6 +14,7 @@ import { Race } from "../models/Race";
 import CreateAPIError from "../helpers/CreateAPIError";
 import { useIsFocused } from "@react-navigation/native";
 import Icon from "../components/IcoMoon";
+import { SyncAnimation } from "../components/SyncAnimation";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -57,7 +58,13 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 	useEffect(() => {
 		const setNavigation = async (): Promise<void> => {
 			let raceName = "";
-			const response = await AsyncStorage.getItem("onlineRaces");
+			let response: string | null = null;
+			if (context.appMode === "Online") {
+				response = await AsyncStorage.getItem("onlineRaces");
+			} 
+			if (context.appMode === "Backup") {
+				response = await AsyncStorage.getItem("backupRaces");
+			}
 			if (response) {
 				const races = JSON.parse(response) as Array<Race>;
 				const race = races.find(foundRace => foundRace.race_id === context.raceID);
@@ -71,23 +78,31 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 					<HeaderBackButton onPress={(): void => { navigation.goBack(); }} labelVisible={false} tintColor={WHITE_COLOR}></HeaderBackButton>
 				),
 				headerRight: () => (
-					<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
-						<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
-					</TouchableOpacity>
+					<View style={{ flexDirection: "row", width: 75, justifyContent: "space-between", alignItems: "center" }}>
+						<SyncAnimation appMode={context.appMode} />
+						<TouchableOpacity onPress={handleLogOut} style={globalstyles.headerButtonText}>
+							<Icon name={"exit"} size={22} color={WHITE_COLOR}></Icon>
+						</TouchableOpacity>
+					</View>
 				),
 				headerTitle: raceName ? raceName : "Events"
 			});
 		};
 		setNavigation();
-	}, [context.eventID, context.raceID, handleLogOut, navigation]);
+	}, [context.appMode, context.eventID, context.raceID, handleLogOut, navigation]);
 
 	// Get Race data from the API
 	const fetchEvents = useCallback(async (): Promise<void> => {
 		try {
 			setLoading(true);
-
+			
 			// Get events
-			const response = await AsyncStorage.getItem("onlineRaces");
+			let response: string | null = null;
+			if (context.appMode === "Online") {
+				response = await AsyncStorage.getItem("onlineRaces");
+			} else {
+				response = await AsyncStorage.getItem("backupRaces");
+			}
 			const localRaceList: Array<Race> = response !== null ? JSON.parse(response) : [];
 			const race = localRaceList.find((race) => race.race_id === context.raceID);
 
@@ -101,7 +116,7 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 			CreateAPIError("Events", error);
 			setLoading(false);
 		}
-	}, [context.raceID]);
+	}, [context.appMode, context.raceID]);
 
 	const firstRun = useRef(true);
 	useEffect(() => {
@@ -121,6 +136,8 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 			<MemoEventsListItem
 				index={index}
 				item={item}
+				raceID={context.raceID}
+				appMode={context.appMode}
 				setEventID={setEventID}
 				setEventTitle={setEventTitle}
 				navigationRef={navigationRef}
@@ -159,7 +176,9 @@ const EventsListScreen = ({ navigation }: Props): React.ReactElement => {
 
 				{!loading &&
 					<FlatList
-						showsVerticalScrollIndicator={false}
+						showsVerticalScrollIndicator={true}
+						scrollIndicatorInsets={{ right: -2 }}
+						indicatorStyle={"black"}
 						data={data}
 						renderItem={renderItem}
 						keyExtractor={(_item, index): string => (index + 1).toString()}

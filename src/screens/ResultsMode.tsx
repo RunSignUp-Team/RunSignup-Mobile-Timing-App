@@ -7,8 +7,8 @@ import { deleteBibs, deleteFinishTimes, getBibs, getFinishTimes, getParticipants
 import { MemoResultsModeRenderItem } from "../components/ResultsModeRenderItem";
 import GetTimeInMils from "../helpers/GetTimeInMils";
 import { HeaderBackButton } from "@react-navigation/elements";
-import GetLocalRaceEvent from "../helpers/GetLocalRaceEvent";
-import GetLocalOfflineEvent from "../helpers/GetLocalOfflineEvent";
+import GetLocalRaceEvent, { DefaultEventData } from "../helpers/GetLocalRaceEvent";
+import GetOfflineEvent from "../helpers/GetOfflineEvent";
 import ConflictBoolean from "../helpers/ConflictBoolean";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
@@ -17,12 +17,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import Logger from "../helpers/Logger";
 import TextInputAlert from "../components/TextInputAlert";
 import GetBibDisplay from "../helpers/GetBibDisplay";
-import GetClockTime from "../helpers/GetClockTime";
 import CreateAPIError from "../helpers/CreateAPIError";
 import Icon from "../components/IcoMoon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DeleteFiles, WriteFiles } from "../helpers/FSHelper";
 import ShareResultsFile from "../helpers/ShareResultsFile";
+import GetBackupEvent from "../helpers/GetBackupEvent";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -37,6 +37,15 @@ type VRecord = [
 ];
 
 export type VRecords = Array<VRecord>;
+
+export const OpenResultsLink = async (raceID: number): Promise<void> => {
+	const url = `https://runsignup.com/Race/${raceID}/Results/Dashboard/EditIndividualResults`;
+	if (await Linking.canOpenURL(url)) {
+		Linking.openURL(url);
+	} else {
+		Logger("Cannot Open Link", "Device Not Set Up Correctly", true);
+	}
+};
 
 const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);
@@ -124,7 +133,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	);
 
 	// Online Functionality
-	const getRecords = useCallback(async (reload: boolean): Promise<void> => {
+	const getOnlineRecords = useCallback(async (reload: boolean): Promise<void> => {
 		if (reload) {
 			setRefreshing(true);
 		} else {
@@ -139,10 +148,13 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			// Get participants from API
 			const participantList = await getParticipants(context.raceID, context.eventID);
 
-			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			let [raceList, raceIndex, eventIndex] = DefaultEventData;
+			if (context.appMode === "Online") {
+				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			}
 
 			// Bibs & Checker Bibs
-			if (raceIndex !== null && eventIndex !== null) {
+			if (raceIndex >= 0 && eventIndex >= 0) {
 				// Store conflict data in record (whether from Chute or Finish line mode)
 				const biggerArray = Math.max(raceList[raceIndex].events[eventIndex].checker_bibs.length, raceList[raceIndex].events[eventIndex].bib_nums.length, bibs.length);
 				for (let i = 0; i < biggerArray; i++) {
@@ -223,7 +235,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				}
 			}
 
-			// Participants
+			// Get Participants
 			if (participantList.participants !== undefined) {
 				const parsedTicipants = [];
 				for (let i = 0; i < participantList.participants.length; i++) {
@@ -244,74 +256,161 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				setLoading(false);
 			}
 		}
-	}, [context.eventID, context.raceID, hasAPIData, updateRecords]);
+	}, [context.appMode, context.eventID, context.raceID, hasAPIData, updateRecords]);
 
+	// Backup Functionality
+	const getBackupRecords = useCallback(async (): Promise<void> => {
+		setLoading(true);
+
+		// Get participants from API
+		try {
+			const participantList = await getParticipants(context.raceID, context.eventID);
+		
+			const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+	
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				const event = raceList[raceIndex].events[eventIndex];
+
+				const biggerArray = Math.max(event.bib_nums.length, event.checker_bibs.length);
+
+				// Bibs & Checker Bibs
+				for (let i = 0; i < biggerArray; i++) {
+					if (i > recordsRef.current.length - 1) {
+						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+					}
+
+					// Default to 0 if undefined
+					const localBib = event.bib_nums[i] ?? 0;
+					const localCheckerBib = event.checker_bibs[i] ?? 0;
+
+					recordsRef.current[i][0] = localBib;
+					recordsRef.current[i][2] = localCheckerBib;
+
+					// Deal with simple conflicts right away
+					if (!recordsRef.current[i][0] && recordsRef.current[i][2]) {
+						recordsRef.current[i][0] = recordsRef.current[i][2];
+					}
+					if (!recordsRef.current[i][2] && recordsRef.current[i][0]) {
+						recordsRef.current[i][2] = recordsRef.current[i][0];
+					}
+				}
+	
+				// Get Finish Times
+				const finishTimes = event.finish_times;
+				for (let i = 0; i < finishTimes.length; i++) {
+					const finishTime = finishTimes[i];
+					if (i > recordsRef.current.length - 1) {
+						recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+					}
+					recordsRef.current[i][1] = finishTime;
+	
+					// Get Max Time for Adding New Records
+					if (finishTime > maxTime.current) {
+						maxTime.current = finishTime;
+					}
+				}
+	
+				// Get Participants
+				if (participantList.participants !== undefined) {
+					const parsedTicipants = [];
+					for (let i = 0; i < participantList.participants.length; i++) {
+						parsedTicipants.push(participantList.participants[i]);
+					}
+					setParticipants([...parsedTicipants]);
+				} else if (!__DEV__) {
+					Logger("No Participant Data Found", "No data from Runsignup", true);
+				}
+	
+				updateRecords([...recordsRef.current]);
+				// Toggle searchID useEffect
+				setSearch("");
+			}
+		} catch (error) {
+			CreateAPIError("Get Participants", error, true);
+		}
+
+		if (!isUnmountedRef.current) {
+			setLoading(false);
+		}
+	}, [context.eventID, context.raceID, updateRecords]);
+
+	// Offline Functionality
+	const getOfflineRecords = useCallback(async (): Promise<void> => {
+		setLoading(true);
+
+		const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+
+		if (eventIndex >= 0) {
+			const biggerArray = Math.max(eventList[eventIndex].bib_nums.length, eventList[eventIndex].checker_bibs.length);
+
+			// Bibs & Checker Bibs
+			for (let i = 0; i < biggerArray; i++) {
+				if (i > recordsRef.current.length - 1) {
+					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+				}
+
+				// Default to 0 if undefined
+				const localBib = eventList[eventIndex].bib_nums[i] ?? 0;
+				const localCheckerBib = eventList[eventIndex].checker_bibs[i] ?? 0;
+
+				recordsRef.current[i][0] = localBib;
+				recordsRef.current[i][2] = localCheckerBib;
+
+				// Deal with simple conflicts right away
+				if (!recordsRef.current[i][0] && recordsRef.current[i][2]) {
+					recordsRef.current[i][0] = recordsRef.current[i][2];
+				}
+				if (!recordsRef.current[i][2] && recordsRef.current[i][0]) {
+					recordsRef.current[i][2] = recordsRef.current[i][0];
+				}
+			}
+
+			// Get Finish Times
+			const finishTimes = eventList[eventIndex].finish_times;
+			for (let i = 0; i < finishTimes.length; i++) {
+				const finishTime = finishTimes[i];
+				if (i > recordsRef.current.length - 1) {
+					recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
+				}
+				recordsRef.current[i][1] = finishTime;
+
+				// Get Max Time for Adding New Records
+				if (finishTime > maxTime.current) {
+					maxTime.current = finishTime;
+				}
+			}
+
+			updateRecords([...recordsRef.current]);
+			// Toggle searchID useEffect
+			setSearch("");
+		}
+
+		if (!isUnmountedRef.current) {
+			setLoading(false);
+		}
+	}, [context.time, updateRecords]);
+
+	// Initial load of records
 	const firstRun = useRef(true);
 	useEffect(() => {
 		if (firstRun.current) {
 			firstRun.current = false;
-			if (context.online) {
-				getRecords(false);
+			if (context.appMode === "Online") {
+				// Online Functionality
+				getOnlineRecords(false);
+			} else if (context.appMode === "Backup") {
+				// Backup Functionality
+				getBackupRecords();
 			} else {
-				setLoading(true);
 				// Offline Functionality
-				GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-					if (eventIndex !== -1) {
-						// Get Bibs
-						for (let i = 0; i < eventList[eventIndex].bib_nums.length; i++) {
-							if (i > recordsRef.current.length - 1) {
-								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-							}
-							recordsRef.current[i][0] = eventList[eventIndex].bib_nums[i];
-						}
-
-						// Get Finish Times
-						const finishTimes = eventList[eventIndex].finish_times;
-						for (let i = 0; i < finishTimes.length; i++) {
-							const finishTime = finishTimes[i];
-							if (i > recordsRef.current.length - 1) {
-								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-							}
-							recordsRef.current[i][1] = finishTime;
-
-							// Get Max Time for Adding New Records
-							if (finishTime > maxTime.current) {
-								maxTime.current = finishTime;
-							}
-						}
-
-						// Get Checker Bibs
-						for (let i = 0; i < eventList[eventIndex].checker_bibs.length; i++) {
-							if (i > recordsRef.current.length - 1) {
-								recordsRef.current.push([0, Number.MAX_SAFE_INTEGER, 0]);
-							}
-							recordsRef.current[i][2] = eventList[eventIndex].checker_bibs[i];
-
-							// Get best bib data available into records[0]
-							if (!recordsRef.current[i][0]) {
-								if (recordsRef.current[i][2] !== undefined && recordsRef.current[i][2] !== null && recordsRef.current[i][2] !== 0) {
-									recordsRef.current[i][0] = recordsRef.current[i][2];
-								} else {
-									recordsRef.current[i][0] = 0;
-								}
-							}
-						}
-
-						updateRecords([...recordsRef.current]);
-						// Toggle searchID useEffect
-						setSearch("");
-					}
-				});
-				if (!isUnmountedRef.current) {
-					setLoading(false);
-				}
+				getOfflineRecords();
 			}
 		}
 
 		return () => {
 			isUnmountedRef.current = true;
 		};
-	}, [context.online, context.time, getRecords, updateRecords]);
+	}, [context.appMode, getBackupRecords, getOfflineRecords, getOnlineRecords]);
 
 	// Only show delete alert if there were previously records saved for the event
 	const secondRun = useRef(1);
@@ -336,102 +435,147 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	}, [records]);
 
 	const clearAndPush = useCallback(async () => {
-		if (context.online) {
-			try {
-				// Clear old bib data
-				await deleteBibs(context.raceID, context.eventID);
-				// Post new bib data if the user hasn't deleted all records
-				const bibNums = recordsRef.current.map(entry => entry[0]);
-				if (bibNums.length > 0) {
-					// Online Funtionality
-					// Form Data
-					const formDataBibs = new FormData();
-					formDataBibs.append(
-						"request",
-						JSON.stringify({
-							last_finishing_place: 0,
-							bib_nums: bibNums
-						})
-					);
+		switch (context.appMode) {
+			case "Online":
+				// Online Funtionality
+				try {
+					// Clear old bib data
+					await deleteBibs(context.raceID, context.eventID);
+					// Post new bib data if the user hasn't deleted all records
+					const bibNums = recordsRef.current.map(entry => entry[0]);
+					if (bibNums.length > 0) {
+						// Form Data
+						const formDataBibs = new FormData();
+						formDataBibs.append(
+							"request",
+							JSON.stringify({
+								last_finishing_place: 0,
+								bib_nums: bibNums
+							})
+						);
+	
+						await postBibs(context.raceID, context.eventID, formDataBibs);
+						AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
+					}
+	
+					// Clear old finish time data
+					await deleteFinishTimes(context.raceID, context.eventID);
+					// Post new finish time data if the user hasn't deleted all records
+					const finishTimes = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+					if (finishTimes.length > 0) {
+						await postFinishTimes(context.raceID, context.eventID, finishTimes);
+						AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
+					}
+	
+					// Clear local data upon successful upload
+					const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
 
-					await postBibs(context.raceID, context.eventID, formDataBibs);
-					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "true");
-				}
-
-				// Clear old finish time data
-				await deleteFinishTimes(context.raceID, context.eventID);
-				// Post new finish time data if the user hasn't deleted all records
-				const finishTimes = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
-				if (finishTimes.length > 0) {
-					await postFinishTimes(context.raceID, context.eventID, finishTimes);
-					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "true");
-				}
-
-				// Clear local data upon successful upload
-				GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-					if (raceIndex !== null && eventIndex !== null) {
+					if (raceIndex >= 0 && eventIndex >= 0) {
 						raceList[raceIndex].events[eventIndex].checker_bibs = [];
 						raceList[raceIndex].events[eventIndex].bib_nums = [];
 						raceList[raceIndex].events[eventIndex].finish_times = [];
 						raceList[raceIndex].events[eventIndex].real_start_time = -1;
 						AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
 					}
-				});
 
-
-				setEditMode(false);
-				setLoading(false);
-
-				if (recordsRef.current.length > 0) {
-					Alert.alert("Success", "Results successfully uploaded to Runsignup!");
-				} else {
-					Alert.alert("Success", "Results successfully deleted from Runsignup!");
-					navigation.goBack();
+					setEditMode(false);
+					setLoading(false);
+	
+					if (recordsRef.current.length > 0) {
+						Alert.alert("Success", "Results successfully uploaded to Runsignup!");
+					} else {
+						Alert.alert("Success", "Results successfully deleted from Runsignup!");
+						navigation.goBack();
+					}
+				} catch (error) {
+					CreateAPIError("confirm all bibs & finish times are formatted correctly", error);
+	
+					if (!isUnmountedRef.current) {
+						setLoading(false);
+					}
 				}
-			} catch (error) {
-				CreateAPIError("confirm all bibs & finish times are formatted correctly", error);
+				break;
+			case "Backup":
+				try {
+					// Backup Functionality
+					if (recordsRef.current.length > 0) {
+						const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
 
-				if (!isUnmountedRef.current) {
+						if (raceIndex >= 0 && eventIndex >= 0) {
+							raceList[raceIndex].events[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
+							raceList[raceIndex].events[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+							raceList[raceIndex].events[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
+
+							AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+							AsyncStorage.setItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, "true");
+							AsyncStorage.setItem(`chuteDone:backup:${context.raceID}:${context.eventID}`, "true");
+							Alert.alert("Success", "Results successfully saved to your local device!");
+						}
+					} else {
+						const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+
+						if (raceIndex >= 0 && eventIndex >= 0) {
+							raceList[raceIndex].events[eventIndex].bib_nums = [];
+							raceList[raceIndex].events[eventIndex].finish_times = [];
+							raceList[raceIndex].events[eventIndex].checker_bibs = [];
+							raceList[raceIndex].events[eventIndex].real_start_time = -1;
+
+							AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+							AsyncStorage.setItem(`finishLineDone:backup:${context.raceID}:${context.eventID}`, "false");
+							AsyncStorage.setItem(`chuteDone:backup:${context.raceID}:${context.eventID}`, "false");
+							Alert.alert("Success", "Results successfully deleted from your local device!");
+							navigation.goBack();
+						}
+					}
+					setEditMode(false);
+				} catch (error) {
+					Logger("Unknown Error (Offline: confirm all bibs & finish times are formatted correctly)", error, true);
+				} finally {
 					setLoading(false);
 				}
-			}
-		} else {
-			try {
-				// Offline Functionality
-				if (recordsRef.current.length > 0) {
-					GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-						eventList[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
-						eventList[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
-						eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
-						AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-						AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
-						AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
-						Alert.alert("Success", "Results successfully saved to your local device!");
-					});
-				} else {
-					GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-						eventList[eventIndex].bib_nums = [];
-						eventList[eventIndex].finish_times = [];
-						eventList[eventIndex].checker_bibs = [];
-						eventList[eventIndex].real_start_time = -1;
-						AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-						AsyncStorage.setItem(`finishLineDone:${context.time}`, "false");
-						AsyncStorage.setItem(`chuteDone:${context.time}`, "false");
-						Alert.alert("Success", "Results successfully deleted from your local device!");
-						navigation.goBack();
-					});
+				break;
+			default:
+				try {
+					// Offline Functionality
+					if (recordsRef.current.length > 0) {
+						const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+
+						if (eventIndex >= 0) {
+							eventList[eventIndex].bib_nums = recordsRef.current.map(entry => entry[0]);
+							eventList[eventIndex].finish_times = recordsRef.current.filter(entry => entry[1] !== Number.MAX_SAFE_INTEGER).map(entry => entry[1]);
+							eventList[eventIndex].checker_bibs = recordsRef.current.map(entry => entry[2]);
+
+							AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+							AsyncStorage.setItem(`finishLineDone:${context.time}`, "true");
+							AsyncStorage.setItem(`chuteDone:${context.time}`, "true");
+							Alert.alert("Success", "Results successfully saved to your local device!");
+						}
+					} else {
+						const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+
+						if (eventIndex >= 0) {
+							eventList[eventIndex].bib_nums = [];
+							eventList[eventIndex].finish_times = [];
+							eventList[eventIndex].checker_bibs = [];
+							eventList[eventIndex].real_start_time = -1;
+
+							AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+							AsyncStorage.setItem(`finishLineDone:${context.time}`, "false");
+							AsyncStorage.setItem(`chuteDone:${context.time}`, "false");
+							Alert.alert("Success", "Results successfully deleted from your local device!");
+							navigation.goBack();
+						}	
+					}
+					setEditMode(false);
+				} catch (error) {
+					Logger("Unknown Error (Offline: confirm all bibs & finish times are formatted correctly)", error, true);
+				} finally {
+					setLoading(false);
 				}
-
-				setEditMode(false);
-			} catch (error) {
-				Logger("Unknown Error (Offline: confirm all bibs & finish times are formatted correctly)", error, true);
-			} finally {
-				setLoading(false);
-			}
-
+				break;
 		}
 		setRStartLength(recordsRef.current.length);
-	}, [context.eventID, context.online, context.raceID, context.time, navigation]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, navigation]);
 
 	const saveResults = useCallback((skipAlert?: boolean) => {
 		if (recordsRef.current.length < 1 && rStartLength !== 0) {
@@ -536,32 +680,41 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 	}, [saveResults, updateRecords]);
 
 	// Update local storage to reflect conflict resolved
-	const conflictResolved = useCallback((index) => {
+	const conflictResolved = useCallback(async (index) => {
 		// Save results when all conflicts are resolved
 		if (conflicts === 1) {
 			checkEntries();
 		}
 
-		if (context.online) {
+		if (context.appMode === "Online") {
 			// Online Functionality
-			GetLocalRaceEvent(context.raceID, context.eventID).then(([raceList, raceIndex, eventIndex]) => {
-				if (raceIndex !== null && eventIndex !== null) {
-					raceList[raceIndex].events[eventIndex].bib_nums[index] = recordsRef.current[index][0];
-					raceList[raceIndex].events[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
-					AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-				}
-			});
+			const [raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].bib_nums[index] = recordsRef.current[index][0];
+				raceList[raceIndex].events[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
+				AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+			}
+		} else if (context.appMode === "Backup") {
+			// Backup Functionality
+			const [raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].bib_nums[index] = recordsRef.current[index][0];
+				raceList[raceIndex].events[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
+				AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+			}
 		} else {
 			// Offline Functionality
-			GetLocalOfflineEvent(context.time).then(([eventList, eventIndex]) => {
-				if (eventIndex !== null) {
-					eventList[eventIndex].bib_nums[index] = recordsRef.current[index][0];
-					eventList[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
-					AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
-				}
-			});
+			const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+
+			if (eventIndex >= 0) {
+				eventList[eventIndex].bib_nums[index] = recordsRef.current[index][0];
+				eventList[eventIndex].checker_bibs[index] = recordsRef.current[index][0];
+				AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+			}
 		}
-	}, [checkEntries, conflicts, context.eventID, context.online, context.raceID, context.time]);
+	}, [checkEntries, conflicts, context.eventID, context.appMode, context.raceID, context.time]);
 
 	// Check conflicts
 	const prevConflicts = useRef(0);
@@ -670,7 +823,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 	// Returns participant with bib number of index if found
 	const findParticipant = useCallback((bib: number) => {
-		if (context.online) {
+		if (context.appMode === "Online" || context.appMode === "Backup") {
 			try {
 				const p = participants.find((participant) => participant.bib_num === bib);
 				return p !== undefined ? `${p.user.first_name} ${p.user.last_name}` : "No Name";
@@ -680,7 +833,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			return "";
 		}
-	}, [context.online, participants]);
+	}, [context.appMode, participants]);
 
 	// Search records
 	const searchList = useCallback(() => {
@@ -767,21 +920,13 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		setEditMode(true);
 		Alert.alert(
 			"Edit Mode", 
-			`WARNING: Once data has been edited here, you will not be able to re-open either Finish Line Mode or Chute Mode.\n${recordsRef.current.length > 0 ? "Tap on a bib number or finish time to edit it. Tap on two places to swap the bibs in the list. " : ""}Tap + to add a record.`,
+			`WARNING: Once finish times have been entered in Results, other users will be unable to upload finish times.\n\nWARNING: Once data has been edited in Results, you will not be able to re-open either Finish Line Mode or Chute Mode on this device unless you delete all Results.\n\n${recordsRef.current.length > 0 ? "Tap on a bib number or finish time to edit it. Tap on two places to swap the bibs in the list. " : ""}Tap + to add a record.`,
 			[
+				{ text: "Cancel", style: "default", onPress: (): void => { setEditMode(false); } },
 				{ text: "I Understand", style: "destructive" }
 			]
 		);
 	}, []);
-
-	const openLink = useCallback(async (): Promise<void> => {
-		const url = `https://runsignup.com/Race/${context.raceID}/Results/Dashboard/EditIndividualResults`;
-		if (await Linking.canOpenURL(url)) {
-			Linking.openURL(url);
-		} else {
-			Logger("Cannot Open Link", "Device Not Set Up Correctly", true);
-		}
-	}, [context.raceID]);
 
 	const deleteAllRecords = useCallback(() => {
 		if (recordsRef.current.length > 0) {
@@ -793,7 +938,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					{ text: "Delete All", onPress: (): void => { 
 						Alert.alert(
 							"Confirm Delete?",
-							`Please confirm that you want to delete all records for this event. All data will be lost forever${context.online ? ", both on RunSignup and your device" : ""}.`,
+							`Please confirm that you want to delete all records for this event. All data will be lost forever${context.appMode === "Online" || context.appMode === "Backup" ? ", both on RunSignup and your device" : ""}.`,
 							[
 								{ text: "Cancel" },
 								{
@@ -812,21 +957,21 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 		} else {
 			Alert.alert("No Records", "There are no records to delete!");
 		}
-	}, [context.online, saveResults, updateRecords]);
+	}, [context.appMode, saveResults, updateRecords]);
 
 	const shareResults = useCallback(async () => {
 		if (recordsRef.current.length > 0) {
-			await WriteFiles(context.raceID, context.eventID, recordsRef.current, participants, context.online, context.time);
+			await WriteFiles(context.raceID, context.eventID, recordsRef.current, participants, context.appMode, context.time);
 			try {
-				await ShareResultsFile(context.raceID, context.eventID, context.time, context.online);
+				await ShareResultsFile(context.raceID, context.eventID, context.time, context.appMode);
 			} catch (error) {
-				Logger("Failed to Share Results", error, true);
+				Logger(`Failed to Share Results.\n${error}`, error, true);
 			}
-			await DeleteFiles(context.raceID, context.eventID, context.time, context.online);
+			await DeleteFiles(context.raceID, context.eventID, context.time, context.appMode);
 		} else {
 			Alert.alert("No Records", "There are no records to share!");
 		}
-	}, [context.eventID, context.online, context.raceID, context.time, participants]);
+	}, [context.eventID, context.appMode, context.raceID, context.time, participants]);
 
 	// Display edit / save button in header
 	useEffect(() => {
@@ -837,39 +982,54 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			headerRight: () => (
 				<View style={{ flexDirection: "row", alignItems: "center" }}>
 					{/* Delete All Records */}
-					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={deleteAllRecords} >
-						<Icon name={"bin5"} size={22} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(editMode && !loading) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={deleteAllRecords} >
+							<Icon name={"bin"} size={22} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 					{/* Add Record */}
-					{editMode && !loading && <TouchableOpacity style={{ marginRight: 15 }} onPress={addRecord} >
-						<Icon name={"plus3"} size={22} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(editMode && !loading) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={addRecord} >
+							<Icon name={"plus"} size={20} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 
 					{/* RSU Results */}
-					{!editMode && !loading && context.online && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={openLink} >
-						<Icon name={"stats-bars2"} size={24} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(!editMode && !loading && context.appMode === "Online" && conflicts === 0) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={(): void => { OpenResultsLink(context.raceID); }} >
+							<Icon name={"stats-bars"} size={24} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 					{/* Share Results */}
-					{!editMode && !loading && conflicts === 0 && <TouchableOpacity style={{ marginRight: 15 }} onPress={shareResults} >
-						<Icon name={"file-upload2"} size={22} color={WHITE_COLOR} />
-					</TouchableOpacity>}
+					{(!editMode && !loading && conflicts === 0) ?
+						<TouchableOpacity style={{ marginRight: 15 }} onPress={shareResults} >
+							<Icon name={"file-upload"} size={22} color={WHITE_COLOR} />
+						</TouchableOpacity>
+						: null
+					}
 
 					{/* Edit / Save */}
-					{!loading && conflicts === 0 && <TouchableOpacity
-						onPress={(): void => {
-							if (!editMode) {
-								editTable();
-							} else {
-								checkEntries();
-							}
-						}}>
-						{!editMode && <Text style={globalstyles.headerButtonText}>Edit</Text>}
-						{editMode && <Text style={globalstyles.headerButtonText}>Save</Text>}
-					</TouchableOpacity>}
+					{(!loading && conflicts === 0) ?
+						<TouchableOpacity
+							onPress={(): void => {
+								if (!editMode) {
+									editTable();
+								} else {
+									checkEntries();
+								}
+							}}>
+							{!editMode && <Text style={globalstyles.headerButtonText}>Edit</Text>}
+							{editMode && <Text style={globalstyles.headerButtonText}>Save</Text>}
+						</TouchableOpacity>
+						: null
+					}
 				</View>
 			),
 		});
-	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, openLink, deleteAllRecords, context.online, shareResults]);
+	}, [backTapped, addRecord, checkEntries, conflicts, editMode, editTable, loading, navigation, deleteAllRecords, context.appMode, shareResults, context.raceID]);
 
 	// Show Edit Alert
 	const showAlert = (index: number, record: [number, number, number]): void => {
@@ -880,19 +1040,22 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 
 	const onAlertSave = (valArray: Array<string>, next: boolean): void => {
 		if (alertIndex !== undefined && alertRecord) {
-			if (!valArray[0]) {
+			const bib = valArray[0];
+			const time = parseInt(valArray[1]);
+
+			if (!bib) {
 				// Alert if blank bib entry
 				Alert.alert("Incorrect Bib Entry", "The bib number you have entered is blank. Please correct the value.");
-			} else if (!(/^(\d)+$/gm.test(valArray[0]))) {
+			} else if (!(/^(\d)+$/gm.test(bib))) {
 				// Alert if non number
 				Alert.alert("Incorrect Bib Entry", "The bib number you have entered is not a number. Please correct the value.");
-			} else if (GetTimeInMils(valArray[1]) === -1 && (recordsRef.current[alertIndex][1] !== Number.MAX_SAFE_INTEGER || valArray[1] !== "")) {
+			} else if (time === -1 && (recordsRef.current[alertIndex][1] !== Number.MAX_SAFE_INTEGER)) {
 				// Alert if incorrect finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is incorrectly typed. Please correct the value.\nFinish times must be in one of these forms (note the colons and periods):\n\nHH : MM : SS : MS\nHH : MM : SS . MS\nHH : MM : SS\nMM : SS . MS\nMM : SS\nSS . MS");
-			} else if (GetTimeInMils(valArray[1]) > MAX_TIME && GetTimeInMils(valArray[1]) !== Number.MAX_SAFE_INTEGER) {
+			} else if (time > MAX_TIME && time !== Number.MAX_SAFE_INTEGER) {
 				// Alert if too large finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is too large. Please correct the value.");
-			} else if (GetTimeInMils(valArray[1]) === 0) {
+			} else if (time === 0) {
 				// Alert if zero finish time
 				Alert.alert("Incorrect Finish Time Entry", "The finish time you have entered is zero. Please correct the value.");
 			} else {
@@ -902,17 +1065,17 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				}
 
 				// Valid Bib
-				recordsRef.current[alertIndex][0] = parseInt(valArray[0]);
-				recordsRef.current[alertIndex][2] = parseInt(valArray[0]);
-				// Valid Time
-				if (valArray[1] !== "") {
-					recordsRef.current[alertIndex][1] = GetTimeInMils(valArray[1]);
+				recordsRef.current[alertIndex][0] = parseInt(bib);
+				recordsRef.current[alertIndex][2] = parseInt(bib);
 
-					// Update Max Time
-					if (GetTimeInMils(valArray[1]) > maxTime.current) {
-						maxTime.current = GetTimeInMils(valArray[1]);
-					}
+				// Valid Time
+				recordsRef.current[alertIndex][1] = time;
+
+				// Update Max Time
+				if (time > maxTime.current) {
+					maxTime.current = time;
 				}
+
 				updateRecords([...recordsRef.current]);
 				if (next && alertIndex !== undefined && alertIndex < recordsRef.current.length - 1) { 
 					setAlertIndex(alertIndex + 1);
@@ -949,7 +1112,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 				swapEntries={swapEntries}
 				showAlert={showAlert}
 				findParticipant={findParticipant}
-				online={context.online}
+				appMode={context.appMode}
 			/> : null
 	);
 
@@ -970,7 +1133,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						style={[globalstyles.input, { borderWidth: 0 }]}
 						onChangeText={setSearch}
 						value={search}
-						placeholder={context.online ? "Search by Bib # or Name" : "Search by Bib #"}
+						placeholder={context.appMode !== "Offline" ? "Search by Bib # or Name" : "Search by Bib #"}
 						placeholderTextColor={GRAY_COLOR}
 					/>
 				</View>
@@ -982,10 +1145,10 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					<Text style={globalstyles.placeTableHeadText}>#</Text>
 					<Text style={globalstyles.bibTableHeadText}>Bib</Text>
 					<Text style={globalstyles.timeTableHeadText}>Time</Text>
-					{context.online && <Text style={globalstyles.nameTableHeadText}>Name</Text>}
+					{(context.appMode === "Online" || context.appMode === "Backup") ? <Text style={globalstyles.nameTableHeadText}>Name</Text> : null}
 					{editMode &&
 						<View style={globalstyles.tableDeleteButton}>
-							<Icon name="minus2" color={BLACK_COLOR} size={10} />
+							<Icon name="minus" color={BLACK_COLOR} size={12} />
 						</View>
 					}
 				</View>
@@ -995,11 +1158,13 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			{!loading && recordsRef.current.length > 0 ?
 				<>
 					<FlatList
-						showsVerticalScrollIndicator={false}
+						showsVerticalScrollIndicator={true}
+						scrollIndicatorInsets={{ right: 1 }}
+						indicatorStyle={"black"}
 						keyboardShouldPersistTaps="handled"
 						style={globalstyles.longFlatList}
 						ref={flatListRef}
-						onRefresh={(context.online && !editMode) ? (): void => { getRecords(true); } : undefined}
+						onRefresh={((context.appMode === "Online") && !editMode) ? (): void => { getOnlineRecords(true); } : undefined}
 						refreshing={refreshing}
 						data={(search !== undefined && search.trim().length !== 0) ? searchRecords : recordsRef.current}
 						extraData={selectedID}
@@ -1021,9 +1186,9 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					title={`Edit Place ${alertIndex !== undefined ? alertIndex + 1 : ""}`}
 					message={`Edit the bib number or finish time for Place ${alertIndex !== undefined ? alertIndex + 1 : ""}.`}
 					placeholder={"Enter Bib #"}
-					type={"both"}
+					type={"text&time"}
 					initialValue={GetBibDisplay(alertRecord ? alertRecord[0] : -1)}
-					timeInitialValue={GetClockTime(alertRecord ? alertRecord[1] : -1)}
+					timeInitialValue={(alertRecord ? alertRecord[1] : -1)}
 					keyboardType={"number-pad"}
 					maxLength={6}
 					visible={alertVisible}
@@ -1032,7 +1197,6 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 						setAlertVisible(false);
 					}} 
 					action2OnPress={(values): void => { onAlertSave(values, true); }}
-					updateState={alertRecord}
 				/>
 			}
 		</View>
