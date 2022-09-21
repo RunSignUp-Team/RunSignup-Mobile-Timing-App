@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "RaceDay Mobile Timing",
+    "name": "Mobile Timing",
     "slug": "rdtiming",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "primaryColor": "#00AC65",
@@ -20,12 +20,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.runsignup.rdtiming",
-      "buildNumber": "1.0.6"
+      "buildNumber": "5"
     },
     "android": {
       "icon": "./src/assets/icon.png",
       "package": "com.runsignup.rdtiming",
-      "versionCode": 8
+      "versionCode": 14
     },
     "extra": {
       "bugsnag": {
