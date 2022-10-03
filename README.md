@@ -23,6 +23,8 @@ This app allows users to record race results on their mobile devices. Finish Lin
 ## Using `REDIRECT_URI` in DEV
 For oAuth to work with RunSignup in DEV, we have a `REDIRECT_URI` set up that works with `localhost` / `127.0.0.1`. For security purposes, however, we use `mobiletest.example.com`instead of `127.0.0.1`. Because of this, you have to edit your hosts file on macOS, Windows, and Android to be able to use oAuth succesfully. Again, this is only an issue in DEV.
 
+NOTE:  oAuth does NOT work in development builds / environment for Android with production.  You have to use the Android against test.runsignup.com following the instructions above and follows.
+
 ### Changing macOS Hosts File
 1. Run `sudo emacs /etc/hosts`
 2. Enter admin password
