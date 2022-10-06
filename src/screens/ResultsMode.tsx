@@ -23,6 +23,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DeleteFiles, WriteFiles } from "../helpers/FSHelper";
 import ShareResultsFile from "../helpers/ShareResultsFile";
 import GetBackupEvent from "../helpers/GetBackupEvent";
+import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
+import { VRecord } from "../models/VRecord";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -30,16 +32,10 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-type VRecord = [
-	bibNum: number,
-	finishTime: number,
-	checkerBib: number
-];
-
 export type VRecords = Array<VRecord>;
 
 export const OpenResultsLink = async (raceID: number): Promise<void> => {
-	const url = `https://runsignup.com/Race/${raceID}/Results/Dashboard/EditIndividualResults`;
+	const url = `${RUNSIGNUP_URL}Race/${raceID}/Results/Dashboard/EditIndividualResults`;
 	if (await Linking.canOpenURL(url)) {
 		Linking.openURL(url);
 	} else {

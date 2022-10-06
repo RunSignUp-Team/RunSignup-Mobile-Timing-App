@@ -1,5 +1,6 @@
 import * as Mailer from "expo-mail-composer";
 import { AppMode } from "../components/AppContext";
+import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
 import GetBackupEvent from "./GetBackupEvent";
 import GetLocalRaceEvent, { DefaultEventData } from "./GetLocalRaceEvent";
 
@@ -29,7 +30,7 @@ export default async function GetSupport(raceID: number, eventID: number, email:
 		}
 	
 		body += `
-		Race Results: https://runsignup.com/Race/${raceID}/Results/Dashboard/EditIndividualResults
+		Race Results: ${RUNSIGNUP_URL}Race/${raceID}/Results/Dashboard/EditIndividualResults
 		Email: ${email}
 		-------
 		`;
