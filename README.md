@@ -16,10 +16,8 @@ This app allows users to record race results on their mobile devices. Finish Lin
 5. Download the Expo Go app on your mobile device, or follow the instructions at these links to run an iOS or Android emulator on your computer.
     - Android emulator (https://docs.expo.dev/workflow/android-studio-emulator/)
     - iOS simulator (https://docs.expo.dev/workflow/ios-simulator/ -- a Mac is required)
-6. Run `npm start` in Terminal
-    - You can use the `a` and `i` keys to run the Android and iOS emulators respectively, otherwise:
-    - Scan the QR code that appears in the terminal with your mobile device to run the app inside Expo Go
-    
+6. Run `expo run:android` or `expo run:ios` in Terminal (do _not_ use the Expo Go app)
+
 ## Using `REDIRECT_URI` in DEV
 For oAuth to work with RunSignup in DEV, we have a `REDIRECT_URI` set up that works with `localhost` / `127.0.0.1`. For security purposes, however, we use `mobiletest.example.com`instead of `127.0.0.1`. Because of this, you have to edit your hosts file on macOS, Windows, and Android to be able to use oAuth succesfully. Again, this is only an issue in DEV.
 
@@ -31,9 +29,6 @@ NOTE:  oAuth does NOT work in development builds / environment for Android with 
 3. Scroll to the very bottom of the file
 4. Add `127.0.0.1 mobiletest.example.com` in the same format as the other hosts
 5. Hit these keys to save the file: `ctrl+x`, then `ctrl+c`, then `y`
-
-### Changing Windows Hosts File
-**---TO DO---**
 
 ### Changing Android Simulator Hosts File
 To change a physical Android device hosts file, you would need to root the device. What we can more easily and safely do is root the Android simulator:
