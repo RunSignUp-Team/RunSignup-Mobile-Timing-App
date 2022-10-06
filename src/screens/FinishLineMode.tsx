@@ -239,6 +239,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 		const getOldData = async (): Promise<void> => {
 			setLoading(true);
+			let alertShown = false;
 			if (context.appMode === "Online" || context.appMode === "Backup") {
 				// Online modes
 				let [raceList, raceIndex, eventIndex] = DefaultEventData;
@@ -254,6 +255,48 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (prevStart !== null && prevStart !== -1) {
 						setTimerOn(true);
 						startTime.current = prevStart;
+
+						// Show Unsupported Time alert
+						alertShown = (Date.now() - startTime.current) > MAX_TIME;
+						if (alertShown) {
+							Alert.alert(
+								"Unsupported Time", 
+								`This event has been recorded for over ${GetClockTime(MAX_TIME)}, which is the maximum time supported. You can:\na) Dismiss this alert and tap the timer to adjust the start time if you have not yet recorded any finish times\nb) Dismiss this alert and save the times you have already recorded\nc) Completely reset this event (all data will be lost)`,
+								[
+									{
+										text: "Dismiss",
+										style: "cancel"
+									},
+									{
+										text: "Confirm Reset",
+										style: "destructive",
+										onPress: (): void => {
+											Alert.alert(
+												"Are You Sure?",
+												"Are you sure you want to reset this event? All local data will be lost (finish times & bib numbers). Data stored at RunSignup will not be affected. Careful! This cannot be undone.",
+												[
+													{
+														text: "Cancel",
+														style: "cancel"
+													},
+													{
+														text: "Reset",
+														style: "destructive",
+														onPress: (): void => {
+															raceList[raceIndex].events[eventIndex].checker_bibs = [];
+															raceList[raceIndex].events[eventIndex].bib_nums = [];
+															raceList[raceIndex].events[eventIndex].finish_times = [];
+															raceList[raceIndex].events[eventIndex].real_start_time = -1;
+															AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+															navigation.navigate("ModeScreen");
+														}
+													}
+												]
+											);
+										}
+									}
+								]);
+						}
 					}
 
 					// Get latest data
@@ -261,8 +304,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						updateFinishTimes(raceList[raceIndex].events[eventIndex].finish_times);
 						updateCheckerBibs(raceList[raceIndex].events[eventIndex].checker_bibs);
 
-						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
+						if (!alertShown) {
+							// Alert user of data recovery
+							Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
+						}
 					}
 				}
 			}
@@ -275,6 +320,48 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (prevStart !== null && prevStart !== -1) {
 						setTimerOn(true);
 						startTime.current = prevStart;
+
+						// Show Unsupported Time alert
+						alertShown = (Date.now() - startTime.current) > MAX_TIME;
+						if (alertShown) {
+							Alert.alert(
+								"Unsupported Time", 
+								`This event has been recorded for over ${GetClockTime(MAX_TIME)}, which is the maximum time supported. You can:\na) Dismiss this alert and tap the timer to adjust the start time if you have not yet recorded any finish times\nb) Dismiss this alert and save the times you have already recorded\nc) Completely reset this event (all data will be lost)`,
+								[
+									{
+										text: "Dismiss",
+										style: "cancel"
+									},
+									{
+										text: "Confirm Reset",
+										style: "destructive",
+										onPress: (): void => {
+											Alert.alert(
+												"Are You Sure?",
+												"Are you sure you want to reset this event? All data will be lost (finish times & bib numbers). Careful! This cannot be undone.",
+												[
+													{
+														text: "Cancel",
+														style: "cancel"
+													},
+													{
+														text: "Reset",
+														style: "destructive",
+														onPress: (): void => {
+															eventList[eventIndex].checker_bibs = [];
+															eventList[eventIndex].bib_nums = [];
+															eventList[eventIndex].finish_times = [];
+															eventList[eventIndex].real_start_time = -1;
+															AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+															navigation.navigate("ModeScreen");
+														}
+													}
+												]
+											);
+										}
+									}
+								]);
+						}
 					}
 
 					// Get latest data
@@ -282,8 +369,10 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						updateFinishTimes(eventList[eventIndex].finish_times);
 						updateCheckerBibs(eventList[eventIndex].checker_bibs);
 
-						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
+						if (!alertShown) {
+							// Alert user of data recovery
+							Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
+						}
 					}
 				}
 			}
@@ -590,7 +679,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						activeOpacity={finishTimesRef.current.length < 1 ? 0.5 : 1}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: BIG_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ? "Too Large" : GetClockTime(displayTime)}
+							{GetClockTime(displayTime)}
 						</Text>
 					</TouchableOpacity>
 
