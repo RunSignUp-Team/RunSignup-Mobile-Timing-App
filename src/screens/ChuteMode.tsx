@@ -160,7 +160,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								await deleteBibs(context.raceID, context.eventID);
 								await postBibs(context.raceID, context.eventID, formData);
 
-								// TEMPORARY: THIS IS ONLY NECESSARY BECAUSE THE RESULT SET
+								// THIS IS NECESSARY BECAUSE THE RESULT SET
 								// CURRENTLY DOES NOT REFRESH WHEN ONLY BIBS ARE POSTED
 								// SO WE GET, DELETE, AND THEN RE-POST FINISH TIMES TO FORCE A REFRESH
 								// THIS NEEDS TO BE FIXED ON RSU'S SIDE
@@ -173,16 +173,11 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								// Clear local data upon successful upload
 								raceList[raceIndex].events[eventIndex].bib_nums = [];
 								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-
-								// Don't allow further changes
-								setLoading(false);
-								navigation.navigate("ModeScreen");
-							} else {
-								// Navigate to Results Mode
-								setLoading(false);
-								navigation.navigate("ModeScreen");
-								navigation.navigate("ResultsMode");
 							}
+
+							setLoading(false);
+							navigation.navigate("ModeScreen");
+							navigation.navigate("ResultsMode");
 						} else {
 							// Otherwise push bibs
 							const formData = new FormData();
