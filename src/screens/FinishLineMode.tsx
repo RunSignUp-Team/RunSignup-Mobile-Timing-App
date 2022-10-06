@@ -260,6 +260,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (raceList[raceIndex].events[eventIndex].finish_times.length > 0) {
 						updateFinishTimes(raceList[raceIndex].events[eventIndex].finish_times);
 						updateCheckerBibs(raceList[raceIndex].events[eventIndex].checker_bibs);
+
+						// Alert user of data recovery
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
 					}
 				}
 			}
@@ -278,6 +281,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (eventList[eventIndex].finish_times.length > 0) {
 						updateFinishTimes(eventList[eventIndex].finish_times);
 						updateCheckerBibs(eventList[eventIndex].checker_bibs);
+
+						// Alert user of data recovery
+						Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
 					}
 				}
 			}
@@ -471,9 +477,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					style={{ 
 						flexDirection: "row", 
 						alignItems: "center", 
-						width: timerOn ? (context.appMode === "Offline" ? undefined : (gridView ? 130 : 94)) : (gridView ? 60 : undefined), 
-						justifyContent: timerOn || gridView ? "space-between" : "flex-end", 
-						marginRight: timerOn ? 0 : 15,
+						width: timerOn ? (context.appMode === "Offline" ? undefined : (gridView ? 100 : 62)) : (gridView ? 60 : undefined), 
+						justifyContent: "space-between", 
+						marginRight: 15,
 					}} >
 					{gridView ?
 						<TouchableOpacity onPress={async (): Promise<void> => { await loadRSUBibs(true, true); }}>
@@ -507,7 +513,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					{timerOn ? <TouchableOpacity onPress={(): void => {
 						CheckEntries(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
 					}}>
-						<Text style={globalstyles.headerButtonText}>Save</Text>
+						<Icon name={"floppy-disk"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity> : null}
 				</View>
 			),

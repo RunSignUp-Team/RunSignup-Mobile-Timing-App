@@ -1014,6 +1014,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					{/* Edit / Save */}
 					{(!loading && conflicts === 0) ?
 						<TouchableOpacity
+							style={{ marginRight: 15 }}
 							onPress={(): void => {
 								if (!editMode) {
 									editTable();
@@ -1021,8 +1022,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 									checkEntries();
 								}
 							}}>
-							{!editMode && <Text style={globalstyles.headerButtonText}>Edit</Text>}
-							{editMode && <Text style={globalstyles.headerButtonText}>Save</Text>}
+							{!editMode ? <Icon name={"edit"} size={24} color={WHITE_COLOR} /> : <Icon name={"floppy-disk"} size={22} color={WHITE_COLOR} />}
 						</TouchableOpacity>
 						: null
 					}
@@ -1121,7 +1121,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			{!loading && !editMode && recordsRef.current.length < 1 &&
 				<View style={globalstyles.container}>
 					<Text style={globalstyles.info}>
-						No records found for this event. Enter data in Finish Line Mode & Chute Mode, then come back here to view & edit results (or directly enter data here by tapping Edit).
+						{"No records found for this event.\n\nEnter data in Finish Line Mode & Chute Mode, then return to Results to view and edit results.\n\nYou can also directly enter data in Results by tapping the edit icon above."}
 					</Text>
 				</View>
 			}

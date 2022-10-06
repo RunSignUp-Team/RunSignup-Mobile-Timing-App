@@ -318,7 +318,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
 					if (raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
 					}
 				}
 			} else {
@@ -329,7 +329,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					updateBibNums(eventList[eventIndex].bib_nums);
 					if (eventList[eventIndex].bib_nums.length > 0) {
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
 					}
 				}
 			}
@@ -501,10 +501,10 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							color={WHITE_COLOR}
 						/>
 					</TouchableOpacity>
-					<TouchableOpacity
+					<TouchableOpacity style={{ marginRight: 15 }}
 						onPress={checkEntries}
 					>
-						<Text style={globalstyles.headerButtonText}>Save</Text>
+						<Icon name={"floppy-disk"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>
 				</View>
 			),

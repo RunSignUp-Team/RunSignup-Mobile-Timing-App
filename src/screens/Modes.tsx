@@ -82,9 +82,6 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 				if (times.length < 1) {
 					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "false");
-					flDone = false;
-				} else {
-					flDone = true;
 				}
 				if (bibs.length < 1) {
 					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "false");
