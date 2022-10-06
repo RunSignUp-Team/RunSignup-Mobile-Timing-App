@@ -7,7 +7,7 @@ interface Props {
 	bibObject: BibObject,
 	time: string,
 	timerOn: boolean,
-	handleBibTap: (bib: number) => void,
+	handleBibTap: (enterKey: boolean, bib: number) => void,
 	alreadyEntered: boolean,
 	checkerBibsRef: React.MutableRefObject<Array<number>>,
 }
@@ -25,13 +25,13 @@ const bibTapLogic = (props: Props): void => {
 				{
 					text: "Re-Enter",
 					onPress: (): void => {
-						props.handleBibTap(props.bibObject.bib);
+						props.handleBibTap(false, props.bibObject.bib);
 					}
 				}
 			]
 		);
 	} else {
-		props.handleBibTap(props.bibObject.bib);
+		props.handleBibTap(false, props.bibObject.bib);
 	}
 };
 

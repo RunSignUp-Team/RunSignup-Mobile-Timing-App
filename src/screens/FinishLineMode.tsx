@@ -414,15 +414,15 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	}, [gridView, loadRSUBibs, updateStartTime]);
 
 	/** Add a time to the finish times */
-	const recordTime = useCallback((bib?: number) => {
+	const recordTime = useCallback((enterKey: boolean, bib?: number) => {
 		// Race hasn't started yet
 		if (startTime.current === -1) {
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 		} else if (Date.now() - startTime.current > MAX_TIME) {
 			Alert.alert("Record Error", "You have recorded a time that is too large.");
 		} else {
-			finishTimesRef.current.push(Date.now() - startTime.current);
 			if (gridView) {
+				finishTimesRef.current.push(Date.now() - startTime.current);
 				if (bib) {
 					// Clear old bib if it exists
 					const oldBibIndex = checkerBibsRef.current.indexOf(bib);
@@ -436,17 +436,29 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				updateCheckerBibs(checkerBibsRef.current);
 			} else {
 				if (!bibText) {
+					finishTimesRef.current.push(Date.now() - startTime.current);
 					checkerBibsRef.current.push(0);
 					updateCheckerBibs([...checkerBibsRef.current]);
-				} else {
-					checkerBibsRef.current.push(parseInt(bibText));
-					updateCheckerBibs([...checkerBibsRef.current]);
 					setBibText("");
+				} else {
+					if (isNaN(parseInt(bibText))) {
+						Alert.alert("Invalid Bib Number", "You have not entered a valid bib number. Please try again.");
+					} else {
+						finishTimesRef.current.push(Date.now() - startTime.current);
+						checkerBibsRef.current.push(parseInt(bibText));
+						updateCheckerBibs([...checkerBibsRef.current]);
+						setBibText("");
+					}
 				}
 			}
 			const flatListRefCurrent = flatListRef.current;
 			if (flatListRefCurrent !== null) {
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
+			}
+
+			// Refocus Bib Input if enter key pressed on physical keyboard
+			if (enterKey) {
+				setTimeout(() => { bibInputRef.current?.focus(); }, 100);
 			}
 		}
 	}, [bibText, gridView, updateCheckerBibs]);
@@ -546,7 +558,17 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	}, [recordTime, timerOn]);
 
 	return (
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+		<TouchableWithoutFeedback
+			onPress={(event): void => {
+				// Keyboard Enter Press
+				if ("_dispatchListeners" in event && (event as any)._dispatchListeners?.toString().includes("onClick")) {
+					bibInputRef.current?.focus();
+				// Finger Touch
+				} else {
+					Keyboard.dismiss();
+				}
+			}}
+			accessible={false}>
 			<KeyboardAvoidingView
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
@@ -570,7 +592,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						<TouchableOpacity
 							onPress={(): void => {
 								if (timerOn) {
-									recordTime();
+									recordTime(false);
 								} else {
 									startTimer();
 								}
@@ -592,7 +614,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								placeholder="Bib Entry"
 								placeholderTextColor={GRAY_COLOR}
 								keyboardType="number-pad"
-								onSubmitEditing={bibText !== "" ? (): void => { recordTime(); } : undefined}
+								onSubmitEditing={bibText !== "" ? (): void => { recordTime(true); } : undefined}
 							/>
 							:
 							<TouchableOpacity
@@ -674,7 +696,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								<MainButton
 									onPress={(): void => {
 										if (timerOn) {
-											recordTime();
+											recordTime(false);
 										} else {
 											Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 										}

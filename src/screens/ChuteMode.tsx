@@ -379,8 +379,10 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [addToStorage, context.appMode]);
 
 	// Record button
-	const recordBib = (): void => {
-		if (!isNaN(parseInt(bibText))) {
+	const recordBib = (enterKey: boolean): void => {
+		if (isNaN(parseInt(bibText))) {
+			Alert.alert("Invalid Bib Number", "You have not entered a valid bib number. Please try again.");
+		} else {
 			bibNumsRef.current.push(parseFloat(bibText));
 			updateBibNums([...bibNumsRef.current]);
 			setBibText("");
@@ -389,8 +391,11 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			if (flatListRefCurrent !== null) {
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * bibNumsRef.current.length }); }, 100);
 			}
-		} else {
-			Alert.alert("No Bib Number", "You have not entered a bib number. Please try again.");
+		}
+
+		// Refocus Bib Input if enter key pressed on physical keyboard
+		if (enterKey) {
+			setTimeout(() => { bibInputRef.current?.focus(); }, 100);
 		}
 	};
 
@@ -508,7 +513,17 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		// Dismiss keyboard if user touches container
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+		<TouchableWithoutFeedback
+			onPress={(event): void => {
+				// Keyboard Enter Press
+				if ("_dispatchListeners" in event && (event as any)._dispatchListeners?.toString().includes("onClick")) {
+					bibInputRef.current?.focus();
+				// Finger Touch
+				} else {
+					Keyboard.dismiss();
+				}
+			}}
+			accessible={false}>
 			<KeyboardAvoidingView
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
@@ -519,14 +534,14 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
 						<TextInput
 							ref={bibInputRef}
-							style={globalstyles.input}
+							style={[globalstyles.input, { fontFamily: "RobotoBold" }]}
 							onChangeText={setBibText}
 							value={bibText}
 							maxLength={6}
 							placeholder="Record Bib #"
 							placeholderTextColor={GRAY_COLOR}
 							keyboardType="number-pad"
-							onSubmitEditing={bibText !== "" ? recordBib : undefined}
+							onSubmitEditing={bibText !== "" ? (): void => { recordBib(true); } : undefined}
 							autoFocus={true}
 						/>
 					</View>
@@ -574,7 +589,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							</View>
 							:
 							<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
-								<MainButton onPress={recordBib} text={"Record"} />
+								<MainButton onPress={(): void => { recordBib(false); }} text={"Record"} />
 							</View>
 						}
 					</>
