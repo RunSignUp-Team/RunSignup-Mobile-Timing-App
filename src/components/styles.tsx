@@ -29,7 +29,8 @@ export const TABLE_HEADER_HEIGHT = 35;
 
 export const UNIVERSAL_PADDING = 15;
 
-export const MAX_TIME = 86399999;
+// This is the max allowed time in milliseconds (99hrs 59min 59sec 99ms)
+export const MAX_TIME = 359999999;
 
 interface GenericTableText {
 	fontSize: number,

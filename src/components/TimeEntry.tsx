@@ -49,7 +49,7 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 	};
 
 	const createClockTime = useCallback((): number => {
-		if (Number(hours) <= 12) { 
+		if (Number(hours) <= 99) { 
 			let clockTime = "";
 			if (hours || minutes || seconds || milli) {
 				clockTime = addLeadingZeros(props.timeOfDay ? getHours(hours, ampm) : Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
@@ -91,7 +91,7 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 			}
 
 			// We want to respect timezone if we are dealing with time of day
-			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12) : addLeadingZeros(date.getUTCHours()));
+			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12) : Math.floor(props.initialValue/3600000).toString());
 			setMinutes(addLeadingZeros(date.getUTCMinutes()));
 			setSeconds(addLeadingZeros(date.getUTCSeconds()));
 			setMilli(milliDisplay);
