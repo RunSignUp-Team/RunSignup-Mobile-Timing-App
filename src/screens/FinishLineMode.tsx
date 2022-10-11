@@ -828,6 +828,29 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 					}} cancelOnPress={(): void => {
 						setStartTimeAlertVisible(false);
+					}} resetOnPress={ (): void => {
+						Alert.alert(
+							"Are You Sure?",
+							"Are you sure you want to reset the timer?",
+							[
+								{
+									text: "Cancel",
+									style: "cancel"
+								},
+								{
+									text: "Reset",
+									style: "destructive",
+									onPress: (): void => {
+										setDisplayTime(0);
+										setTimerOn(false);
+										if (timerInterval.current)
+											clearInterval(timerInterval.current);
+										updateStartTime(-1);
+										setStartTimeAlertVisible(false);
+									}
+								}
+							]
+						);
 					}}
 				/>
 
