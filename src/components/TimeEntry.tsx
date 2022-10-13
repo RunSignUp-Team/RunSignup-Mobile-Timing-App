@@ -49,7 +49,7 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 	};
 
 	const createClockTime = useCallback((): number => {
-		if (Number(hours) <= 99) { 
+		if (props.timeOfDay && Number(hours) <= 24) {
 			let clockTime = "";
 			if (hours || minutes || seconds || milli) {
 				clockTime = addLeadingZeros(props.timeOfDay ? getHours(hours, ampm) : Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
@@ -57,11 +57,16 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 				clockTime = "";
 			}
 
-			if (props.timeOfDay) {
-				return parseInt(extraDateInfo) + GetTimeInMils(clockTime);
+			return parseInt(extraDateInfo) + GetTimeInMils(clockTime); 
+		}  else if (!props.timeOfDay && Number(hours) <= 99) {
+			let clockTime = "";
+			if (hours || minutes || seconds || milli) {
+				clockTime = addLeadingZeros(props.timeOfDay ? getHours(hours, ampm) : Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
 			} else {
-				return GetTimeInMils(clockTime);
+				clockTime = "";
 			}
+
+			return GetTimeInMils(clockTime);
 		} else {
 			return -1;
 		}
