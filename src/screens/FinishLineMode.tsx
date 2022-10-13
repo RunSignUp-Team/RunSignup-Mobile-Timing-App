@@ -489,6 +489,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	/** Start Timer */
 	const startTimer = useCallback(async (newTime?: number) => {
 		const time = newTime ? newTime : Date.now();
+		// To test MAX_TIME rollover -> 
+		// startTime.current = time - 359990000;
 		startTime.current = time;
 
 		setTimerOn(true);
@@ -506,7 +508,45 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				loadRSUBibs(false, false);
 			}
 		}, BibRefreshRate);
+
 	}, [gridView, loadRSUBibs, updateStartTime]);
+
+	/** Reset Timer */
+	const resetTimer = async (): Promise<void> => {
+		setDisplayTime(0);
+		setTimerOn(false);
+		if (timerInterval.current)
+			clearInterval(timerInterval.current);
+
+		// Reset real_start_time in AsyncStorage
+		if (context.appMode === "Online" || context.appMode === "Backup") {
+			// Online Functionality
+			let [raceList, raceIndex, eventIndex] = DefaultEventData;
+			if (context.appMode === "Online") {
+				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			} else {
+				[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+			}
+
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].real_start_time = -1;
+				if (context.appMode === "Online") {
+					await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				} else {
+					await AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+				}
+			}
+		} else {
+			// Offline Functionality
+			const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+			if (eventIndex >= 0) {
+				eventList[eventIndex].real_start_time = -1;
+				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+			}
+		}
+		
+		setStartTimeAlertVisible(false);
+	};
 
 	/** Add a time to the finish times */
 	const recordTime = useCallback((enterKey: boolean, bib?: number) => {
@@ -679,7 +719,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						activeOpacity={finishTimesRef.current.length < 1 ? 0.5 : 1}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: BIG_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-							{GetClockTime(displayTime)}
+							{(Date.now() - startTime.current >= MAX_TIME && timerOn) ? "TOO LARGE" : GetClockTime(displayTime)}
 						</Text>
 					</TouchableOpacity>
 
@@ -807,7 +847,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				{/* Change Start Time Alert */}
 				<TextInputAlert
 					title={"Change Start Time"}
-					message={`${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "This event was started more than 24 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\n${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
+					message={`${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "This event was started more than 24 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\nYou can also reset the start time.\n${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
 					type={"timeofday"}
 					keyboardType={"number-pad"}
 					visible={startTimeAlertVisible}
@@ -826,9 +866,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							Alert.alert("You cannot select a start time in the future.");
 						}
 
-					}} cancelOnPress={(): void => {
+					}} 
+					cancelOnPress={(): void => {
 						setStartTimeAlertVisible(false);
-					}} resetOnPress={ (): void => {
+					}} 
+					resetOnPress={timerOn ? (): void => {
 						Alert.alert(
 							"Are You Sure?",
 							"Are you sure you want to reset the timer?",
@@ -840,18 +882,11 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								{
 									text: "Reset",
 									style: "destructive",
-									onPress: (): void => {
-										setDisplayTime(0);
-										setTimerOn(false);
-										if (timerInterval.current)
-											clearInterval(timerInterval.current);
-										updateStartTime(-1);
-										setStartTimeAlertVisible(false);
-									}
+									onPress: resetTimer
 								}
 							]
 						);
-					}}
+					} : undefined}
 				/>
 
 				{/* Bib Edit Alert */}
