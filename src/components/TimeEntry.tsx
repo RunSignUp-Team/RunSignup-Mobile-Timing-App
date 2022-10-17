@@ -96,7 +96,8 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 			}
 
 			// We want to respect timezone if we are dealing with time of day
-			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12) : Math.floor(props.initialValue/3600000).toString());
+			const initialValue = (props.initialValue&&props.initialValue!==Number.MAX_SAFE_INTEGER?props.initialValue:0);
+			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12) : Math.floor(initialValue/3600000).toString());
 			setMinutes(addLeadingZeros(date.getUTCMinutes()));
 			setSeconds(addLeadingZeros(date.getUTCSeconds()));
 			setMilli(milliDisplay);

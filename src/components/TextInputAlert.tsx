@@ -56,7 +56,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 
 	// Set time input timeValue whenever initial timeValue changes
 	useEffect(() => {
-		if (props.timeInitialValue !== undefined) {
+		if (props.timeInitialValue !== undefined && props.timeInitialValue !== Number.MAX_SAFE_INTEGER) {
 			setTimeValue(props.timeInitialValue);
 		} else {
 			setTimeValue(0);
