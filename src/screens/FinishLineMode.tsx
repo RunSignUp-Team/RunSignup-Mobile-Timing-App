@@ -847,7 +847,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				{/* Change Start Time Alert */}
 				<TextInputAlert
 					title={"Change Start Time"}
-					message={`${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "This event was started more than 24 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\nYou can also reset the start time.\n${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
+					message={`${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "This event was started more than 99 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\nYou can also reset the start time.\n${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
 					type={"timeofday"}
 					keyboardType={"number-pad"}
 					visible={startTimeAlertVisible}
