@@ -160,7 +160,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								await deleteBibs(context.raceID, context.eventID);
 								await postBibs(context.raceID, context.eventID, formData);
 
-								// TEMPORARY: THIS IS ONLY NECESSARY BECAUSE THE RESULT SET
+								// THIS IS NECESSARY BECAUSE THE RESULT SET
 								// CURRENTLY DOES NOT REFRESH WHEN ONLY BIBS ARE POSTED
 								// SO WE GET, DELETE, AND THEN RE-POST FINISH TIMES TO FORCE A REFRESH
 								// THIS NEEDS TO BE FIXED ON RSU'S SIDE
@@ -173,16 +173,11 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 								// Clear local data upon successful upload
 								raceList[raceIndex].events[eventIndex].bib_nums = [];
 								AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
-
-								// Don't allow further changes
-								setLoading(false);
-								navigation.navigate("ModeScreen");
-							} else {
-								// Navigate to Results Mode
-								setLoading(false);
-								navigation.navigate("ModeScreen");
-								navigation.navigate("ResultsMode");
 							}
+
+							setLoading(false);
+							navigation.navigate("ModeScreen");
+							navigation.navigate("ResultsMode");
 						} else {
 							// Otherwise push bibs
 							const formData = new FormData();
@@ -318,7 +313,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					updateBibNums(raceList[raceIndex].events[eventIndex].bib_nums);
 					if (raceList[raceIndex].events[eventIndex].bib_nums.length > 0) {
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
 					}
 				}
 			} else {
@@ -329,7 +324,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					updateBibNums(eventList[eventIndex].bib_nums);
 					if (eventList[eventIndex].bib_nums.length > 0) {
 						// Alert user of data recovery
-						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap \"Save\" when you are done recording data.");
+						Alert.alert("Data Recovered", "You left Chute Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
 					}
 				}
 			}
@@ -379,8 +374,10 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 	}, [addToStorage, context.appMode]);
 
 	// Record button
-	const recordBib = (): void => {
-		if (!isNaN(parseInt(bibText))) {
+	const recordBib = (enterKey: boolean): void => {
+		if (isNaN(parseInt(bibText))) {
+			Alert.alert("Invalid Bib Number", "You have not entered a valid bib number. Please try again.");
+		} else {
 			bibNumsRef.current.push(parseFloat(bibText));
 			updateBibNums([...bibNumsRef.current]);
 			setBibText("");
@@ -389,8 +386,11 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 			if (flatListRefCurrent !== null) {
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * bibNumsRef.current.length }); }, 100);
 			}
-		} else {
-			Alert.alert("No Bib Number", "You have not entered a bib number. Please try again.");
+		}
+
+		// Refocus Bib Input if enter key pressed on physical keyboard
+		if (enterKey) {
+			setTimeout(() => { bibInputRef.current?.focus(); }, 100);
 		}
 	};
 
@@ -496,10 +496,10 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							color={WHITE_COLOR}
 						/>
 					</TouchableOpacity>
-					<TouchableOpacity
+					<TouchableOpacity style={{ marginRight: 15 }}
 						onPress={checkEntries}
 					>
-						<Text style={globalstyles.headerButtonText}>Save</Text>
+						<Icon name={"floppy-disk"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity>
 				</View>
 			),
@@ -508,7 +508,17 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 	return (
 		// Dismiss keyboard if user touches container
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+		<TouchableWithoutFeedback
+			onPress={(event): void => {
+				// Keyboard Enter Press
+				if ("_dispatchListeners" in event && (event as any)._dispatchListeners?.toString().includes("onClick")) {
+					bibInputRef.current?.focus();
+				// Finger Touch
+				} else {
+					Keyboard.dismiss();
+				}
+			}}
+			accessible={false}>
 			<KeyboardAvoidingView
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
@@ -519,14 +529,14 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 					<View style={{ backgroundColor: DARK_GREEN_COLOR, flexDirection: "row", width: "100%" }}>
 						<TextInput
 							ref={bibInputRef}
-							style={globalstyles.input}
+							style={[globalstyles.input, { fontFamily: "RobotoBold" }]}
 							onChangeText={setBibText}
 							value={bibText}
 							maxLength={6}
 							placeholder="Record Bib #"
 							placeholderTextColor={GRAY_COLOR}
 							keyboardType="number-pad"
-							onSubmitEditing={bibText !== "" ? recordBib : undefined}
+							onSubmitEditing={bibText !== "" ? (): void => { recordBib(true); } : undefined}
 							autoFocus={true}
 						/>
 					</View>
@@ -574,7 +584,7 @@ const ChuteModeScreen = ({ navigation }: Props): React.ReactElement => {
 							</View>
 							:
 							<View style={{ paddingHorizontal: UNIVERSAL_PADDING }}>
-								<MainButton onPress={recordBib} text={"Record"} />
+								<MainButton onPress={(): void => { recordBib(false); }} text={"Record"} />
 							</View>
 						}
 					</>

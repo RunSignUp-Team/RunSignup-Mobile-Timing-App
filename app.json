@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mobile Timing",
     "slug": "rdtiming",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "primaryColor": "#00AC65",
@@ -20,16 +20,19 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.runsignup.rdtiming",
-      "buildNumber": "5"
+      "buildNumber": "4"
     },
     "android": {
       "icon": "./src/assets/icon.png",
       "package": "com.runsignup.rdtiming",
-      "versionCode": 14
+      "versionCode": 20
     },
     "extra": {
       "bugsnag": {
         "apiKey": "5866860e489df33e3dccd903bae0b14d"
+      },
+      "eas": {
+        "projectId": "6b46ab1f-d7bb-4673-af16-2daa15127806"
       }
     },
     "hooks": {
@@ -39,6 +42,22 @@
           "config": {}
         }
       ]
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 31,
+            "targetSdkVersion": 31,
+            "minSdkVersion": 21,
+            "buildToolsVersion": "31.0.0"
+          },
+          "ios": {
+            "deploymentTarget": "13.0"
+          }
+        }
+      ]
+    ]
   }
 }

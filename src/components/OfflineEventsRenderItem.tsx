@@ -1,12 +1,12 @@
 import React, { memo } from "react";
 import { Alert } from "react-native";
-import { OfflineEvent } from "../screens/OfflineEvents";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import MainButton from "./MainButton";
 import AddLeadingZeros from "../helpers/AddLeadingZeros";
 import DateToDate from "../helpers/DateToDate";
 import { AppMode } from "./AppContext";
+import { OfflineEvent } from "../models/OfflineEvent";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 

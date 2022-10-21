@@ -15,6 +15,8 @@ interface Props {
 	keyboardType?: KeyboardTypeOptions,
 	timeInitialValue?: number,
 
+	/** onPress for Reset Timer Button */
+	resetOnPress?: () => void,
 	/** onPress for Cancel Button */
 	cancelOnPress: () => void,
 	/** onPress for Action Button, returns the Array of values (for the case that there are two TextInputs) */
@@ -173,7 +175,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 					{/* Time Entry */}
 					{(props.type === "time" || props.type === "text&time" || props.type === "timeofday") ?
 						<View style={{ flexDirection: "row", height: droid ? 50 : 40, width: normalWidth, marginVertical: 5 }}>
-							<TimeEntry initialValue={props.timeInitialValue} setValue={setTimeValue} timeOfDay={props.type === "timeofday"}/>
+							<TimeEntry initialValue={props.timeInitialValue} setValue={setTimeValue} timeOfDay={props.type === "timeofday"} />
 						</View>
 						: null
 					}
@@ -207,10 +209,50 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 							borderBottomRightRadius: droid ? androidRadius : iOSRadius
 						}}
 					>
+						{/* Reset Button */}
+						{props.resetOnPress ?
+							<TouchableHighlight
+								underlayColor={underlayColor}
+								style={{ width: (Math.min(minWidth, maxWidth) - 4) / 3, borderBottomLeftRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
+									if (props.resetOnPress)
+										props.resetOnPress();
+								}}>
+								{/* Reset Button Text */}
+								<View
+									style={{
+										flex: 1,
+										justifyContent: "center"
+									}}>
+									<Text
+										style={{
+											color: droid ? GREEN_COLOR : APPLE_BLUE_COLOR,
+											textAlign: "center",
+											fontFamily: "RobotoBold",
+											fontSize: SMALL_FONT_SIZE
+										}}
+									>
+										{"Reset"}
+									</Text>
+								</View>
+							</TouchableHighlight>
+							: null
+						}
+						{/* Middle Border Line for Buttons */}
+						{props.resetOnPress ?
+							<View
+								style={{
+									width: 1,
+									backgroundColor: GRAY_COLOR,
+									opacity: 0.7,
+									height: "100%"
+								}}
+							/>
+							: null
+						}
 						{/* Cancel Button */}
 						<TouchableHighlight
 							underlayColor={underlayColor}
-							style={{ width: (Math.min(minWidth, maxWidth) - 4) / (props.action2OnPress ? 3 : 2), borderBottomLeftRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
+							style={{ width: (Math.min(minWidth, maxWidth) - 4) / ((props.action2OnPress || props.resetOnPress) ? 3 : 2), borderBottomLeftRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }} onPress={(): void => {
 								props.cancelOnPress();
 							}}>
 							{/* Cancel Button Text */}
@@ -243,7 +285,7 @@ export default function TextInputAlert(props: Props): React.ReactElement | null 
 						{/* Action Button */}
 						<TouchableHighlight
 							underlayColor={underlayColor}
-							style={{ width: (Math.min(minWidth, maxWidth) - 4) / (props.action2OnPress ? 3 : 2), borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }}
+							style={{ width: (Math.min(minWidth, maxWidth) - 4) / ((props.action2OnPress || props.resetOnPress) ? 3 : 2), borderBottomRightRadius: droid ? androidRadius : iOSRadius, overflow: "hidden" }}
 							onPress={(): void => {
 								if (props.type === "timeofday" && timeValue === -1) {
 									Alert.alert("Use 12 Hour Time", "Please use 12 hour time. You can tap AM / PM to toggle between day and night.");

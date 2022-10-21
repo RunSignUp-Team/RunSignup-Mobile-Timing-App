@@ -21,7 +21,7 @@ export default function GetClockTime(timeInMils: number): string {
 		}
 	};
 
-	const hoursString = addLeadingZeros(Math.floor((timeInMils / 3600000) % 24));
+	const hoursString = addLeadingZeros(Math.floor((timeInMils / 3600000) % 100));
 	const minutesString = addLeadingZeros(Math.floor((timeInMils / 60000) % 60));
 	const secondsString = addLeadingZeros(Math.floor((timeInMils / 1000) % 60));
 	const millisecondsString = GetTwoChars(timeString.substring(timeString.length-3));

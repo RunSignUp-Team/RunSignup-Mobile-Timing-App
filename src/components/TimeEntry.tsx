@@ -49,7 +49,7 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 	};
 
 	const createClockTime = useCallback((): number => {
-		if (Number(hours) <= 12) { 
+		if (props.timeOfDay && Number(hours) <= 24) {
 			let clockTime = "";
 			if (hours || minutes || seconds || milli) {
 				clockTime = addLeadingZeros(props.timeOfDay ? getHours(hours, ampm) : Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
@@ -57,11 +57,19 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 				clockTime = "";
 			}
 
-			if (props.timeOfDay) {
-				return parseInt(extraDateInfo) + GetTimeInMils(clockTime);
+			return parseInt(extraDateInfo) + GetTimeInMils(clockTime); 
+		}  else if (!props.timeOfDay && Number(hours) <= 99) {
+			let clockTime = "";
+			if (hours || minutes || seconds || milli) {
+				clockTime = addLeadingZeros(props.timeOfDay ? getHours(hours, ampm) : Number(hours)) + ":" + addLeadingZeros(Number(minutes)) + ":" + addLeadingZeros(Number(seconds)) + "." + addLeadingZeros(Number(milli));
 			} else {
-				return GetTimeInMils(clockTime);
+				clockTime = "";
 			}
+
+			return GetTimeInMils(clockTime);
+		// Don't change blank values when cycling through them
+		} else if (!props.timeOfDay && Math.floor((Number.MAX_SAFE_INTEGER / 3600000))) {
+			return Number.MAX_SAFE_INTEGER;
 		} else {
 			return -1;
 		}
@@ -91,7 +99,8 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 			}
 
 			// We want to respect timezone if we are dealing with time of day
-			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12) : addLeadingZeros(date.getUTCHours()));
+			const initialValue = (props.initialValue ?? 0);
+			setHours(props.timeOfDay ? addLeadingZeros(date.getHours() % 12 === 0 ? 12 : date.getHours() % 12) : Math.floor(initialValue / 3600000).toString());
 			setMinutes(addLeadingZeros(date.getUTCMinutes()));
 			setSeconds(addLeadingZeros(date.getUTCSeconds()));
 			setMilli(milliDisplay);
@@ -163,7 +172,7 @@ export default function TimeOfDayEntry(props: Props): React.ReactElement {
 						hoursRef.current?.focus();
 					}}
 				>
-					{hours}
+					{Number(hours) === Math.floor((Number.MAX_SAFE_INTEGER / 3600000)) ? 0 : hours}
 				</Text>
 			</View>
 			<Text style={globalstyles.timeSeparator}>:</Text>

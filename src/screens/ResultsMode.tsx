@@ -23,6 +23,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { DeleteFiles, WriteFiles } from "../helpers/FSHelper";
 import ShareResultsFile from "../helpers/ShareResultsFile";
 import GetBackupEvent from "../helpers/GetBackupEvent";
+import { RUNSIGNUP_URL } from "../constants/oAuth2Constants";
+import { VRecord } from "../models/VRecord";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -30,16 +32,10 @@ type Props = {
 	navigation: ScreenNavigationProp;
 };
 
-type VRecord = [
-	bibNum: number,
-	finishTime: number,
-	checkerBib: number
-];
-
 export type VRecords = Array<VRecord>;
 
 export const OpenResultsLink = async (raceID: number): Promise<void> => {
-	const url = `https://runsignup.com/Race/${raceID}/Results/Dashboard/EditIndividualResults`;
+	const url = `${RUNSIGNUP_URL}Race/${raceID}/Results/Dashboard/EditIndividualResults`;
 	if (await Linking.canOpenURL(url)) {
 		Linking.openURL(url);
 	} else {
@@ -1014,6 +1010,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 					{/* Edit / Save */}
 					{(!loading && conflicts === 0) ?
 						<TouchableOpacity
+							style={{ marginRight: 15 }}
 							onPress={(): void => {
 								if (!editMode) {
 									editTable();
@@ -1021,8 +1018,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 									checkEntries();
 								}
 							}}>
-							{!editMode && <Text style={globalstyles.headerButtonText}>Edit</Text>}
-							{editMode && <Text style={globalstyles.headerButtonText}>Save</Text>}
+							{!editMode ? <Icon name={"edit"} size={24} color={WHITE_COLOR} /> : <Icon name={"floppy-disk"} size={22} color={WHITE_COLOR} />}
 						</TouchableOpacity>
 						: null
 					}
@@ -1121,7 +1117,7 @@ const ResultsMode = ({ navigation }: Props): React.ReactElement => {
 			{!loading && !editMode && recordsRef.current.length < 1 &&
 				<View style={globalstyles.container}>
 					<Text style={globalstyles.info}>
-						No records found for this event. Enter data in Finish Line Mode & Chute Mode, then come back here to view & edit results (or directly enter data here by tapping Edit).
+						{"No records found for this event.\n\nEnter data in Finish Line Mode & Chute Mode, then return to Results to view and edit results.\n\nYou can also directly enter data in Results by tapping the edit icon above."}
 					</Text>
 				</View>
 			}

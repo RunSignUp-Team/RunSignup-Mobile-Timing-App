@@ -16,21 +16,13 @@ import TextInputAlert from "../components/TextInputAlert";
 import MainButton from "../components/MainButton";
 import CreateAPIError from "../helpers/CreateAPIError";
 import { SyncAnimation } from "../components/SyncAnimation";
+import { OfflineEvent } from "../models/OfflineEvent";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 type Props = {
 	navigation: ScreenNavigationProp;
 };
-
-export interface OfflineEvent {
-	time: number,
-	name: string,
-	real_start_time: number,
-	finish_times: Array<number>,
-	bib_nums: Array<number>,
-	checker_bibs: Array<number>,
-}
 
 const OfflineEventsScreen = ({ navigation }: Props): React.ReactElement => {
 	const context = useContext(AppContext);

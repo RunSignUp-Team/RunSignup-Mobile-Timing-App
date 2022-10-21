@@ -5,7 +5,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppContext } from "../components/AppContext";
 import { getBibs, getFinishTimes } from "../helpers/APICalls";
 import { HeaderBackButton } from "@react-navigation/elements";
-import { OfflineEvent } from "./OfflineEvents";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList } from "../components/AppStack";
 import { deleteTokenInfo } from "../helpers/oAuth2Helper";
@@ -19,6 +18,7 @@ import Icon from "../components/IcoMoon";
 import GetSupport from "../helpers/GetSupport";
 import { SyncAnimation } from "../components/SyncAnimation";
 import GetBackupEvent from "../helpers/GetBackupEvent";
+import { OfflineEvent } from "../models/OfflineEvent";
 
 type ScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -82,9 +82,6 @@ const ModeScreen = ({ navigation }: Props): React.ReactElement => {
 
 				if (times.length < 1) {
 					AsyncStorage.setItem(`finishLineDone:${context.raceID}:${context.eventID}`, "false");
-					flDone = false;
-				} else {
-					flDone = true;
 				}
 				if (bibs.length < 1) {
 					AsyncStorage.setItem(`chuteDone:${context.raceID}:${context.eventID}`, "false");

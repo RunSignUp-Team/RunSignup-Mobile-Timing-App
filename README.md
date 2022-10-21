@@ -13,50 +13,10 @@ This app allows users to record race results on their mobile devices. Finish Lin
 2. Download nodeJS if you have not already (https://nodejs.org/en/)
 3. Run `npm install` in Terminal
 4. Run `npm install expo-cli` in Terminal
-5. Download the Expo Go app on your mobile device, or follow the instructions at these links to run an iOS or Android emulator on your computer.
+5. Follow the instructions at these links to run an iOS or Android emulator on your computer.
     - Android emulator (https://docs.expo.dev/workflow/android-studio-emulator/)
     - iOS simulator (https://docs.expo.dev/workflow/ios-simulator/ -- a Mac is required)
-6. Run `npm start` in Terminal
-    - You can use the `a` and `i` keys to run the Android and iOS emulators respectively, otherwise:
-    - Scan the QR code that appears in the terminal with your mobile device to run the app inside Expo Go
-    
-## Using `REDIRECT_URI` in DEV
-For oAuth to work with RunSignup in DEV, we have a `REDIRECT_URI` set up that works with `localhost` / `127.0.0.1`. For security purposes, however, we use `mobiletest.example.com`instead of `127.0.0.1`. Because of this, you have to edit your hosts file on macOS, Windows, and Android to be able to use oAuth succesfully. Again, this is only an issue in DEV.
-
-NOTE:  oAuth does NOT work in development builds / environment for Android with production.  You have to use the Android against test.runsignup.com following the instructions above and follows.
-
-### Changing macOS Hosts File
-1. Run `sudo emacs /etc/hosts`
-2. Enter admin password
-3. Scroll to the very bottom of the file
-4. Add `127.0.0.1 mobiletest.example.com` in the same format as the other hosts
-5. Hit these keys to save the file: `ctrl+x`, then `ctrl+c`, then `y`
-
-### Changing Windows Hosts File
-**---TO DO---**
-
-### Changing Android Simulator Hosts File
-To change a physical Android device hosts file, you would need to root the device. What we can more easily and safely do is root the Android simulator:
-1. Make sure expo isn't running
-2. Close the Android simulator
-3. Run `emulator -list-avds` to get the name of your Emulator
-4. Run `emulator -avd <avdname> -writable-system`, where `<avdname>` is the name of your Emulator
-5. In another terminal window, run `adb root`
-6. Run `adb shell avbctl disable-verification`
-7. Run `adb reboot` (wait for the simulator to reboot)
-8. Run `adb root` again
-9. Run `adb remount`
-10. Run `adb shell`
-11. In `adb shell`, run `cd system/etc`
-12. In `adb shell`, run `echo "127.0.0.1 mobiletest.example.com" >> hosts`
-13. In `adb shell`, run `cat hosts` to confirm that your change has been saved to the file
-14. Start expo again
-
-Unfortunately, after setting this up on Android, it seems that you still need to do a few steps every time you want to run the app:
-1. Run steps 1-4 again
-2. Run `adb root`
-3. Run `adb reboot`
-4. Start expo
+6. Run `expo run:android` or `expo run:ios` in Terminal (do _not_ use the Expo Go app)
 
 ## Images
 **App Flows**

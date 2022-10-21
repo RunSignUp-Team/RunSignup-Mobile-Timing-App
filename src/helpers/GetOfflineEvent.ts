@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { OfflineEvent } from "../screens/OfflineEvents";
+import { OfflineEvent } from "../models/OfflineEvent";
 import Logger from "./Logger";
 
 /**

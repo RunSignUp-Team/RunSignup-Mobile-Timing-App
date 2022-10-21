@@ -239,6 +239,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 
 		const getOldData = async (): Promise<void> => {
 			setLoading(true);
+			let alertShown = false;
 			if (context.appMode === "Online" || context.appMode === "Backup") {
 				// Online modes
 				let [raceList, raceIndex, eventIndex] = DefaultEventData;
@@ -254,12 +255,59 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (prevStart !== null && prevStart !== -1) {
 						setTimerOn(true);
 						startTime.current = prevStart;
+
+						// Show Unsupported Time alert
+						alertShown = (Date.now() - startTime.current) > MAX_TIME;
+						if (alertShown) {
+							Alert.alert(
+								"Unsupported Time", 
+								`This event has been recorded for over ${GetClockTime(MAX_TIME)}, which is the maximum time supported. You can:\na) Dismiss this alert and tap the timer to adjust the start time if you have not yet recorded any finish times\nb) Dismiss this alert and save the times you have already recorded\nc) Completely reset this event (all data will be lost)`,
+								[
+									{
+										text: "Dismiss",
+										style: "cancel"
+									},
+									{
+										text: "Confirm Reset",
+										style: "destructive",
+										onPress: (): void => {
+											Alert.alert(
+												"Are You Sure?",
+												"Are you sure you want to reset this event? All local data will be lost (finish times & bib numbers). Data stored at RunSignup will not be affected. Careful! This cannot be undone.",
+												[
+													{
+														text: "Cancel",
+														style: "cancel"
+													},
+													{
+														text: "Reset",
+														style: "destructive",
+														onPress: (): void => {
+															raceList[raceIndex].events[eventIndex].checker_bibs = [];
+															raceList[raceIndex].events[eventIndex].bib_nums = [];
+															raceList[raceIndex].events[eventIndex].finish_times = [];
+															raceList[raceIndex].events[eventIndex].real_start_time = -1;
+															AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+															navigation.navigate("ModeScreen");
+														}
+													}
+												]
+											);
+										}
+									}
+								]);
+						}
 					}
 
 					// Get latest data
 					if (raceList[raceIndex].events[eventIndex].finish_times.length > 0) {
 						updateFinishTimes(raceList[raceIndex].events[eventIndex].finish_times);
 						updateCheckerBibs(raceList[raceIndex].events[eventIndex].checker_bibs);
+
+						if (!alertShown) {
+							// Alert user of data recovery
+							Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
+						}
 					}
 				}
 			}
@@ -272,12 +320,59 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					if (prevStart !== null && prevStart !== -1) {
 						setTimerOn(true);
 						startTime.current = prevStart;
+
+						// Show Unsupported Time alert
+						alertShown = (Date.now() - startTime.current) > MAX_TIME;
+						if (alertShown) {
+							Alert.alert(
+								"Unsupported Time", 
+								`This event has been recorded for over ${GetClockTime(MAX_TIME)}, which is the maximum time supported. You can:\na) Dismiss this alert and tap the timer to adjust the start time if you have not yet recorded any finish times\nb) Dismiss this alert and save the times you have already recorded\nc) Completely reset this event (all data will be lost)`,
+								[
+									{
+										text: "Dismiss",
+										style: "cancel"
+									},
+									{
+										text: "Confirm Reset",
+										style: "destructive",
+										onPress: (): void => {
+											Alert.alert(
+												"Are You Sure?",
+												"Are you sure you want to reset this event? All data will be lost (finish times & bib numbers). Careful! This cannot be undone.",
+												[
+													{
+														text: "Cancel",
+														style: "cancel"
+													},
+													{
+														text: "Reset",
+														style: "destructive",
+														onPress: (): void => {
+															eventList[eventIndex].checker_bibs = [];
+															eventList[eventIndex].bib_nums = [];
+															eventList[eventIndex].finish_times = [];
+															eventList[eventIndex].real_start_time = -1;
+															AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+															navigation.navigate("ModeScreen");
+														}
+													}
+												]
+											);
+										}
+									}
+								]);
+						}
 					}
 
 					// Get latest data
 					if (eventList[eventIndex].finish_times.length > 0) {
 						updateFinishTimes(eventList[eventIndex].finish_times);
 						updateCheckerBibs(eventList[eventIndex].checker_bibs);
+
+						if (!alertShown) {
+							// Alert user of data recovery
+							Alert.alert("Data Recovered", "You left Finish Line Mode without saving. Your data has been restored. Tap the save icon when you are done recording data.");
+						}
 					}
 				}
 			}
@@ -394,6 +489,8 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	/** Start Timer */
 	const startTimer = useCallback(async (newTime?: number) => {
 		const time = newTime ? newTime : Date.now();
+		// To test MAX_TIME rollover -> 
+		// startTime.current = time - 359990000;
 		startTime.current = time;
 
 		setTimerOn(true);
@@ -411,18 +508,56 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				loadRSUBibs(false, false);
 			}
 		}, BibRefreshRate);
+
 	}, [gridView, loadRSUBibs, updateStartTime]);
 
+	/** Reset Timer */
+	const resetTimer = async (): Promise<void> => {
+		setDisplayTime(0);
+		setTimerOn(false);
+		if (timerInterval.current)
+			clearInterval(timerInterval.current);
+
+		// Reset real_start_time in AsyncStorage
+		if (context.appMode === "Online" || context.appMode === "Backup") {
+			// Online Functionality
+			let [raceList, raceIndex, eventIndex] = DefaultEventData;
+			if (context.appMode === "Online") {
+				[raceList, raceIndex, eventIndex] = await GetLocalRaceEvent(context.raceID, context.eventID);
+			} else {
+				[raceList, raceIndex, eventIndex] = await GetBackupEvent(context.raceID, context.eventID);
+			}
+
+			if (raceIndex >= 0 && eventIndex >= 0) {
+				raceList[raceIndex].events[eventIndex].real_start_time = -1;
+				if (context.appMode === "Online") {
+					await AsyncStorage.setItem("onlineRaces", JSON.stringify(raceList));
+				} else {
+					await AsyncStorage.setItem("backupRaces", JSON.stringify(raceList));
+				}
+			}
+		} else {
+			// Offline Functionality
+			const [eventList, eventIndex] = await GetOfflineEvent(context.time);
+			if (eventIndex >= 0) {
+				eventList[eventIndex].real_start_time = -1;
+				await AsyncStorage.setItem("offlineEvents", JSON.stringify(eventList));
+			}
+		}
+		
+		setStartTimeAlertVisible(false);
+	};
+
 	/** Add a time to the finish times */
-	const recordTime = useCallback((bib?: number) => {
+	const recordTime = useCallback((enterKey: boolean, bib?: number) => {
 		// Race hasn't started yet
 		if (startTime.current === -1) {
 			Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 		} else if (Date.now() - startTime.current > MAX_TIME) {
 			Alert.alert("Record Error", "You have recorded a time that is too large.");
 		} else {
-			finishTimesRef.current.push(Date.now() - startTime.current);
 			if (gridView) {
+				finishTimesRef.current.push(Date.now() - startTime.current);
 				if (bib) {
 					// Clear old bib if it exists
 					const oldBibIndex = checkerBibsRef.current.indexOf(bib);
@@ -436,17 +571,29 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				updateCheckerBibs(checkerBibsRef.current);
 			} else {
 				if (!bibText) {
+					finishTimesRef.current.push(Date.now() - startTime.current);
 					checkerBibsRef.current.push(0);
 					updateCheckerBibs([...checkerBibsRef.current]);
-				} else {
-					checkerBibsRef.current.push(parseInt(bibText));
-					updateCheckerBibs([...checkerBibsRef.current]);
 					setBibText("");
+				} else {
+					if (isNaN(parseInt(bibText))) {
+						Alert.alert("Invalid Bib Number", "You have not entered a valid bib number. Please try again.");
+					} else {
+						finishTimesRef.current.push(Date.now() - startTime.current);
+						checkerBibsRef.current.push(parseInt(bibText));
+						updateCheckerBibs([...checkerBibsRef.current]);
+						setBibText("");
+					}
 				}
 			}
 			const flatListRefCurrent = flatListRef.current;
 			if (flatListRefCurrent !== null) {
 				setTimeout(() => { flatListRefCurrent.scrollToOffset({ animated: false, offset: TABLE_ITEM_HEIGHT * finishTimesRef.current.length }); }, 100);
+			}
+
+			// Refocus Bib Input if enter key pressed on physical keyboard
+			if (enterKey) {
+				setTimeout(() => { bibInputRef.current?.focus(); }, 100);
 			}
 		}
 	}, [bibText, gridView, updateCheckerBibs]);
@@ -459,9 +606,9 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					style={{ 
 						flexDirection: "row", 
 						alignItems: "center", 
-						width: timerOn ? (context.appMode === "Offline" ? undefined : (gridView ? 130 : 94)) : (gridView ? 60 : undefined), 
-						justifyContent: timerOn || gridView ? "space-between" : "flex-end", 
-						marginRight: timerOn ? 0 : 15,
+						width: timerOn ? (context.appMode === "Offline" ? undefined : (gridView ? 100 : 62)) : (gridView ? 60 : undefined), 
+						justifyContent: "space-between", 
+						marginRight: 15,
 					}} >
 					{gridView ?
 						<TouchableOpacity onPress={async (): Promise<void> => { await loadRSUBibs(true, true); }}>
@@ -495,7 +642,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 					{timerOn ? <TouchableOpacity onPress={(): void => {
 						CheckEntries(context.raceID, context.eventID, context.appMode, context.time, finishTimesRef, checkerBibsRef, setLoading, navigation);
 					}}>
-						<Text style={globalstyles.headerButtonText}>Save</Text>
+						<Icon name={"floppy-disk"} size={22} color={WHITE_COLOR} />
 					</TouchableOpacity> : null}
 				</View>
 			),
@@ -546,7 +693,17 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 	}, [recordTime, timerOn]);
 
 	return (
-		<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+		<TouchableWithoutFeedback
+			onPress={(event): void => {
+				// Keyboard Enter Press
+				if ("_dispatchListeners" in event && (event as any)._dispatchListeners?.toString().includes("onClick")) {
+					bibInputRef.current?.focus();
+				// Finger Touch
+				} else {
+					Keyboard.dismiss();
+				}
+			}}
+			accessible={false}>
 			<KeyboardAvoidingView
 				style={globalstyles.tableContainer}
 				behavior={Platform.OS == "ios" ? "padding" : undefined}
@@ -562,7 +719,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						activeOpacity={finishTimesRef.current.length < 1 ? 0.5 : 1}
 						style={[globalstyles.timerView, { backgroundColor: timerOn ? LIGHT_GREEN_COLOR : LIGHT_GRAY_COLOR }]}>
 						<Text style={{ fontSize: BIG_FONT_SIZE, fontFamily: "RobotoMono", color: timerOn ? BLACK_COLOR : GRAY_COLOR }}>
-							{(startTime.current !== -1 && Date.now() - startTime.current > MAX_TIME) ? "Too Large" : GetClockTime(displayTime)}
+							{(Date.now() - startTime.current >= MAX_TIME && timerOn) ? "TOO LARGE" : GetClockTime(displayTime)}
 						</Text>
 					</TouchableOpacity>
 
@@ -570,7 +727,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 						<TouchableOpacity
 							onPress={(): void => {
 								if (timerOn) {
-									recordTime();
+									recordTime(false);
 								} else {
 									startTimer();
 								}
@@ -592,7 +749,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								placeholder="Bib Entry"
 								placeholderTextColor={GRAY_COLOR}
 								keyboardType="number-pad"
-								onSubmitEditing={bibText !== "" ? (): void => { recordTime(); } : undefined}
+								onSubmitEditing={bibText !== "" ? (): void => { recordTime(true); } : undefined}
 							/>
 							:
 							<TouchableOpacity
@@ -674,7 +831,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 								<MainButton
 									onPress={(): void => {
 										if (timerOn) {
-											recordTime();
+											recordTime(false);
 										} else {
 											Alert.alert("Record Error", "You have not started the race. Please press \"Start Timer\" and try again.");
 										}
@@ -690,7 +847,7 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 				{/* Change Start Time Alert */}
 				<TextInputAlert
 					title={"Change Start Time"}
-					message={`${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "This event was started more than 24 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\n${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
+					message={`${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "This event was started more than 99 hours ago.\nYou can change the start date for this event to today and choose a new start time." : "Change the start time for this event."} \nTap AM / PM to toggle between day and night.\nYou can also reset the start time.\n${startTime.current >= 0 && Date.now() - startTime.current > MAX_TIME ? "\nNew ": ""}Start Date: ${(startTime.current < 0 || (Date.now() - startTime.current > MAX_TIME)) ? new Date().toLocaleDateString() : new Date(startTime.current).toLocaleDateString()}`}
 					type={"timeofday"}
 					keyboardType={"number-pad"}
 					visible={startTimeAlertVisible}
@@ -709,9 +866,27 @@ export default function FinishLineModeScreen({ navigation }: Props): React.React
 							Alert.alert("You cannot select a start time in the future.");
 						}
 
-					}} cancelOnPress={(): void => {
+					}} 
+					cancelOnPress={(): void => {
 						setStartTimeAlertVisible(false);
-					}}
+					}} 
+					resetOnPress={timerOn ? (): void => {
+						Alert.alert(
+							"Are You Sure?",
+							"Are you sure you want to reset the timer?",
+							[
+								{
+									text: "Cancel",
+									style: "cancel"
+								},
+								{
+									text: "Reset",
+									style: "destructive",
+									onPress: resetTimer
+								}
+							]
+						);
+					} : undefined}
 				/>
 
 				{/* Bib Edit Alert */}
