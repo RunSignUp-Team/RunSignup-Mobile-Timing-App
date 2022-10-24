@@ -19,6 +19,17 @@ public class MainActivity extends ReactActivity {
     super.onCreate(null);
   }
 
+  @Override
+  public void onNewIntent(Intent intent) {
+    //on chromeOS, app links get created with the action "org.chromium.arc.intent.action.VIEW" instead of "android.intent.action.VIEW".
+    //Change the action to the correct thing that RN is expecting.
+    if(intent.getAction().equals("org.chromium.arc.intent.action.VIEW")){
+      super.onNewIntent(new Intent(intent).setAction(Intent.ACTION_VIEW));
+    } else {
+      super.onNewIntent(intent);
+    }
+  }
+
   /**
    * Returns the name of the main component registered from JavaScript.
    * This is used to schedule rendering of the component.
