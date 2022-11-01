@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mobile Timing",
     "slug": "rdtiming",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "primaryColor": "#00AC65",
@@ -20,12 +20,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.runsignup.rdtiming",
-      "buildNumber": "4"
+      "buildNumber": "1"
     },
     "android": {
       "icon": "./src/assets/icon.png",
       "package": "com.runsignup.rdtiming",
-      "versionCode": 20
+      "versionCode": 22
     },
     "extra": {
       "bugsnag": {

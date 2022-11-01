@@ -1,5 +1,7 @@
 package com.runsignup.rdtiming;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -17,6 +19,17 @@ public class MainActivity extends ReactActivity {
     // This is required for expo-splash-screen.
     setTheme(R.style.AppTheme);
     super.onCreate(null);
+  }
+
+  @Override
+  public void onNewIntent(Intent intent) {
+    //on chromeOS, app links get created with the action "org.chromium.arc.intent.action.VIEW" instead of "android.intent.action.VIEW".
+    //Change the action to the correct thing that RN is expecting.
+    if(intent.getAction().equals("org.chromium.arc.intent.action.VIEW")){
+      super.onNewIntent(new Intent(intent).setAction(Intent.ACTION_VIEW));
+    } else {
+      super.onNewIntent(intent);
+    }
   }
 
   /**
