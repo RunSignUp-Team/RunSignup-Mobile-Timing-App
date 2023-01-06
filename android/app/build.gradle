@@ -132,7 +132,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.runsignup.rdtiming'
+        applicationId '<NEED_APP_ID>'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 22

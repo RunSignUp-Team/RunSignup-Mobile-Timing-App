@@ -19,12 +19,12 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.runsignup.rdtiming",
+      "bundleIdentifier": "<NEED_APP_ID>",
       "buildNumber": "1"
     },
     "android": {
       "icon": "./src/assets/icon.png",
-      "package": "com.runsignup.rdtiming",
+      "package": "<NEED_APP_ID>",
       "versionCode": 22
     },
     "extra": {

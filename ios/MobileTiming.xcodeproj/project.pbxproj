@@ -320,7 +320,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.runsignup.rdtiming;
+				PRODUCT_BUNDLE_IDENTIFIER = <NEED_APP_ID>;
 				PRODUCT_NAME = "MobileTiming";
 				SWIFT_OBJC_BRIDGING_HEADER = "MobileTiming/MobileTiming-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -346,7 +346,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.runsignup.rdtiming;
+				PRODUCT_BUNDLE_IDENTIFIER = <NEED_APP_ID>;
 				PRODUCT_NAME = "MobileTiming";
 				SWIFT_OBJC_BRIDGING_HEADER = "MobileTiming/MobileTiming-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

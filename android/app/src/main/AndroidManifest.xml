@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.runsignup.rdtiming">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="<NEED_APP_ID>">
   <uses-permission android:name="android.permission.CAMERA"/>
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
@@ -32,7 +32,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="com.rsu.mobile-timing-app"/>
-        <data android:scheme="com.runsignup.rdtiming"/>
+        <data android:scheme="<NEED_APP_ID>"/>
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity"/>
