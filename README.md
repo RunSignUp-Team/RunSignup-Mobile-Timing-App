@@ -11,13 +11,13 @@ This app allows users to record race results on their mobile devices. Finish Lin
 ## Running The Project
 1. Clone this project
 2. Download nodeJS if you have not already (https://nodejs.org/en/)
-NOTE:  We have left a placeholder NEED_APP_ID throughout the code.  You will need to decide the Apple and Android APP_ID for your usage of this app (e.g. com.company.appname) and update the code for that setting.   Search and replace NEED_APP_ID with your app id.  In addition the Android Java namespaces and folder structure (packages) will need to be adjusted for that new com.company.appname pathing).
-3. Run `npm install` in Terminal
-4. Run `npm install expo-cli` in Terminal
-5. Follow the instructions at these links to run an iOS or Android emulator on your computer.
+3. NOTE:  We have left a placeholder NEED_APP_ID throughout the code.  You will need to decide the Apple and Android APP_ID for your usage of this app (e.g. com.company.appname) and update the code for that setting.   Search and replace NEED_APP_ID with your app id.  In addition the Android Java namespaces and folder structure (packages) will need to be adjusted for that new com.company.appname pathing).
+4. Run `npm install` in Terminal
+5. Run `npm install expo-cli` in Terminal
+6. Follow the instructions at these links to run an iOS or Android emulator on your computer.
     - Android emulator (https://docs.expo.dev/workflow/android-studio-emulator/)
     - iOS simulator (https://docs.expo.dev/workflow/ios-simulator/ -- a Mac is required)
-6. Run `expo run:android` or `expo run:ios` in Terminal (do _not_ use the Expo Go app)
+7. Run `expo run:android` or `expo run:ios` in Terminal (do _not_ use the Expo Go app)
 
 ## Images
 **App Flows**
