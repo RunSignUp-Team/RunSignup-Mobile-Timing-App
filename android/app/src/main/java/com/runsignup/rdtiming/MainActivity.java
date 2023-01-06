@@ -1,4 +1,4 @@
-package com.runsignup.rdtiming;
+// package <NEED_APP_ID>;
 
 import android.content.Intent;
 import android.net.Uri;
