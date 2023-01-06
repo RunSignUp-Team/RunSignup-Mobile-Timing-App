@@ -11,7 +11,7 @@ This app allows users to record race results on their mobile devices. Finish Lin
 ## Running The Project
 1. Clone this project
 2. Download nodeJS if you have not already (https://nodejs.org/en/)
-3. NOTE:  We have left a placeholder NEED_APP_ID throughout the code.  You will need to decide the Apple and Android APP_ID for your usage of this app (e.g. com.company.appname) and update the code for that setting.   Search and replace NEED_APP_ID with your app id.  In addition the Android Java namespaces and folder structure (packages) will need to be adjusted for that new com.company.appname pathing).
+3. NOTE:  We have left a placeholder NEED_APP_ID throughout the code.  You will need to decide the Apple and Android APP_ID for your usage of this app (e.g. com.company.appname) and update the code for that setting.   Search and replace NEED_APP_ID with your app id.  In addition the Android Java namespaces and folder structure (packages) will need to be adjusted for that new com.company.appname pathing.
 4. Run `npm install` in Terminal
 5. Run `npm install expo-cli` in Terminal
 6. Follow the instructions at these links to run an iOS or Android emulator on your computer.
